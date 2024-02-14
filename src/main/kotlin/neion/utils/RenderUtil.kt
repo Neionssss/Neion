@@ -38,7 +38,6 @@ object RenderUtil {
 
     private val tessellator = Tessellator.getInstance()
     private val worldRenderer = tessellator.worldRenderer
-    private val mapIcons = ResourceLocation("funnymap", "marker.png")
 
     infix fun Slot.highlight(color: Color) {
         GlStateManager.disableLighting()
@@ -474,7 +473,7 @@ object RenderUtil {
             if (FMConfig.mapVanillaMarker && (player.isPlayer || name == mc.thePlayer.name)) {
                 GlStateManager.rotate(180f, 0f, 0f, 1f)
                 GlStateManager.color(1f, 1f, 1f, 1f)
-                mc.textureManager.bindTexture(mapIcons)
+                mc.textureManager.bindTexture(ResourceLocation("funnymap", "marker.png"))
                 worldRenderer.begin(7, DefaultVertexFormats.POSITION_TEX)
                 worldRenderer.pos(-6.0, 6.0, 0.0).tex(0.0, 0.0).endVertex()
                 worldRenderer.pos(6.0, 6.0, 0.0).tex(1.0, 0.0).endVertex()

@@ -18,6 +18,8 @@ out
 build
 .gradle
 backup
+gradlew
+gradlew.bat
 
 # other
 eclipse
