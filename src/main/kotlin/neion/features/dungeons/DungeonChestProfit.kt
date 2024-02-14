@@ -54,15 +54,12 @@ object DungeonChestProfit {
         if (!Config.chestOpener || !inBoss) return
         mc.theWorld?.loadedEntityList?.filter {
             it is EntityArmorStand &&
-                    it.getEquipmentInSlot(0)?.item.equalsOneOf(
+                    it.getEquipmentInSlot(4)?.item.equalsOneOf(
                         ItemBlock.getItemFromBlock(Blocks.wooden_slab),
                         ItemBlock.getItemFromBlock(Blocks.stone_slab)
                     ) && mc.thePlayer.getDistanceToEntity(it) < 30
         }?.forEach {
-            if (mc.thePlayer.openContainer as? ContainerChest == null && System.currentTimeMillis() - timeWait > 10 && !noobmen.contains(
-                    it
-                )
-            ) {
+            if (mc.thePlayer.openContainer as? ContainerChest == null && System.currentTimeMillis() - timeWait > 10 && !noobmen.contains(it)) {
                 mc.playerController.interactWithEntitySendPacket(mc.thePlayer, it)
                 noobmen.add(it)
                 timeWait = System.currentTimeMillis()
