@@ -9,7 +9,7 @@ import cc.polyfrost.oneconfig.config.data.Mod
 import cc.polyfrost.oneconfig.config.data.ModType
 import cc.polyfrost.oneconfig.libs.universal.UKeyboard
 
-object FMConfig : Config(Mod("FunnyMap", ModType.SKYBLOCK), "fmap-config.json") {
+object FMConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") {
 
     @Switch(
         name = "Map Enabled",
