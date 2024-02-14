@@ -24,8 +24,11 @@ object SimonSaysSolver {
         for (y in 120..123) {
             for (z in 92..95) {
                 val pos = BlockPos(111, y, z)
-                if (mc.theWorld.getBlockState(pos).block == Blocks.sea_lantern && !clickInOrder.contains(pos)) clickInOrder.add(pos)
-                else if (mc.theWorld.getBlockState(BlockPos(110,y,z)).block == Blocks.air) clickInOrder.clear()
+                if (mc.theWorld.getBlockState(pos).block == Blocks.sea_lantern) clickInOrder.add(pos)
+                else if (mc.theWorld.getBlockState(BlockPos(110, y, z)).block == Blocks.air && !cleared) {
+                    clickInOrder.clear()
+                    cleared = true
+                }
             }
         }
     }
@@ -38,8 +41,8 @@ object SimonSaysSolver {
         val y = pos.y
         val z = pos.z
         if (x == 110 && y == 121 && z == 91) clickInOrder.clear()
-        if (mc.theWorld.getBlockState(BlockPos(x,y,z)).block != Blocks.stone_button) return
-        val pose = BlockPos(x+1,y,z)
+        if (mc.theWorld.getBlockState(BlockPos(x, y, z)).block != Blocks.stone_button) return
+        val pose = BlockPos(x + 1, y, z)
         if (clickInOrder.contains(pose)) clickInOrder.remove(pose) else if (!mc.thePlayer.isSneaking) e.isCanceled = true
     }
 
@@ -51,7 +54,7 @@ object SimonSaysSolver {
             val x = click.x - mc.renderManager.viewerPosX
             val y = click.y - mc.renderManager.viewerPosY + .372
             val z = click.z - mc.renderManager.viewerPosZ + .308
-            RenderUtil.drawFilledAABB(AxisAlignedBB(x,y,z, x - .13, y + .26, z + .382), color)
+            RenderUtil.drawFilledAABB(AxisAlignedBB(x, y, z, x - .13, y + .26, z + .382), color)
         }
     }
 }
