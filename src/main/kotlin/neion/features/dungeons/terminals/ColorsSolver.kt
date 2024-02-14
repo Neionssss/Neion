@@ -11,6 +11,7 @@ import net.minecraft.inventory.ContainerChest
 import net.minecraft.inventory.Slot
 import net.minecraft.item.EnumDyeColor
 import net.minecraft.item.ItemBlock
+import net.minecraftforge.client.event.GuiOpenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
 object ColorsSolver {
@@ -19,7 +20,12 @@ object ColorsSolver {
     val shouldClick = mutableListOf<Slot>()
 
     @SubscribeEvent
-    fun onBackgroundDrawn(e: GuiContainerEvent.BackgroundDrawnEvent) {
+    fun onGuiOpen(e: GuiOpenEvent) {
+        shouldClick.clear()
+    }
+
+    @SubscribeEvent
+    fun onSlotdrraaww(e: GuiContainerEvent.DrawSlotEvent) {
         if (!Config.colorsSolver || dungeonFloor != 7 || e.container !is ContainerChest || !e.chestName.contains(TerminalFeatures.termNames[4])) return
         for (slot in e.container.inventorySlots) {
             val promptColor = EnumDyeColor.entries.find { e.chestName.contains(it.getName().replace("_", " ").uppercase()) }?.unlocalizedName ?: return

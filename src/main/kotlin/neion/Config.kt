@@ -48,12 +48,6 @@ object Config : Config(Mod("Neion", ModType.SKYBLOCK), "neion-config.json") {
     var priceTooltip = false
 
     @Switch(
-        name = "Automatic Sprint",
-        description = "Makes you sprint without any effort!",
-    )
-    var ToggleSprint = false
-
-    @Switch(
         name = "Random things",
     )
     var randomStuff = false
@@ -73,6 +67,29 @@ object Config : Config(Mod("Neion", ModType.SKYBLOCK), "neion-config.json") {
         name = "No hurt cam",
     )
     var hurtCamIntensity = false
+
+
+    @Switch(
+            name = "Jasper Scanner",
+            category = "Other",
+            subcategory = "Gemstone"
+    )
+    var JasperESP = false
+
+    @Switch(
+            name = "Chest ESP",
+            subcategory = "Gemstone"
+    )
+    var chestESP = false
+
+    @Slider(
+            name = "Scan Range",
+            description = "Range for scanning (blocks)",
+            subcategory = "Gemstone",
+            min = 512F,
+            max = 1024F
+    )
+    var JasperESPRange = 512
 
     // Keybindings
     @KeyBind(name = "gui", subcategory = "Keybindings")
@@ -140,13 +157,6 @@ object Config : Config(Mod("Neion", ModType.SKYBLOCK), "neion-config.json") {
         category = "Dungeons"
     )
     var fakeHaste = false
-
-    @Switch(
-        name = "Disable Blindness",
-        description = "No one knows, that it's actually Blindness and confusion",
-        category = "Dungeons"
-    )
-    var disableBlind = false
 
     //
 
@@ -420,6 +430,18 @@ object Config : Config(Mod("Neion", ModType.SKYBLOCK), "neion-config.json") {
 
 
     @Switch(
+            name = "Automatic Sprint",
+            category = "Other",
+    )
+    var ToggleSprint = false
+
+    @Switch(
+            name = "Disable Blindness",
+            category = "Other"
+    )
+    var disableBlind = false
+
+    @Switch(
         name = "Funny Items",
         category = "Other"
     )
@@ -480,30 +502,6 @@ object Config : Config(Mod("Neion", ModType.SKYBLOCK), "neion-config.json") {
         subcategory = "Camera"
     )
     var cameraClip = false
-
-    @Switch(
-        name = "Jasper Scanner",
-        category = "Other",
-        subcategory = "Gemstone"
-    )
-    var JasperESP = false
-
-    @Switch(
-        name = "Chest ESP",
-        category = "Other",
-        subcategory = "Gemstone"
-    )
-    var chestESP = false
-
-    @Slider(
-        name = "Scan Range",
-        description = "Range for scanning (blocks)",
-        category = "Other",
-        subcategory = "Gemstone",
-        min = 512F,
-        max = 1024F
-    )
-    var JasperESPRange = 512
 
     @Switch(
         name = "Player ESP",
@@ -783,13 +781,30 @@ object Config : Config(Mod("Neion", ModType.SKYBLOCK), "neion-config.json") {
     var manaScale = 1f
 
     fun init() {
+        fun hide(option: String?) {
+            if (optionNames.containsKey(option)) optionNames[option]!!.addHideCondition { true }
+        }
         initialize()
         addDependency("autoCroesus", "croesus")
         addDependency("showKeyChests", "croesus")
         addDependency("blazeLines", "lineToNextBlaze")
         addDependency("blazeLines", "blazeSolver")
         addDependency("lineToNextBlaze", "blazeSolver")
+        hide("manaScale")
+        hide("manaY")
+        hide("manaX")
+        hide("timeScale")
+        hide("timeY")
+        hide("timeX")
+        hide("clearedScale")
+        hide("clearedY")
+        hide("clearedX")
+        hide("secretsScale")
+        hide("yY")
+        hide("xY")
+        hide("scale")
+        hide("x")
+        hide("y")
     }
-
 }
 

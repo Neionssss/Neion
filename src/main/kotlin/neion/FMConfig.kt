@@ -543,4 +543,14 @@ object FMConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") 
         category = "Debug"
     )
     var paulBonus = false
+
+    fun init() {
+        fun hide(option: String?) {
+            if (optionNames.containsKey(option)) optionNames[option]!!.addHideCondition { true }
+        }
+        initialize()
+        hide("scoreX")
+        hide("scoreY")
+        hide("scoreScale")
+    }
 }

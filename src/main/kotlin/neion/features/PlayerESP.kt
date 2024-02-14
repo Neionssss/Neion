@@ -12,6 +12,7 @@ import neion.utils.RenderUtil
 import net.minecraft.client.entity.EntityOtherPlayerMP
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.EntityLivingBase
+import net.minecraft.scoreboard.ScorePlayerTeam
 import net.minecraft.scoreboard.Team
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import org.lwjgl.opengl.GL11
@@ -23,7 +24,7 @@ object PlayerESP {
     fun fucknedbr(e: RenderLivingEntityEvent) {
         if (!Config.playerESP) return
         val entity = e.entity as? EntityOtherPlayerMP ?: return
-        if (entity.team?.nameTagVisibility == Team.EnumVisible.NEVER || entity.name == mc.thePlayer.name) return
+        if ((entity.team as? ScorePlayerTeam)?.nameTagVisibility == Team.EnumVisible.NEVER || entity.name == mc.thePlayer.name) return
         RenderUtil.outlineESP(e, Color.red)
     }
 
@@ -32,7 +33,7 @@ object PlayerESP {
     fun onRender3D(e: Render3DEvent) {
         if (!Config.playerESP) return
         mc.theWorld?.playerEntities?.forEach {
-            if (it.team?.nameTagVisibility == Team.EnumVisible.NEVER || (Config.freeCam || Config.showOwnName && it.name == mc.thePlayer.name)) return@forEach
+            if ((it?.team as? ScorePlayerTeam)?.nameTagVisibility == Team.EnumVisible.NEVER || (Config.freeCam || Config.showOwnName && it.name == mc.thePlayer.name)) return
             GL11.glPushAttrib(GL11.GL_ENABLE_BIT)
             GL11.glPushMatrix()
             // Disable lightning and depth test

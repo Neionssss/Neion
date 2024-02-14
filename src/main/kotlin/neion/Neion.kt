@@ -32,7 +32,7 @@ class Neion {
     @Mod.EventHandler
     fun init(e: FMLInitializationEvent) {
         Config.init()
-        FMConfig.initialize()
+        FMConfig.init()
         listOf(
             this,
             RandomStuff,

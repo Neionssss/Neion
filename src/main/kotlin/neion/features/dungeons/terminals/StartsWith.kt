@@ -8,6 +8,7 @@ import neion.utils.Location.dungeonFloor
 import neion.utils.RenderUtil.highlight
 import net.minecraft.inventory.ContainerChest
 import net.minecraft.inventory.Slot
+import net.minecraftforge.client.event.GuiOpenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
 object StartsWith {
@@ -15,17 +16,21 @@ object StartsWith {
     @JvmField
     val shouldClick = mutableListOf<Slot>()
 
+    @SubscribeEvent
+    fun onGuiOpen(e: GuiOpenEvent) {
+        shouldClick.clear()
+    }
 
     // Couldn't find continue of this :(
     // https://i.imgur.com/7YTH3PY.png
     @SubscribeEvent
-    fun onBackgroundDrawn(e: GuiContainerEvent.BackgroundDrawnEvent) {
+    fun sssssloot(e: GuiContainerEvent.DrawSlotEvent) {
         if (!Config.startsWithSolver || dungeonFloor != 7 || e.container !is ContainerChest || !e.chestName.contains(TerminalFeatures.termNames[3])) return
         for (slot in e.container.inventorySlots) {
             val stack = slot.stack ?: return
             val titler = Regex("^What starts with: ['\"](.+)['\"]\\?$").find(e.chestName) ?: return
             if (slot == mc.thePlayer.inventory) continue
-            if (stack.cleanName().startsWith(titler.groupValues[1]) && slot.hasStack && !stack.isItemEnchanted) {
+            if (stack.cleanName().startsWith(titler.groupValues[1]) && !stack.isItemEnchanted) {
                 slot highlight Config.terminalColor.toJavaColor()
                 shouldClick.add(slot)
             } else e.isCanceled = true

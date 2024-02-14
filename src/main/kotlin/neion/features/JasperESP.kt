@@ -19,6 +19,7 @@ import java.awt.Color
 object JasperESP {
 
     var scanning = false
+    var stopped = false
     var espModeMap = HashSet<BlockPos>()
 
     // https://i.imgur.com/7LYblVE.png
@@ -33,7 +34,7 @@ object JasperESP {
             ).filter { mc.theWorld.getBlockState(it).block.equalsOneOf(Blocks.stained_glass_pane, Blocks.stained_glass) && (mc.theWorld.getBlockState(it).getValue(BlockStainedGlass.COLOR) == EnumDyeColor.MAGENTA || mc.theWorld.getBlockState(it).getValue(BlockStainedGlassPane.COLOR) == EnumDyeColor.MAGENTA)
             }.forEach { espModeMap.add(it) }
             mc.thePlayer.playSound("random.pop", 1f, 5f)
-            scanning = false
+            if (!stopped) scanning = false
         }.start()
     }
 

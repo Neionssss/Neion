@@ -94,7 +94,7 @@ object RandomStuff {
     // https://github.com/Harry282/Skyblock-Client/blob/main/src/main/kotlin/skyblockclient/features/AntiBlind.kt
     @SubscribeEvent
     fun onRenderFog(event: EntityViewRenderEvent.FogDensity) {
-        if (!Config.disableBlind || !inSkyblock) return
+        if (!Config.disableBlind) return
         event.density = 0f
         GlStateManager.setFogStart(998f)
         GlStateManager.setFogEnd(999f)
@@ -184,6 +184,7 @@ object RandomStuff {
         BlazeSolver.blist.clear()
         MurderHelper.wrote = false
         JasperESP.espModeMap.clear()
+        JasperESP.stopped = false
         DungeonChestProfit.canOpen = false
         DungeonChestProfit.noobmen.clear()
         SimonSaysSolver.clickInOrder.clear()

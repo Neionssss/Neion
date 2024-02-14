@@ -2,6 +2,7 @@ package neion.commands
 
 import neion.Config
 import neion.Neion
+import neion.features.JasperESP
 import neion.features.RandomStuff
 import neion.funnymap.map.ScanUtils
 import neion.ui.Configurator
@@ -11,7 +12,7 @@ import net.minecraft.command.ICommandSender
 import net.minecraft.util.BlockPos
 
 object Neionssss: BaseCommand("neion", listOf("nn")) {
-    private val commands = listOf("edit", "bzsell")
+    private val commands = listOf("loadConfig", "editGUI", "bzsell", "stopScan", "restartScan")
     private val validNames = listOf(
         "spirit_leap",
         "superboom_tnt",
@@ -25,11 +26,16 @@ object Neionssss: BaseCommand("neion", listOf("nn")) {
             return
         }
         when (args[0]) {
-            "edit" -> Neion.display = EditLocationGui()
+            "editGUI" -> Neion.display = EditLocationGui()
             "bzsell" -> RandomStuff.onSell()
             "loadConfig" -> {
                 ScanUtils.loadExtras()
                 Configurator.loadData()
+            }
+            "stopScan" -> JasperESP.stopped = true
+            "restartScan" -> {
+                JasperESP.stopped = false
+                JasperESP.scanning = false
             }
         }
     }
