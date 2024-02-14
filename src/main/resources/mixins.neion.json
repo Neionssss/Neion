@@ -1,0 +1,28 @@
+{
+  "compatibilityLevel": "JAVA_8",
+  "minVersion": "0.7",
+  "package": "neion.mixins",
+  "refmap": "${modname}-refmap.json",
+  "client": [
+    "GuiIngameMixin",
+    "HideTabPingMixin",
+    "logMixin",
+    "MinecraftAccessor",
+    "MixinBossStatus",
+    "MixinEntityPlayerSP",
+    "MixinEntityRenderer",
+    "MixinGuiContainer",
+    "MixinItem",
+    "MixinMinecraft",
+    "MixinNetworkManager",
+    "MixinRender",
+    "MixinRendererLivingEntity",
+    "THATSMYMIXIN"
+  ],
+  "mixins": [
+    "MixinItemArmor",
+    "MixinLivingEntity",
+    "MixinModList",
+    "PatcherEntityCullingMixin"
+  ]
+}

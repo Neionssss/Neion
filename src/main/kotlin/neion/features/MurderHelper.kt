@@ -68,7 +68,7 @@ object MurderHelper {
         if (!Config.murderHelper || !Utils.inMurderMystery()) return
         val entity = e.entity
         (entity as? EntityItem)?.let { RenderUtil.drawEntityBox(it, Color.yellow, true, false, true) }
-        if (entity is EntityArmorStand && entity.inventory?.get(0)?.item == Items.bow) RenderUtil.drawEntityBox(
+        if (entity is EntityArmorStand && entity.getEquipmentInSlot(4).item == Items.bow) RenderUtil.drawEntityBox(
             entity,
             Color.orange,
             true,

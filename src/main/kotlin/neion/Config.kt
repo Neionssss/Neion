@@ -268,7 +268,7 @@ object Config : Config(Mod("Neion", ModType.SKYBLOCK), "neion-config.json") {
         category = "Dungeons",
         subcategory = "ESP"
     )
-    var itemColor = OneColor(10, 15, 10)
+    var itemColor = OneColor(10, 15, 50)
 
     @Slider(
         name = "ESP outline width",

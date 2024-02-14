@@ -39,6 +39,23 @@ object RenderUtil {
     private val tessellator = Tessellator.getInstance()
     private val worldRenderer = tessellator.worldRenderer
 
+
+    fun Entity.getInterpolatedPosition(): Triple<Double, Double, Double> {
+        return Triple(
+                this.lastTickPosX + (this.posX - this.lastTickPosX) * pticks(),
+                this.lastTickPosY + (this.posY - this.lastTickPosY) * pticks(),
+                this.lastTickPosZ + (this.posZ - this.lastTickPosZ) * pticks()
+        )
+    }
+
+    fun Entity.getExtraInterPos(): Triple<Double,Double,Double> {
+        return Triple(
+                this.lastTickPosX + (this.posX - this.lastTickPosX) * pticks() - mc.renderManager.viewerPosX,
+                this.lastTickPosY + (this.posY - this.lastTickPosY) * pticks() - mc.renderManager.viewerPosY,
+                this.lastTickPosZ + (this.posZ - this.lastTickPosZ) * pticks() - mc.renderManager.viewerPosZ
+        )
+    }
+
     infix fun Slot.highlight(color: Color) {
         GlStateManager.disableLighting()
         Gui.drawRect(
@@ -84,14 +101,6 @@ object RenderUtil {
         glDepthMask(true)
         glPopAttrib()
         glPopMatrix()
-    }
-
-    fun Entity.getExtraInterPos(): Triple<Double,Double,Double> {
-        return Triple(
-             this.lastTickPosX + (this.posX - this.lastTickPosX) * pticks() - mc.renderManager.viewerPosX,
-          this.lastTickPosY + (this.posY - this.lastTickPosY) * pticks() - mc.renderManager.viewerPosY,
-            this.lastTickPosZ + (this.posZ - this.lastTickPosZ) * pticks() - mc.renderManager.viewerPosZ
-        )
     }
 
     /**
@@ -419,14 +428,6 @@ object RenderUtil {
         worldRenderer.pos(x + width, y, 0.0).tex(1.0, 0.0).endVertex()
         worldRenderer.pos(x, y, 0.0).tex(0.0, 0.0).endVertex()
         tessellator.draw()
-    }
-
-    fun Entity.getInterpolatedPosition(): Triple<Double, Double, Double> {
-        return Triple(
-            this.lastTickPosX + (this.posX - this.lastTickPosX) * pticks(),
-            this.lastTickPosY + (this.posY - this.lastTickPosY) * pticks(),
-            this.lastTickPosZ + (this.posZ - this.lastTickPosZ) * pticks()
-        )
     }
 
     fun drawBox(aabb: AxisAlignedBB, color: Color, width: Float, ignoreDepth: Boolean) {

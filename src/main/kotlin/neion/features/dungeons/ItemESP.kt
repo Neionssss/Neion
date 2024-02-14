@@ -28,7 +28,7 @@ object ItemESP {
     fun onRenderWorld(e: CheckRenderEntityEvent<*>) {
         if (!Config.itemESP || !inDungeons) return
         val entity = e.entity as? EntityItem ?: return
-        if (mc.thePlayer.getDistanceToEntity(entity) < 200 && entity.entityItem.item.equalsOneOf(validItems))
+        if (mc.thePlayer.getDistanceSqToEntity(entity) < 200 && entity.entityItem.item.equalsOneOf(validItems))
             RenderUtil.drawEntityBox(entity, Config.itemColor.toJavaColor(), outline = true, fill = true,esp = true)
     }
 }
