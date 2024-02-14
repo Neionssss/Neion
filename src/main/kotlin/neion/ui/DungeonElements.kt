@@ -58,7 +58,7 @@ object DungeonSecretDisplay : MovableGuiElement() {
 object ClearedDisplay : MovableGuiElement() {
     override var x: Int by Config::clearedX
     override var y: Int by Config::clearedY
-    override val w: Int = mc.fontRendererObj.getStringWidth("Cleared 100% (300)")
+    override val w: Int = mc.fontRendererObj.getStringWidth("Cleared 100%")
     override val h: Int = mc.fontRendererObj.FONT_HEIGHT
     override var scale: Float by Config::clearedScale
 
@@ -77,7 +77,7 @@ object ClearedDisplay : MovableGuiElement() {
             }?.let {
                 return it.substringBefore("(")
             }
-            return "Cleared 100% (300)"
+            return "Cleared 100%"
         }
 
     }
