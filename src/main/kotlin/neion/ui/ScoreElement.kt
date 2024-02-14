@@ -2,32 +2,31 @@ package neion.ui
 
 import neion.FMConfig
 import neion.Neion.Companion.mc
+import neion.funnymap.MapRender
 import neion.funnymap.RunInformation
 import neion.funnymap.ScoreCalculation
 import neion.utils.Location
 import neion.utils.Location.inDungeons
+import neion.utils.RenderUtil
 import net.minecraft.client.gui.FontRenderer
 
 class ScoreElement : MovableGuiElement() {
     override var x: Int by FMConfig::scoreX
     override var y: Int by FMConfig::scoreY
     override val h: Int
-        get() = fr.FONT_HEIGHT * elementLines
-    override val w: Int = fr.getStringWidth("Score: 100/100/100/7 : (300)")
+        get() = fr.FONT_HEIGHT * MapRender.lines.size
+    override val w: Int = fr.getStringWidth("Crypts: 0   Mimic: ✘   Deaths: 10   Puzzles: 5")
     override var scale: Float by FMConfig::scoreScale
-    private var elementLines = 1
-        set(value) {
-            if (field != value) field = value
-        }
 
     override fun render() {
-        var y = 0f
-        val lines = getScoreLines()
-        elementLines = lines.size
-        lines.forEach {
-            fr.drawString(it, 0f, y, 0xffffff, true)
-            y += fr.FONT_HEIGHT
-        }
+        val lineOne = MapRender.lines.takeWhile { it != "split" }.joinToString(separator = "    ")
+        val lineTwo = MapRender.lines.takeWhile { it != "split1" }.takeLastWhile { it != "split" }.joinToString(separator = "    ")
+        val lineThree = MapRender.lines.takeLastWhile { it != "split" && it != "split1" }.joinToString(separator = "    ")
+        val l1sw = -fr.getStringWidth(lineOne) / 2
+        val l2Sw = -fr.getStringWidth(lineTwo) / 2
+        RenderUtil.renderText(lineOne, l1sw, 0)
+        RenderUtil.renderText(lineTwo, l2Sw, if (l1sw == 0) 0 else 9)
+        RenderUtil.renderText(lineThree, -fr.getStringWidth(lineThree) / 2, if (l2Sw.and(l1sw) == 0) 0 else if (l2Sw.or(l1sw) == 0) 9 else 18)
     }
 
     override fun shouldRender(): Boolean {
@@ -39,37 +38,9 @@ class ScoreElement : MovableGuiElement() {
     companion object {
         val fr: FontRenderer = mc.fontRendererObj
 
-        fun getScoreLines(): List<String> {
-            val list: MutableList<String> = mutableListOf()
-
-            when (FMConfig.scoreTotalScore) {
-                1 -> list.add(getScore(FMConfig.scoreMinimizedName, false))
-                2 -> list.add(getScore(FMConfig.scoreMinimizedName, true))
-            }
-
-            when (FMConfig.scoreSecrets) {
-                1 -> list.add(getSecrets(FMConfig.scoreMinimizedName, false))
-                2 -> list.add(getSecrets(FMConfig.scoreMinimizedName, true))
-            }
-
-            if (FMConfig.scoreCrypts) list.add(getCrypts(FMConfig.scoreMinimizedName))
-            if (FMConfig.scoreMimic) list.add(getMimic(FMConfig.scoreMinimizedName))
-            if (FMConfig.scoreDeaths) list.add(getDeaths(FMConfig.scoreMinimizedName))
-
-            when (FMConfig.scorePuzzles) {
-                1 -> list.add(getPuzzles(FMConfig.scoreMinimizedName, false))
-                2 -> list.add(getPuzzles(FMConfig.scoreMinimizedName, true))
-            }
-
-            return list
-        }
-
         fun runInformationLines(): List<String> {
             val list: MutableList<String> = mutableListOf()
-
-            if (FMConfig.mapShowRunInformation == 1) {
-                list.add(getScore(FMConfig.scoreMinimizedName, expanded = false))
-            }
+            if (FMConfig.scoreTotalScore) list.add(getScore(FMConfig.scoreMinimizedName))
 
             when (FMConfig.scoreSecrets) {
                 1 -> list.add(getSecrets(FMConfig.scoreMinimizedName, missing = false))
@@ -81,27 +52,24 @@ class ScoreElement : MovableGuiElement() {
             if (FMConfig.scoreCrypts) list.add(getCrypts(FMConfig.scoreMinimizedName))
             if (FMConfig.scoreMimic) list.add(getMimic(FMConfig.scoreMinimizedName))
             if (FMConfig.scoreDeaths) list.add(getDeaths(FMConfig.scoreMinimizedName))
+
+            list.add("split1")
+
             when (FMConfig.scorePuzzles) {
-                1 -> list.add(getPuzzles(true, false))
-                2 -> list.add(getPuzzles(true, true))
+                1 -> list.add(getPuzzles(FMConfig.scoreMinimizedName, false))
+                2 -> list.add(getPuzzles(FMConfig.scoreMinimizedName, true))
             }
 
             return list
         }
 
-        private fun getScore(minimized: Boolean = false, expanded: Boolean): String {
+        private fun getScore(minimized: Boolean = false): String {
             val scoreColor = when {
                 ScoreCalculation.score < 270 -> "§c"
                 ScoreCalculation.score < 300 -> "§e"
                 else -> "§a"
             }
             var line = if (minimized) "" else "§7Score: "
-            if (expanded) {
-                line += "§b${ScoreCalculation.getSkillScore()}§7/" +
-                        "§a${ScoreCalculation.getExplorationScore()}§7/" +
-                        "§3${ScoreCalculation.getSpeedScore(RunInformation.timeElapsed)}§7/" +
-                        "§d${ScoreCalculation.getBonusScore()} §7: "
-            }
             line += "$scoreColor${ScoreCalculation.score}"
 
             return line

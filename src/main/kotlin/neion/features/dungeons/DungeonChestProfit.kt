@@ -59,7 +59,7 @@ object DungeonChestProfit {
                         ItemBlock.getItemFromBlock(Blocks.stone_slab)
                     ) && mc.thePlayer.getDistanceToEntity(it) < 30
         }?.forEach {
-            if (mc.thePlayer.openContainer as? ContainerChest == null && System.currentTimeMillis() - timeWait > 10 && !noobmen.contains(it)) {
+            if (mc.thePlayer.openContainer as? ContainerChest == null && System.currentTimeMillis() - timeWait > 30 && !noobmen.contains(it)) {
                 mc.playerController.interactWithEntitySendPacket(mc.thePlayer, it)
                 noobmen.add(it)
                 timeWait = System.currentTimeMillis()

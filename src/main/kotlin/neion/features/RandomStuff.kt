@@ -1,6 +1,5 @@
 package neion.features
 
-import cc.polyfrost.oneconfig.utils.hypixel.HypixelUtils
 import neion.Config
 import neion.Neion.Companion.display
 import neion.Neion.Companion.mc
@@ -18,10 +17,7 @@ import neion.utils.Location
 import neion.utils.Location.inDungeons
 import neion.utils.Location.inSkyblock
 import neion.utils.TextUtils
-import neion.utils.TextUtils.containsAny
-import neion.utils.TextUtils.matchesAny
 import neion.utils.Utils
-import net.minecraft.client.gui.FontRenderer
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.settings.KeyBinding
 import net.minecraft.inventory.ContainerChest
@@ -89,7 +85,7 @@ object RandomStuff {
     }
 
     fun length(): Int =
-        if (Config.fakeHaste) 6 else if (mc.thePlayer.isPotionActive(Potion.digSpeed)) 6 - (1 + mc.thePlayer.getActivePotionEffect(Potion.digSpeed).amplifier) else (if (mc.thePlayer.isPotionActive(Potion.digSlowdown)) 6 + (1 + mc.thePlayer.getActivePotionEffect(Potion.digSlowdown).amplifier) * 2 else 6)
+            if (Config.fakeHaste) 6 else if (mc.thePlayer.isPotionActive(Potion.digSpeed)) 6 - (1 + mc.thePlayer.getActivePotionEffect(Potion.digSpeed).amplifier) else (if (mc.thePlayer.isPotionActive(Potion.digSlowdown)) 6 + (1 + mc.thePlayer.getActivePotionEffect(Potion.digSlowdown).amplifier) * 2 else 6)
 
     // https://github.com/Harry282/Skyblock-Client/blob/main/src/main/kotlin/skyblockclient/features/AntiBlind.kt
     @SubscribeEvent
@@ -104,15 +100,15 @@ object RandomStuff {
     @SubscribeEvent
     fun onMessageSendToServer(e: PacketSentEvent) {
         mapOf(
-            "/d" to "warp dhub",
-            "/pko" to "p kickoffline",
-            "/f1" to "joininstance CATACOMBS_FLOOR_ONE",
-            "/f2" to "joininstance CATACOMBS_FLOOR_TWO",
-            "/f3" to "joininstance CATACOMBS_FLOOR_THREE",
-            "/f4" to "joininstance CATACOMBS_FLOOR_FOUR",
-            "/f5" to "joininstance CATACOMBS_FLOOR_FIVE",
-            "/f6" to "joininstance CATACOMBS_FLOOR_SIX",
-            "/f7" to "joininstance CATACOMBS_FLOOR_SEVEN"
+                "/d" to "warp dhub",
+                "/pko" to "p kickoffline",
+                "/f1" to "joininstance CATACOMBS_FLOOR_ONE",
+                "/f2" to "joininstance CATACOMBS_FLOOR_TWO",
+                "/f3" to "joininstance CATACOMBS_FLOOR_THREE",
+                "/f4" to "joininstance CATACOMBS_FLOOR_FOUR",
+                "/f5" to "joininstance CATACOMBS_FLOOR_FIVE",
+                "/f6" to "joininstance CATACOMBS_FLOOR_SIX",
+                "/f7" to "joininstance CATACOMBS_FLOOR_SEVEN"
         ).forEach {
             if ((e.packet as? C01PacketChatMessage)?.message?.lowercase() == it.key) {
                 e.isCanceled = true
@@ -163,15 +159,15 @@ object RandomStuff {
         Timer("wwww").schedule(350) {
 
             if ((mc.thePlayer?.openContainer as? ContainerChest)?.lowerChestInventory?.displayName?.unformattedText?.contains(
-                    "bazaar",
-                    true
-                )!!
+                            "bazaar",
+                            true
+                    )!!
             ) Utils.clickSlot(47)
             Timer("ssss").schedule(400) {
                 if ((mc.thePlayer.openContainer as? ContainerChest)?.lowerChestInventory?.displayName?.unformattedText?.contains(
-                        "are you sure",
-                        true
-                    )!!
+                                "are you sure",
+                                true
+                        )!!
                 ) Utils.clickSlot(11)
             }
         }
@@ -197,15 +193,5 @@ object RandomStuff {
         ScanUtils.saveExtras()
         Dungeon.reset()
         if (Config.freeCam) Config.freeCam = false
-    }
-
-    var tabFooterAdvertisement: String = "Ranks, Boosters & MORE! STORE.HYPIXEL.NET"
-    var tabHeaderAdvertisement: String = "You are playing on MC.HYPIXEL.NET"
-
-    fun modifyHeader(instance: FontRenderer, formattedHeader: String, wrapWidth: Int): List<String> {
-        if (Config.cleanerTab && HypixelUtils.INSTANCE.isHypixel && formattedHeader.trim().containsAny(tabHeaderAdvertisement, tabFooterAdvertisement)) {
-            if (formattedHeader.trim().matchesAny(tabHeaderAdvertisement.toRegex(), tabFooterAdvertisement.toRegex())) return ArrayList()
-        }
-        return instance.listFormattedStringToWidth(formattedHeader, wrapWidth - 50)
     }
 }

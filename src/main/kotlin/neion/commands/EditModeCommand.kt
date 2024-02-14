@@ -62,7 +62,6 @@ object EditModeCommand : BaseCommand("editmode", listOf("em")) {
             }
 
             try {
-                // getBlockByText???
                 val block = getBlockByText(player, args[0])
                 EditMode.currentBlockID = Block.getIdFromBlock(block)
                 TextUtils.info("Set block to: ${block.localizedName}")

@@ -19,6 +19,9 @@ object MapRender {
     private val defaultGreen = ResourceLocation("funnymap", "default/green_check.png")
     private val defaultWhite = ResourceLocation("funnymap", "default/white_check.png")
     private val defaultCross = ResourceLocation("funnymap", "default/cross.png")
+    val lines
+        get() = ScoreElement.runInformationLines()
+
 
 
     fun renderMap() {
@@ -28,7 +31,7 @@ object MapRender {
             0.0,
             0.0,
             135.0,
-            if (FMConfig.mapShowRunInformation == 1) 142.0 else 128.0,
+            if (FMConfig.mapShowRunInformation == 1) 128 + lines.size * 2.5 else 128.0,
             FMConfig.mapBackground.toJavaColor()
         )
 
@@ -36,7 +39,7 @@ object MapRender {
             0.0,
             0.0,
             135.0,
-            if (FMConfig.mapShowRunInformation == 1) 142.0 else 128.0,
+            if (FMConfig.mapShowRunInformation == 1) 128 + lines.size * 2.5 else 128.0,
             FMConfig.mapBorderWidth.toDouble(),
             FMConfig.mapBorder.toJavaColor()
         )
@@ -220,12 +223,15 @@ object MapRender {
         GlStateManager.pushMatrix()
         GlStateManager.translate(64f, 128f, 0f)
         GlStateManager.scale(2.0 / 3.0, 2.0 / 3.0, 1.0)
-        val lines = ScoreElement.runInformationLines()
-
+        val fr = mc.fontRendererObj
         val lineOne = lines.takeWhile { it != "split" }.joinToString(separator = "    ")
-        val lineTwo = lines.takeLastWhile { it != "split" }.joinToString(separator = "    ")
-        RenderUtil.renderText(lineOne, -mc.fontRendererObj.getStringWidth(lineOne) / 2, 0)
-        RenderUtil.renderText(lineTwo, -mc.fontRendererObj.getStringWidth(lineTwo) / 2, 9)
+        val lineTwo = lines.takeWhile { it != "split1" }.takeLastWhile { it != "split" }.joinToString(separator = "    ")
+        val lineThree = lines.takeLastWhile { it != "split" && it != "split1" }.joinToString(separator = "    ")
+        val l1sw = -fr.getStringWidth(lineOne) / 2
+        val l2Sw = -fr.getStringWidth(lineTwo) / 2
+        RenderUtil.renderText(lineOne, l1sw, 0)
+        RenderUtil.renderText(lineTwo, l2Sw, if (l1sw == 0) 0 else 9)
+        RenderUtil.renderText(lineThree, -fr.getStringWidth(lineThree) / 2, if (l2Sw.and(l1sw) == 0) 0 else if (l2Sw.or(l1sw) == 0) 9 else 18)
 
         GlStateManager.popMatrix()
     }

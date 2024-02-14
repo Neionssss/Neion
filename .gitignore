@@ -13,6 +13,7 @@ out
 *.iml
 .idea
 .vscode
+hs_err_*.log
 
 # gradle
 build

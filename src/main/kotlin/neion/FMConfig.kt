@@ -28,6 +28,14 @@ object FMConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") 
     var mapHideInBoss = false
 
     @Switch(
+            name = "Show Team Info",
+            description = "Shows team member secrets and room times at end of run. Requires a valid API key.",
+            category = "Map",
+            subcategory = "Toggle"
+    )
+    var teamInfo = false
+
+    @Switch(
         name = "Scan Mimic",
         category = "Map",
         subcategory = "Toggle"
@@ -67,6 +75,14 @@ object FMConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") 
     )
     var mapVanillaMarker = false
 
+    @KeyBind(
+            name = "Peek rooms",
+            description = "Shows Room/Player names whenever keybind is Pressed",
+            category = "Map",
+            subcategory = "Toggle"
+    )
+    var peekBind = OneKeyBind(UKeyboard.KEY_NONE)
+
     @Button(
         name = "Reset Map Position",
         category = "Map",
@@ -104,7 +120,7 @@ object FMConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") 
         min = 0.1f,
         max = 4f
     )
-    var mapScale = 1.25f
+    var mapScale = 1f
 
     @Slider(
         name = "Map Text Scale",
@@ -176,14 +192,6 @@ object FMConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") 
     )
     var mapRoomNames = 1
 
-    @KeyBind(
-        name = "Peek rooms",
-        description = "Shows Room/Player names whenever keybind is Pressed",
-        category = "Map",
-        subcategory = "Toggle"
-    )
-    var peekBind = OneKeyBind(UKeyboard.KEY_NONE)
-
     @Dropdown(
         name = "Room Secrets",
         description = "Shows total secrets of rooms on map.",
@@ -206,6 +214,41 @@ object FMConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") 
         options = ["None", "Default", "NEU"]
     )
     var mapCheckmark = 1
+
+
+    @Dropdown(
+            name = "Door ESP",
+            description = "Boxes unopened doors.",
+            category = "Rooms",
+            subcategory = "Door",
+            options = ["off", "First", "All"]
+    )
+    var witherDoorESP = 0
+
+    @Color(
+            name = "No Key Color",
+            category = "Rooms",
+            subcategory = "Door",
+            allowAlpha = true
+    )
+    var noKeyC = OneColor(255, 0, 0)
+
+    @Color(
+            name = "Has Key Color",
+            category = "Rooms",
+            subcategory = "Door",
+            allowAlpha = true
+    )
+    var keyC = OneColor(0, 255, 0)
+
+    @Slider(
+            name = "Outline Width",
+            category = "Rooms",
+            subcategory = "Door",
+            min = 1f,
+            max = 10f
+    )
+    var witherDoorOutlineWidth = 3f
 
     @Slider(
         name = "Darken Multiplier",
@@ -378,13 +421,12 @@ object FMConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") 
     )
     var scoreScale = 1f
 
-    @Dropdown(
+    @Switch(
         name = "Score",
         category = "Score",
         subcategory = "Elements",
-        options = ["Off", "On", "Separate"]
     )
-    var scoreTotalScore = 2
+    var scoreTotalScore = true
 
     @Dropdown(
         name = "Secrets",
@@ -461,6 +503,20 @@ object FMConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") 
     )
     var timeTo300 = false
 
+    @Switch(
+            name = "Mimic Message",
+            category = "Score",
+            subcategory = "Message"
+    )
+    var mimicMessageEnabled = false
+
+    @Text(
+            name = "Mimic Message Text",
+            category = "Score",
+            subcategory = "Message"
+    )
+    var mimicMessage = "Mimic Killed!"
+
     @Dropdown(
         name = "Show Run Information",
         description = "Shows run information under map.",
@@ -472,64 +528,9 @@ object FMConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") 
 
     @Text(
         name = "Hypixel API Key",
-        category = "Other Features",
+        category = "Debug",
     )
     var apiKey = ""
-
-    @Switch(
-        name = "Show Team Info",
-        description = "Shows team member secrets and room times at end of run. Requires a valid API key.",
-        category = "Other Features"
-    )
-    var teamInfo = false
-
-    @Switch(
-        name = "Mimic Message",
-        category = "Other Features",
-        subcategory = "Mimic Message"
-    )
-    var mimicMessageEnabled = false
-
-    @Text(
-        name = "Mimic Message Text",
-        category = "Other Features",
-        subcategory = "Mimic Message"
-    )
-    var mimicMessage = "Mimic Killed!"
-
-    @Dropdown(
-        name = "Door ESP",
-        description = "Boxes unopened doors.",
-        category = "Other Features",
-        subcategory = "Door",
-        options = ["off", "First", "All"]
-    )
-    var witherDoorESP = 0
-
-    @Color(
-        name = "No Key Color",
-        category = "Other Features",
-        subcategory = "Door",
-        allowAlpha = true
-    )
-    var noKeyC = OneColor(255, 0, 0)
-
-    @Color(
-        name = "Has Key Color",
-        category = "Other Features",
-        subcategory = "Door",
-        allowAlpha = true
-    )
-    var keyC = OneColor(0, 255, 0)
-
-    @Slider(
-        name = "Outline Width",
-        category = "Other Features",
-        subcategory = "Door",
-        min = 1f,
-        max = 10f
-    )
-    var witherDoorOutlineWidth = 3f
 
     @Switch(
         name = "Force Skyblock",
@@ -552,5 +553,8 @@ object FMConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") 
         hide("scoreX")
         hide("scoreY")
         hide("scoreScale")
+        hide("mapX")
+        hide("mapY")
+        hide("mapScale")
     }
 }

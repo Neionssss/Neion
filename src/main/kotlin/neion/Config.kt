@@ -71,7 +71,6 @@ object Config : Config(Mod("Neion", ModType.SKYBLOCK), "neion-config.json") {
 
     @Switch(
             name = "Jasper Scanner",
-            category = "Other",
             subcategory = "Gemstone"
     )
     var JasperESP = false

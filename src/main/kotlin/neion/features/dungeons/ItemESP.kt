@@ -21,6 +21,7 @@ object ItemESP {
         Items.skull,
         Items.shears,
         ItemBlock.getItemFromBlock(Blocks.iron_trapdoor),
+            ItemBlock.getItemFromBlock(Blocks.skull),
         ItemBlock.getItemFromBlock(Blocks.heavy_weighted_pressure_plate)
     )
 
