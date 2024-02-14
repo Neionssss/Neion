@@ -19,17 +19,15 @@ object ColorsSolver {
     val shouldClick = mutableListOf<Slot>()
 
     @SubscribeEvent
-    fun onBackgroundDrawn(e: GuiContainerEvent.DrawSlotEvent) {
+    fun onBackgroundDrawn(e: GuiContainerEvent.BackgroundDrawnEvent) {
         if (!Config.colorsSolver || dungeonFloor != 7 || e.container !is ContainerChest || !e.chestName.contains(TerminalFeatures.termNames[4])) return
-        val slot = e.slot
-        val stack = slot.stack ?: return
-        if (stack.item == ItemBlock.getItemFromBlock(Blocks.stained_glass_pane)) return
-        val promptColor = EnumDyeColor.entries.find { e.chestName.contains(it.getName().replace("_", " ").uppercase()) }?.unlocalizedName ?: return
-        if (stack.unlocalizedName?.contains(promptColor)!! && slot.hasStack && !slot.stack.isItemEnchanted) {
-            if (slot != mc.thePlayer.inventory) {
+        for (slot in e.container.inventorySlots) {
+            val promptColor = EnumDyeColor.entries.find { e.chestName.contains(it.getName().replace("_", " ").uppercase()) }?.unlocalizedName ?: return
+            if (slot == mc.thePlayer.inventory) continue
+            if (slot.stack.unlocalizedName?.contains(promptColor)!! && slot.hasStack && !slot.stack.isItemEnchanted) {
                 slot highlight Config.terminalColor.toJavaColor()
                 shouldClick.add(slot)
-            }
-        } else e.isCanceled = true
+            } else e.isCanceled = true
+        }
     }
 }
