@@ -19,17 +19,16 @@ object StartsWith {
     // Couldn't find continue of this :(
     // https://i.imgur.com/7YTH3PY.png
     @SubscribeEvent
-    fun onBackgroundDrawn(e: GuiContainerEvent.DrawSlotEvent) {
+    fun onBackgroundDrawn(e: GuiContainerEvent.BackgroundDrawnEvent) {
         if (!Config.startsWithSolver || dungeonFloor != 7 || e.container !is ContainerChest || !e.chestName.contains(TerminalFeatures.termNames[3])) return
-        val slot = e.slot
-        val stack = slot.stack ?: return
-        val titler = Regex("^What starts with: ['\"](.+)['\"]\\?$").find(e.chestName) ?: return
-        if (slot == mc.thePlayer.inventory) return
-        if (stack.cleanName().startsWith(titler.groupValues[1]) && slot.hasStack && !stack.isItemEnchanted) {
-            if (slot != mc.thePlayer.inventory) {
+        for (slot in e.container.inventorySlots) {
+            val stack = slot.stack ?: return
+            val titler = Regex("^What starts with: ['\"](.+)['\"]\\?$").find(e.chestName) ?: return
+            if (slot == mc.thePlayer.inventory) continue
+            if (stack.cleanName().startsWith(titler.groupValues[1]) && slot.hasStack && !stack.isItemEnchanted) {
                 slot highlight Config.terminalColor.toJavaColor()
                 shouldClick.add(slot)
-            }
-        } else e.isCanceled = true
+            } else e.isCanceled = true
+        }
     }
 }
