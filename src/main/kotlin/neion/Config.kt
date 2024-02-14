@@ -636,14 +636,14 @@ object Config : Config(Mod("Neion", ModType.SKYBLOCK), "neion-config.json") {
         category = "GUI",
         subcategory = "Dungeons GUI"
     )
-    var showSecretsFocus = true
+    var showSecretsFocus = false
 
     @Switch(
         name = "Show Cleared %",
         category = "GUI",
         subcategory = "Dungeons GUI"
     )
-    var showClearedFocus = true
+    var showClearedFocus = false
 
     @Color(
         name = "Cleared % Color",
