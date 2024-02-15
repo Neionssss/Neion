@@ -10,6 +10,7 @@ import net.minecraft.entity.item.EntityItem
 import net.minecraft.init.Blocks
 import net.minecraft.init.Items
 import net.minecraft.item.ItemBlock
+import net.minecraftforge.client.event.RenderWorldLastEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
 object ItemESP {
@@ -26,9 +27,9 @@ object ItemESP {
     )
 
     @SubscribeEvent
-    fun onRenderWorld(e: CheckRenderEntityEvent<*>) {
+    fun onRenderWorld(e: RenderWorldLastEvent) {
         if (!Config.itemESP || !inDungeons) return
-        val entity = e.entity as? EntityItem ?: return
+        val entity = EntityItem(mc.theWorld)
         if (mc.thePlayer.getDistanceSqToEntity(entity) < 200 && entity.entityItem.item.equalsOneOf(validItems))
             RenderUtil.drawEntityBox(entity, Config.itemColor.toJavaColor(), outline = true, fill = true,esp = true)
     }

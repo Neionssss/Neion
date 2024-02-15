@@ -35,6 +35,7 @@ object TextUtils {
 
     fun CharSequence.containsAny(sequences: Iterable<CharSequence>): Boolean = sequences.any { contains(it) }
     fun CharSequence.matchesAny(vararg sequences: Regex): Boolean = sequences.any { matches(it) }
+    fun CharSequence.matchesAny(sequences: List<Regex>): Boolean = sequences.any { matches(it) }
     fun CharSequence?.containsAny(vararg sequences: CharSequence?): Boolean {
         if (this == null) return false
         return sequences.any { it != null && this.contains(it, true) }

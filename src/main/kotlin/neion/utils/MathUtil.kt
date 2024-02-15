@@ -51,10 +51,6 @@ object MathUtil {
     }
 
     private fun processDecimal(decimal: Int, lastNumber: Int, lastDecimal: Int): Int {
-        return if (lastNumber > decimal) {
-            lastDecimal - decimal
-        } else {
-            lastDecimal + decimal
-        }
+        return if (lastNumber > decimal) lastDecimal - decimal else lastDecimal + decimal
     }
 }

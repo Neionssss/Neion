@@ -6,6 +6,7 @@ package neion.features.dungeons
 import neion.Config
 import neion.Neion.Companion.mc
 import neion.events.CheckRenderEntityEvent
+import neion.events.RenderLivingEntityEvent
 import neion.funnymap.map.ScanUtils
 import neion.utils.Location.inDungeons
 import neion.utils.RenderUtil
@@ -19,6 +20,7 @@ import net.minecraft.init.Blocks
 import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.BlockPos
 import net.minecraft.util.Vec3
+import net.minecraftforge.client.event.RenderWorldLastEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import org.lwjgl.opengl.GL11
 import java.awt.Color
@@ -42,15 +44,12 @@ object BlazeSolver {
         }
     }
 
-
-// ENTITY BLAZE WITH FUCKING ARMOSTAND OFFSET. YES, AWESOME, GAMING!!!!!!!!!!!!!!!!!!!!!!!!
     @SubscribeEvent
-    fun onWorldRender(e: CheckRenderEntityEvent<*>) {
+    fun onWorldRender(e: RenderWorldLastEvent) {
         if (!Config.blazeSolver) return
         blist.forEachIndexed { i, blaze ->
             val color = if (i == 0) Color.green else if (i == 1) Color.yellow else Color.red
-                RenderUtil.drawEntityBox(EntityBlaze(mc.theWorld), color, esp = false, fill = true, outline = false, offset = Triple(blaze.posX.toFloat(),(blaze.posY-2).toFloat(),blaze.posZ.toFloat()))
-                if (e.entity is EntityBlaze || e.entity.name == blaze.name) e.isCanceled = true
+            RenderUtil.drawEntityBox(EntityBlaze(mc.theWorld), color, esp = false, fill = false, outline = true, offset = Triple(blaze.posX.toFloat(),(blaze.posY-2).toFloat(),blaze.posZ.toFloat()))
             if (Config.lineToNextBlaze && i > 0 && i < Config.blazeLines) {
                 val pos1 = blist[i - 1]
                 val pos = blist[i]
@@ -62,5 +61,9 @@ object BlazeSolver {
                 )
             }
         }
+    }
+    @SubscribeEvent
+    fun onChec(e: CheckRenderEntityEvent<*>) {
+        if (Config.blazeSolver && e.entity.name.stripControlCodes().startsWith("[Lv15] Blaze ")) e.isCanceled = true
     }
 }

@@ -53,7 +53,7 @@ object WeirdosSolver {
     fun onChat(event: ClientChatReceivedEvent) {
         if (!Config.threeSolver || !inDungeons) return
         val formatted = event.message.formattedText
-        if (formatted.startsWith("§a§lPUZZLE SOLVED!") && "wasn't fooled by " in formatted) riddleChest = null
+        if (formatted.startsWith("§a§lPUZZLE SOLVED ") && "wasn't fooled by " in formatted) riddleChest = null
         if (formatted.startsWith("§e[NPC] ")) {
             mc.theWorld?.loadedEntityList?.find { it is EntityArmorStand && formatted.substringAfter("§c").substringBefore("§f") in it.customNameTag }?.let {
                 val chestLoc = EnumFacing.HORIZONTALS.map { dir -> it.position.offset(dir) }.find { mc.theWorld?.getBlockState(it)?.block == Blocks.chest }

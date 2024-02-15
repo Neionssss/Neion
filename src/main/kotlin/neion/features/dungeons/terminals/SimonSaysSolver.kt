@@ -12,10 +12,12 @@ import net.minecraftforge.client.event.RenderWorldLastEvent
 import net.minecraftforge.event.entity.player.PlayerInteractEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
+import scala.collection.parallel.ParIterableLike.Collect
 import java.awt.Color
 
 object SimonSaysSolver {
-    val clickInOrder = ArrayList<BlockPos>()
+
+    val clickInOrder = HashSet<BlockPos>()
     var cleared = false
 
     @SubscribeEvent
@@ -25,9 +27,13 @@ object SimonSaysSolver {
             for (z in 92..95) {
                 val pos = BlockPos(111, y, z)
                 if (mc.theWorld.getBlockState(pos).block == Blocks.sea_lantern) clickInOrder.add(pos)
-                else if (mc.theWorld.getBlockState(BlockPos(110, y, z)).block == Blocks.air && !cleared) {
+                val buttonsExist = mc.theWorld.getBlockState(BlockPos(110, y, z)).block == Blocks.stone_button
+                if (buttonsExist && !cleared) cleared = true
+
+                // The buttons just disappeared, the game is displaying a new solution.
+                if (!buttonsExist && cleared) {
+                    cleared = false
                     clickInOrder.clear()
-                    cleared = true
                 }
             }
         }
@@ -35,7 +41,7 @@ object SimonSaysSolver {
 
     @SubscribeEvent
     fun onInter(e: PlayerInteractEvent) {
-        if (!e.action.equalsOneOf(PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK, PlayerInteractEvent.Action.LEFT_CLICK_BLOCK) || clickInOrder.isEmpty() || !Config.ssSolver) return
+        if (e.action != PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK && e.action != PlayerInteractEvent.Action.LEFT_CLICK_BLOCK || clickInOrder.isEmpty() || !Config.ssSolver) return
         val pos = e.pos
         val x = pos.x
         val y = pos.y
@@ -50,7 +56,7 @@ object SimonSaysSolver {
     fun onRenderWorld(e: RenderWorldLastEvent) {
         if (!Config.ssSolver) return
         clickInOrder.forEachIndexed { i, click ->
-            val color = if (i == 0) Color.green else if (i == 1) Color.yellow else Color.red
+            val color = if (i == 0) Color.green else if (i == 1) Color.orange else Color.red
             val x = click.x - mc.renderManager.viewerPosX
             val y = click.y - mc.renderManager.viewerPosY + .372
             val z = click.z - mc.renderManager.viewerPosZ + .308

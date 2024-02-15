@@ -16,24 +16,20 @@ object StartsWith {
     @JvmField
     val shouldClick = mutableListOf<Slot>()
 
-    @SubscribeEvent
-    fun onGuiOpen(e: GuiOpenEvent) {
-        shouldClick.clear()
-    }
-
     // Couldn't find continue of this :(
     // https://i.imgur.com/7YTH3PY.png
     @SubscribeEvent
     fun sssssloot(e: GuiContainerEvent.DrawSlotEvent) {
         if (!Config.startsWithSolver || dungeonFloor != 7 || e.container !is ContainerChest || !e.chestName.contains(TerminalFeatures.termNames[3])) return
+        shouldClick.clear()
         for (slot in e.container.inventorySlots) {
-            val stack = slot.stack ?: return
-            val titler = Regex("^What starts with: ['\"](.+)['\"]\\?$").find(e.chestName) ?: return
             if (slot == mc.thePlayer.inventory) continue
+            val titler = Regex("^What starts with: ['\"](.+)['\"]\\?$").find(e.chestName) ?: return
+            val stack = slot.stack ?: continue
             if (stack.cleanName().startsWith(titler.groupValues[1]) && !stack.isItemEnchanted) {
                 slot highlight Config.terminalColor.toJavaColor()
                 shouldClick.add(slot)
-            } else e.isCanceled = true
+            }
         }
     }
 }

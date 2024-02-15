@@ -28,12 +28,10 @@ abstract class HideTabPingMixin {
     }
 
     private String tabFooterAdvertisement = "§aRanks, Boosters & MORE! §r§c§lSTORE.HYPIXEL.NET";
-
-    private String tabHeaderAdvertisement = "§bYou are playing on §r§e§lMC.HYPIXEL.NET";
     @Redirect(method = "renderPlayerlist", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/FontRenderer;listFormattedStringToWidth(Ljava/lang/String;I)Ljava/util/List;"))
     private List<String> hideAdvertisementsInTabHeader(FontRenderer instance, String formatted, int wrapWidth) {
         if (Config.INSTANCE.getCleanerTab() && HypixelUtils.INSTANCE.isHypixel()) {
-            if (formatted.contains(tabHeaderAdvertisement)) return Collections.emptyList();
+            if (formatted.contains("§bYou are playing on §r§e§lMC.HYPIXEL.NET")) return Collections.emptyList();
             if (formatted.contains(tabFooterAdvertisement)) return instance.listFormattedStringToWidth(formatted.trim().replace(tabFooterAdvertisement, ""), wrapWidth - 50);
         }
         return instance.listFormattedStringToWidth(formatted, wrapWidth - 50);
