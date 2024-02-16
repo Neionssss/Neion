@@ -11,7 +11,6 @@ import neion.funnymap.map.ScanUtils
 import neion.ui.Configurator
 import neion.ui.GuiRenderer
 import neion.utils.APIHandler
-import neion.utils.Location
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiScreen
 import net.minecraftforge.client.ClientCommandHandler
@@ -47,7 +46,6 @@ class Neion {
             GKey,
             Croesus,
             MostStolenFile,
-            ItemESP,
             MurderHelper,
             FreeCam,
             PlayerESP,
@@ -59,7 +57,7 @@ class Neion {
             Dungeon,
             GFS,
             CustomGUI,
-            Location, RunInformation, WitherDoorESP, EditMode, ArmorColor
+            RunInformation, WitherDoorESP, EditMode, ArmorColor
         ).forEach(MinecraftForge.EVENT_BUS::register)
         listOf(
             FetchCommand,

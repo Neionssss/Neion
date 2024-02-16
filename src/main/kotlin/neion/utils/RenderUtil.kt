@@ -115,6 +115,7 @@ object RenderUtil {
         val topOffset = bottomOffset + height
         val tessellator = Tessellator.getInstance()
         val worldrenderer = tessellator.worldRenderer
+        mc.textureManager.bindTexture(ResourceLocation("textures/entity/beacon_beam.png"))
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, 10497.0f)
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, 10497.0f)
         GlStateManager.disableLighting()

@@ -16,11 +16,16 @@ import neion.utils.ItemUtils.equalsOneOf
 import neion.utils.Location
 import neion.utils.Location.inDungeons
 import neion.utils.Location.inSkyblock
+import neion.utils.RenderUtil
 import neion.utils.TextUtils
 import neion.utils.Utils
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.settings.KeyBinding
+import net.minecraft.entity.item.EntityItem
+import net.minecraft.init.Blocks
+import net.minecraft.init.Items
 import net.minecraft.inventory.ContainerChest
+import net.minecraft.item.ItemBlock
 import net.minecraft.network.play.client.C01PacketChatMessage
 import net.minecraft.network.play.client.C0DPacketCloseWindow
 import net.minecraft.network.play.server.S2APacketParticles
@@ -30,11 +35,13 @@ import net.minecraft.potion.PotionEffect
 import net.minecraftforge.client.event.ClientChatReceivedEvent
 import net.minecraftforge.client.event.EntityViewRenderEvent
 import net.minecraftforge.client.event.RenderBlockOverlayEvent
+import net.minecraftforge.client.event.RenderWorldLastEvent
 import net.minecraftforge.event.entity.living.LivingDeathEvent
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.InputEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent
+import net.minecraftforge.fml.common.network.FMLNetworkEvent
 import net.minecraftforge.fml.common.network.FMLNetworkEvent.ClientConnectedToServerEvent
 import org.lwjgl.opengl.Display
 import java.util.*
@@ -160,6 +167,24 @@ object RandomStuff {
         }
     }
 
+    // I have no idea why it doesn't work. Please help
+    @SubscribeEvent
+    fun onRenderWorld(e: RenderWorldLastEvent) {
+        if (!Config.itemESP || !inDungeons) return
+        val entity = EntityItem(mc.theWorld)
+        if (mc.thePlayer.getDistanceSqToEntity(entity) < 200 && listOf(
+                        Items.ender_pearl,
+                        Items.spawn_egg,
+                        Items.potionitem,
+                        Items.skull,
+                        Items.shears,
+                        ItemBlock.getItemFromBlock(Blocks.iron_trapdoor),
+                        ItemBlock.getItemFromBlock(Blocks.skull),
+                        ItemBlock.getItemFromBlock(Blocks.heavy_weighted_pressure_plate)
+                ).any { entity.entityItem.item == it })
+            RenderUtil.drawEntityBox(entity, Config.itemColor.toJavaColor(), outline = true, fill = true, esp = true)
+    }
+
     // Scuffed as fuck
     fun onSell() {
         TextUtils.sendCommand("bz")
@@ -200,5 +225,13 @@ object RandomStuff {
         ScanUtils.saveExtras()
         Dungeon.reset()
         if (Config.freeCam) Config.freeCam = false
+    }
+
+    @SubscribeEvent
+    fun onDisconnect(e: FMLNetworkEvent.ClientDisconnectionFromServerEvent) {
+        inSkyblock = false
+        inDungeons = false
+        Location.dungeonFloor = -1
+        Location.inBoss = false
     }
 }

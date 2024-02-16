@@ -2,6 +2,7 @@ package neion.ui
 
 import neion.FMConfig
 import neion.Neion.Companion.mc
+import neion.funnymap.Dungeon
 import neion.funnymap.MapRender
 import neion.funnymap.RunInformation
 import neion.funnymap.ScoreCalculation
@@ -111,6 +112,7 @@ class ScoreElement : MovableGuiElement() {
             var line = if (minimized) "§7P: " else "§7Puzzles: "
             line += "$color${RunInformation.completedPuzzles}"
             if (total) line += "§7/$color${RunInformation.totalPuzzles}"
+            line += if (Dungeon.Info.failedPuzzles <= 0) "§a✔" else "§c✘"
             return line
         }
     }

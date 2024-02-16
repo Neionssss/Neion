@@ -95,6 +95,7 @@ object Dungeon {
         if (form.contains(keyUseRegex[1])) Info.keys--
         if (form.matches(Regex(".+ §r§ehas obtained §r§a§r§.+Blood Key§r§e!§r"))) Info.bloodKey = true
         if (form.contains(keyUseRegex[0])) Info.bloodKey = false
+        if (event.text.startsWith("[BOSS] Maxor: ") || Location.entryMessages.any { it == event.text }) Location.inBoss = true
 
         when (event.text) {
             "Starting in 4 seconds." -> for (i in listOf(5, 9, 13, 17, 1)) (MapUtils.getDungeonTabList() ?: return)[i].first.locationSkin
@@ -126,6 +127,7 @@ object Dungeon {
         val uniqueRooms = mutableListOf<Pair<Room, Pair<Int, Int>>>()
         var roomCount = 0
         val puzzles = mutableMapOf<Puzzle, Boolean>()
+        var failedPuzzles = 0
 
         var trapType = ""
         var cryptCount = 0
@@ -141,6 +143,7 @@ object Dungeon {
             roomCount = 0
             uniqueRooms.clear()
             puzzles.clear()
+            failedPuzzles = 0
 
             trapType = ""
             cryptCount = 0

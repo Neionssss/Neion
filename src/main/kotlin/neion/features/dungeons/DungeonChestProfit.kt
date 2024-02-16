@@ -13,6 +13,7 @@ import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.init.Blocks
 import net.minecraft.inventory.ContainerChest
 import net.minecraft.item.ItemBlock
+import net.minecraft.item.ItemStack
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
 
@@ -33,6 +34,7 @@ object DungeonChestProfit {
             for (i in 9..17) {
                 val lootSlot = inv.getStackInSlot(i) ?: continue
                 if (lootSlot.lore.isNotEmpty()) {
+                    chestType.items.add(lootSlot)
                     val books = Utils.fetchEVERYWHERE(lootSlot.itemID) ?: Utils.fetchBzPrices(
                         Utils.enchantNameToID(
                             lootSlot.lore[0]
@@ -82,6 +84,7 @@ object DungeonChestProfit {
         var value = 0
         val profit
             get() = value - price
+        val items = mutableListOf<ItemStack>()
 
         fun reset() {
             price = 0

@@ -1,6 +1,3 @@
-// Credit Danker's Skyblock Mod
-// https://github.com/bowser0000/SkyblockMod
-
 package neion.features.dungeons
 
 import com.google.gson.JsonArray
@@ -31,7 +28,7 @@ object TriviaSolver {
         val message = e.message.unformattedText
         if (message.contains("What SkyBlock year is it?")) {
             triviaAnswersJson = JsonArray()
-            triviaAnswersJson.add(JsonPrimitive("Year ${(floor((System.currentTimeMillis() / 1000L).toDouble() - 1560276000) / 446400 + 1).toInt()}"))
+            triviaAnswersJson.add(JsonPrimitive("Year ${(floor((System.currentTimeMillis() / 1000L).toDouble() - 1560276000) / 446400 + 1).toInt()}")) // Credit Danker's Skyblock Mod
          } else {
             if (APIHandler.quizdata == null) APIHandler.quizdata = APIHandler.getResponse("https://data.skytils.gg/solvers/oruotrivia.json")
             val triviaSolutions = APIHandler.quizdata!!.getAsJsonObject()

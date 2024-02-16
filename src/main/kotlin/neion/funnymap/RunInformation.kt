@@ -4,7 +4,6 @@ import neion.FMConfig
 import neion.Neion
 import neion.events.ChatEvent
 import neion.events.PacketReceiveEvent
-import neion.funnymap.Dungeon.getMimicRoom
 import neion.funnymap.ScoreCalculation.getBonusScore
 import neion.funnymap.map.Puzzle
 import neion.funnymap.map.Room
@@ -136,8 +135,7 @@ object RunInformation {
         val packet = e.packet as? S38PacketPlayerListItem ?: return
         if (!inDungeons || !packet.action.equalsOneOf(S38PacketPlayerListItem.Action.UPDATE_DISPLAY_NAME, S38PacketPlayerListItem.Action.ADD_PLAYER)) return
         packet.entries.forEach {
-            val text = it?.displayName?.formattedText ?: it?.profile?.name ?: return@forEach
-            updateFromTabList(text)
+            updateFromTabList(it?.displayName?.formattedText ?: it?.profile?.name ?: return@forEach)
         }
     }
 
@@ -157,6 +155,7 @@ object RunInformation {
                 val puzzleName = failedPuzzleRegex.firstResult(text) ?: return
                 if (puzzleName == "???") return
                 val puzzle = Dungeon.Info.puzzles.keys.find { it.tabName == puzzleName }
+                Dungeon.Info.failedPuzzles++
                 if (puzzle == null) {
                     if (Dungeon.Info.puzzles.size < totalPuzzles) Puzzle.fromName(puzzleName)?.let { Dungeon.Info.puzzles.putIfAbsent(it, false) }
                 } else Dungeon.Info.puzzles[puzzle] = false

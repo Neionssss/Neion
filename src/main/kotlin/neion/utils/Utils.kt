@@ -48,15 +48,13 @@ object Utils {
 	)
 
 
-	// Credit FloppaClient
 	fun getArea(): String? {
 		if (!inSkyblock) return null
-		var area: String? = null
 		for (entry in mc.netHandler.playerInfoMap) {
 			val areaText = entry?.displayName?.unformattedText ?: continue
-			if (areaText.startsWith("Area: ")) area = areaText.substringAfter("Area: ")
+			if (areaText.startsWith("Area: ")) return areaText.substringAfter("Area: ")
 		}
-		return area
+		return null
 	}
 
 	fun enchantNameToID(enchant: String): String {	

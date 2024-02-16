@@ -34,8 +34,7 @@ object Croesus {
 
     @SubscribeEvent
     fun onDraw(e: GuiContainerEvent.DrawSlotEvent) {
-        val fucker = Utils.getArea() ?: return
-        if (!Config.croesus || e.container !is ContainerChest || !fucker.contains("Dungeon Hub")) return
+        if (!Config.croesus || e.container !is ContainerChest || !(Utils.getArea() ?: return).contains("Dungeon Hub")) return
         val stack = e.slot.stack ?: return
         val lore = stack.lore
         val cn = e.chestName

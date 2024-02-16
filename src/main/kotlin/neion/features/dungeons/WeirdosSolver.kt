@@ -20,7 +20,7 @@ object WeirdosSolver {
     @JvmField
     var riddleChest: BlockPos? = null
 
-    // Thanks
+    // Thanks Moolb https://i.imgur.com/ohLScw5.png
     private var solutions = listOf(
         "The reward is not in my chest!",
         "At least one of them is lying, and the reward is not in",
@@ -45,8 +45,6 @@ object WeirdosSolver {
         "is telling the truth.",
         "My chest has the reward!"
     )
-    // MOOLB
-    // https://i.imgur.com/ohLScw5.png
 
 
     @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)

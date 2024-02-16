@@ -3,11 +3,8 @@ package neion.utils
 import cc.polyfrost.oneconfig.utils.hypixel.HypixelUtils
 import neion.FMConfig
 import neion.Neion.Companion.mc
-import neion.events.ChatEvent
 import neion.utils.TextUtils.stripControlCodes
 import net.minecraft.scoreboard.ScorePlayerTeam
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import net.minecraftforge.fml.common.network.FMLNetworkEvent
 
 object Location {
 
@@ -17,7 +14,7 @@ object Location {
     var masterMode = false
     var inBoss = false
 
-    private val entryMessages = listOf(
+    val entryMessages = listOf(
         "[BOSS] Bonzo: Gratz for making it this far, but I'm basically unbeatable.",
         "[BOSS] Scarf: This is where the journey ends for you, Adventurers.",
         "[BOSS] The Professor: I was burdened with terrible news recently...",
@@ -27,7 +24,6 @@ object Location {
     )
 
     fun onTick() {
-        if (mc.theWorld == null) return
         if (FMConfig.forceSkyblock) {
             inSkyblock = true
             inDungeons = true
@@ -50,20 +46,6 @@ object Location {
         }
     }
 
-    @SubscribeEvent
-    fun onChat(event: ChatEvent) {
-        if (!inDungeons || event.packet.type == 2.toByte()) return
-        if (event.text.startsWith("[BOSS] Maxor: ")) inBoss = true
-        if (entryMessages.any { it == event.text }) inBoss = true
-    }
-
-    @SubscribeEvent
-    fun onDisconnect(e: FMLNetworkEvent.ClientDisconnectionFromServerEvent) {
-        inSkyblock = false
-        inDungeons = false
-        dungeonFloor = -1
-        inBoss = false
-    }
     // --------------
     fun cleanLine(scoreboard: String): String = scoreboard.stripControlCodes().filter { it.code in 32..126 }
 

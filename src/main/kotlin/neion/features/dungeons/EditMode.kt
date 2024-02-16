@@ -24,7 +24,7 @@ object EditMode {
     var currentBlockID = 20
     var enabled = false
 
-    fun getOrPutRoomExtrasData(room: Room): ScanUtils.ExtrasData {
+    fun getOrPutBlocks(room: Room): ScanUtils.ExtrasData {
         return ScanUtils.extraRooms.getOrPut(room.data.name) { ScanUtils.ExtrasData(room.core) }
     }
 
@@ -42,7 +42,7 @@ object EditMode {
         if (!enabled || Neion.mc.objectMouseOver?.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return
         var removedBlock = false
         val roomPair = getCurrentRoomPair() ?: return
-        getOrPutRoomExtrasData(roomPair.first).run {
+        getOrPutBlocks(roomPair.first).run {
             // this for each will remove all entries at those coordinates, there should only be one
             val relativeCoords = getRelativePos(Neion.mc.objectMouseOver.blockPos, roomPair)
             this.preBlocks.forEach { (blockID, _) -> if (this.preBlocks[blockID]?.remove(relativeCoords)!!) removedBlock = true }
@@ -70,7 +70,7 @@ object EditMode {
         val relativeCoords = getRelativePos(Neion.mc.objectMouseOver.blockPos.add(Neion.mc.objectMouseOver.sideHit.directionVec), roomPair)
         var blockstate = adjustBlockState(relativeCoords, currentBlockID)
         e.isCanceled = true
-        getOrPutRoomExtrasData(roomPair.first).run {
+        getOrPutBlocks(roomPair.first).run {
             if (this.preBlocks[0]?.remove(relativeCoords) != true) {
                 Neion.mc.theWorld.setBlockState(relativeCoords, blockstate)
                 blockstate = ScanUtils.getStateFromIDWithRotation(blockstate, -roomPair.second)

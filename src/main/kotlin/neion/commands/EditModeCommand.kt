@@ -7,7 +7,6 @@ package neion.commands
 import neion.Config
 import neion.features.dungeons.EditMode
 import neion.funnymap.map.ScanUtils
-import neion.utils.Location
 import neion.utils.TextUtils
 import net.minecraft.block.Block
 import net.minecraft.client.entity.EntityPlayerSP
@@ -28,6 +27,7 @@ object EditModeCommand : BaseCommand("editmode", listOf("em")) {
         "ib" to Block.getIdFromBlock(Blocks.iron_block),
         "cb" to Block.getIdFromBlock(Blocks.coal_block),
         "eb" to Block.getIdFromBlock(Blocks.emerald_block),
+        "lb" to Block.getIdFromBlock(Blocks.lapis_block),
         "stair" to Block.getIdFromBlock(Blocks.stone_stairs),
         "stairs" to Block.getIdFromBlock(Blocks.stone_stairs),
         "fence" to Block.getIdFromBlock(Blocks.oak_fence),
@@ -35,7 +35,6 @@ object EditModeCommand : BaseCommand("editmode", listOf("em")) {
     )
 
     override fun processCommand(player: EntityPlayerSP, args: Array<String>) {
-        if (!Location.inDungeons) return
         if (args.isEmpty() || !EditMode.enabled) {
             if (Config.preBlocks) {
                 EditMode.enabled = !EditMode.enabled

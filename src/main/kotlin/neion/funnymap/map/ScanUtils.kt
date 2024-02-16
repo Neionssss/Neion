@@ -54,6 +54,8 @@ object ScanUtils {
         return sb.toString().hashCode()
     }
 
+
+    // Credit FloppaClient
     fun getRealPos(blockPos: BlockPos, roomPair: Pair<Room, Int>): BlockPos {
         return getRotatedPos(blockPos, roomPair.second).add(roomPair.first.x,0,roomPair.first.z)
     }
@@ -105,7 +107,6 @@ object ScanUtils {
     fun saveExtras() {
         file.bufferedWriter().use { it.write(gson.toJson(extraRooms)) }
     }
-    // -----------------------------------------------------------------
 
     private val gson = GsonBuilder()
         .registerTypeAdapter(object : TypeToken<MutableSet<BlockPos>>() {}.type, SetBlockPosSerializer())
