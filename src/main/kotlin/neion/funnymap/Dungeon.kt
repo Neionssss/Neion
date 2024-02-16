@@ -10,8 +10,6 @@ import neion.funnymap.map.*
 import neion.utils.ItemUtils.equalsOneOf
 import neion.utils.Location
 import neion.utils.RenderUtil
-import neion.utils.TextUtils
-import neion.utils.TextUtils.containsAny
 import neion.utils.TextUtils.matchesAny
 import net.minecraft.block.Block
 import net.minecraft.event.ClickEvent
@@ -23,7 +21,7 @@ import java.awt.Color
 object Dungeon {
 
     val dungeonTeammates = mutableMapOf<String, DungeonPlayer>()
-    val espDoors = mutableListOf<Door>()
+    val doors = mutableListOf<Door>()
     private val keyGainRegex = listOf(
             Regex(".+ §r§ehas obtained §r§a§r§.+Wither Key§r§e!§r"),
             Regex("§r§eA §r§a§r§.+Wither Key§r§e was picked up!§r")
@@ -39,23 +37,19 @@ object Dungeon {
         mc.theWorld.loadedTileEntityList.filter { it is TileEntityChest && it.chestType == 1 }.groupingBy {
             ScanUtils.getRoomFromPos(it.pos)
         }.eachCount().forEach { (room, trappedChests) ->
-            Info.dungeonList.filterIsInstance<Room>()
-                .find { it == room && it.data.trappedChests < trappedChests }?.let {
-                    return it
-                }
+            return Info.dungeonList.filterIsInstance<Room>().find { it == room && it.data.trappedChests < trappedChests }
         }
         return null
     }
 
     fun onTick() {
         if (!Location.inDungeons) return
-
-        if (shouldSearchMimic() && getMimicRoom() != null) {
+        if (FMConfig.scanMimic && !Info.mimicFound && Location.dungeonFloor.equalsOneOf(6, 7) && getMimicRoom() != null) {
             if (FMConfig.mimicInfo) UChat.chat("&7Mimic Room: &c${getMimicRoom()?.data?.name}")
             Info.mimicFound = true
         }
 
-        if (!MapUtils.calibrateMap()) MapUtils.calibrateMap()
+        if (!MapUtils.calibrated()) MapUtils.calibrated()
         MapUpdate.updateRooms()
         RunInformation.checkMimicDead()
         ScoreCalculation.updateScore()
@@ -97,10 +91,7 @@ object Dungeon {
                 }) PlayerTracker.onDungeonEnd()
         }
         val form = event.packet.chatComponent.formattedText
-        if (form.matchesAny(keyGainRegex)) {
-            Info.keys++
-            TextUtils.info("OH")
-        }
+        if (form.matchesAny(keyGainRegex)) Info.keys++
         if (form.contains(keyUseRegex[1])) Info.keys--
         if (form.matches(Regex(".+ §r§ehas obtained §r§a§r§.+Blood Key§r§e!§r"))) Info.bloodKey = true
         if (form.contains(keyUseRegex[0])) Info.bloodKey = false
@@ -122,20 +113,16 @@ object Dungeon {
     fun reset() {
         Info.reset()
         dungeonTeammates.clear()
-        espDoors.clear()
+        doors.clear()
         PlayerTracker.roomClears.clear()
         DungeonScan.hasScanned = false
         DungeonScan.rooms.clear()
         RunInformation.reset()
     }
 
-    private fun shouldSearchMimic() = FMConfig.scanMimic &&
-            !Info.mimicFound &&
-            Location.dungeonFloor.equalsOneOf(6, 7)
-
     object Info {
         // 6 x 6 room grid, 11 x 11 with connections
-        val dungeonList = Array<Tile?>(121) { Unknown(0, 0) }
+        val dungeonList = Array<Tile?>(121) { null }
         val uniqueRooms = mutableListOf<Pair<Room, Pair<Int, Int>>>()
         var roomCount = 0
         val puzzles = mutableMapOf<Puzzle, Boolean>()
@@ -150,7 +137,7 @@ object Dungeon {
         var keys = 0
         var bloodKey = false
         fun reset() {
-            dungeonList.fill(Unknown(0, 0))
+            dungeonList.fill(null)
             roomCount = 0
             uniqueRooms.clear()
             puzzles.clear()

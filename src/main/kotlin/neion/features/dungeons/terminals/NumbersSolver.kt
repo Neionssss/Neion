@@ -19,7 +19,7 @@ object NumbersSolver {
         var neededClick = 0
         for (i in (10..16) + (19..25)) {
             val itemStack = invSlots[i].stack ?: continue
-            if (itemStack.item != Item.getItemFromBlock(Blocks.stained_glass_pane) || (itemStack.itemDamage != 14.and(5))) continue
+            if (itemStack.item != Item.getItemFromBlock(Blocks.stained_glass_pane) || itemStack.itemDamage != 14 && itemStack.itemDamage != 5) continue
             if (itemStack.itemDamage == 5 && itemStack.stackSize > neededClick) neededClick = itemStack.stackSize
             slotOrder[itemStack.stackSize - 1] = i
         }

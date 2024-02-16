@@ -64,10 +64,8 @@ object MapUpdate {
             }
         }
 
-
-        val decor = MapUtils.getMapData()?.mapDecorations ?: return
         Dungeon.dungeonTeammates.forEach { (name, player) ->
-            decor.entries.find { (icon, _) -> icon == player.icon }?.let { (_, vec4b) ->
+            MapUtils.getMapData()?.mapDecorations?.entries?.find { (icon, _) -> icon == player.icon }?.let { (_, vec4b) ->
                 player.isPlayer = vec4b.func_176110_a().toInt() == 1
                 player.mapX = vec4b.mapX
                 player.mapZ = vec4b.mapZ
@@ -82,8 +80,6 @@ object MapUpdate {
     }
 
     fun updateRooms() {
-        Dungeon.espDoors.clear()
-
         for (x in 0..10) {
             for (z in 0..10) {
                 val room = Dungeon.Info.dungeonList[z * 11 + x] ?: continue
@@ -91,21 +87,13 @@ object MapUpdate {
                     x,
                     z,
                     DungeonScan.startX + x * (DungeonScan.roomSize shr 1),
-                    DungeonScan.startZ + z * (DungeonScan.roomSize shr 1))
-                if (room is Unknown) {
-                    Dungeon.Info.dungeonList[z * 11 + x] = mapTile
-                    continue
-                }
+                    DungeonScan.startZ + z * (DungeonScan.roomSize shr 1)) ?: continue
                 if (mapTile.state.ordinal < room.state.ordinal) {
                     (room as? Room)?.let { DungeonScan.reRotate(it) }
                     PlayerTracker.roomStateChange(room, room.state, mapTile.state)
                     room.state = mapTile.state
                 }
-
-                if (room is Door && room.type.equalsOneOf(DoorType.WITHER, DoorType.BLOOD) && !room.opened) {
-                    Dungeon.espDoors.add(room)
-                    if (mc.theWorld.getChunkFromChunkCoords(room.x shr 4, room.z shr 4).isLoaded && mc.theWorld.getBlockState(BlockPos(room.x, 69, room.z)).block == Blocks.air) room.opened = true
-                }
+                if (room is Door && room.type.equalsOneOf(DoorType.WITHER, DoorType.BLOOD) && !room.opened && mc.theWorld.getChunkFromChunkCoords(room.x shr 4, room.z shr 4).isLoaded && mc.theWorld.getBlockState(BlockPos(room.x, 69, room.z)).block == Blocks.air) room.opened = true
             }
         }
     }

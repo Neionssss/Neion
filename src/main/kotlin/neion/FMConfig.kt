@@ -158,7 +158,7 @@ object FMConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") 
         subcategory = "Render",
         allowAlpha = true
     )
-    var mapBackground = OneColor(0, 0, 0, 100)
+    var mapBackground = OneColor(0, 0, 0, 179/255)
 
     @Color(
         name = "Map Border Color",
@@ -221,9 +221,10 @@ object FMConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") 
             description = "Boxes unopened doors.",
             category = "Rooms",
             subcategory = "Door",
-            options = ["off", "First", "All"]
+            options = ["off", "first", "all"]
     )
     var witherDoorESP = 0
+
 
     @Color(
             name = "No Key Color",

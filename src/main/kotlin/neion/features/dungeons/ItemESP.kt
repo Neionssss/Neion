@@ -14,24 +14,21 @@ import net.minecraftforge.client.event.RenderWorldLastEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
 object ItemESP {
-
-    private val validItems = listOf(
-        Items.ender_pearl,
-        Items.spawn_egg,
-        Items.potionitem,
-        Items.skull,
-        Items.shears,
-        ItemBlock.getItemFromBlock(Blocks.iron_trapdoor),
-            ItemBlock.getItemFromBlock(Blocks.skull),
-        ItemBlock.getItemFromBlock(Blocks.heavy_weighted_pressure_plate)
-    )
-
     @SubscribeEvent
     fun onRenderWorld(e: RenderWorldLastEvent) {
         if (!Config.itemESP || !inDungeons) return
         val entity = EntityItem(mc.theWorld)
-        if (mc.thePlayer.getDistanceSqToEntity(entity) < 200 && entity.entityItem.item.equalsOneOf(validItems))
-            RenderUtil.drawEntityBox(entity, Config.itemColor.toJavaColor(), outline = true, fill = true,esp = true)
+        if (mc.thePlayer.getDistanceSqToEntity(entity) < 200 && listOf(
+                        Items.ender_pearl,
+                        Items.spawn_egg,
+                        Items.potionitem,
+                        Items.skull,
+                        Items.shears,
+                        ItemBlock.getItemFromBlock(Blocks.iron_trapdoor),
+                        ItemBlock.getItemFromBlock(Blocks.skull),
+                        ItemBlock.getItemFromBlock(Blocks.heavy_weighted_pressure_plate)
+                ).any { entity.entityItem.item == it })
+            RenderUtil.drawEntityBox(entity, Config.itemColor.toJavaColor(), outline = true, fill = true, esp = true)
     }
 }
 

@@ -36,7 +36,7 @@ object MapUtils {
     /**
      * Calibrates map metrics based on the size and location of the entrance room.
      */
-    fun calibrateMap(): Boolean {
+    fun calibrated(): Boolean {
         val (start, size) = findEntranceCorner()
         if (size.equalsOneOf(16, 18)) {
             mapRoomSize = size

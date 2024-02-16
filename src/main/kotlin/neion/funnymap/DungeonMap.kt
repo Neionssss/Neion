@@ -32,17 +32,16 @@ class DungeonMap(mapColors: ByteArray) {
         }
     }
 
-    fun UnkownRoom(x: Int, z: Int, type: RoomType): Room {
-        return Room(x, z, RoomData("Unknown", type, emptyList(), 0, 0, 0))
-    }
-
-    fun scanTile(arrayX: Int, arrayY: Int, worldX: Int, worldZ: Int): Tile {
+    fun scanTile(arrayX: Int, arrayY: Int, worldX: Int, worldZ: Int): Tile? {
+        fun unknown(x: Int, z: Int, type: RoomType): Room {
+            return Room(x, z, RoomData("Unknown", type, emptyList(), 0, 0, 0))
+        }
         val centerColor = centerColors[arrayY * 11 + arrayX].toInt()
         val sideColor = sideColors[arrayY * 11 + arrayX].toInt()
-        if (centerColor == 0) return Unknown(worldX, worldZ)
+        if (centerColor == 0) return null
         return if (arrayX % 2 == 0 && arrayY % 2 == 0) {
-            val type = RoomType.fromMapColor(sideColor) ?: return Unknown(worldX, worldZ)
-            UnkownRoom(worldX,worldZ,type).apply {
+            val type = RoomType.fromMapColor(sideColor) ?: return null
+            unknown(worldX,worldZ,type).apply {
                 state = when (centerColor) {
                     18 -> when (type) {
                         RoomType.BLOOD -> RoomState.DISCOVERED
@@ -61,11 +60,11 @@ class DungeonMap(mapColors: ByteArray) {
             }
         } else {
             if (sideColor == 0) {
-                val type = DoorType.fromMapColor(centerColor) ?: return Unknown(worldX, worldZ)
+                val type = DoorType.fromMapColor(centerColor) ?: return null
                 Door(worldX, worldZ, type).apply { if (centerColor != 85) state = RoomState.DISCOVERED }
             } else {
-                val type = RoomType.fromMapColor(sideColor) ?: return Unknown(worldX, worldZ)
-                UnkownRoom(worldX,worldZ,type).apply {
+                val type = RoomType.fromMapColor(sideColor) ?: return null
+                unknown(worldX,worldZ,type).apply {
                     state = RoomState.DISCOVERED
                     isSeparator = true
                 }

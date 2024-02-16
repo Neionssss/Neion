@@ -108,7 +108,14 @@ object RandomStuff {
                 "/f4" to "joininstance CATACOMBS_FLOOR_FOUR",
                 "/f5" to "joininstance CATACOMBS_FLOOR_FIVE",
                 "/f6" to "joininstance CATACOMBS_FLOOR_SIX",
-                "/f7" to "joininstance CATACOMBS_FLOOR_SEVEN"
+                "/f7" to "joininstance CATACOMBS_FLOOR_SEVEN",
+                "/m1" to "joininstance MASTER_CATACOMBS_FLOOR_ONE",
+                "/m2" to "joininstance MASTER_CATACOMBS_FLOOR_TWO",
+                "/m3" to "joininstance MASTER_CATACOMBS_FLOOR_THREE",
+                "/m4" to "joininstance MASTER_CATACOMBS_FLOOR_FOUR",
+                "/m5" to "joininstance MASTER_CATACOMBS_FLOOR_FIVE",
+                "/m6" to "joininstance MASTER_CATACOMBS_FLOOR_SIX",
+                "/m7" to "joininstance MASTER_CATACOMBS_FLOOR_SEVEN"
         ).forEach {
             if ((e.packet as? C01PacketChatMessage)?.message?.lowercase() == it.key) {
                 e.isCanceled = true

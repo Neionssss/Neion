@@ -66,7 +66,7 @@ object TerminalFeatures {
             if (colors.indexOf(EnumDyeColor.MAGENTA.metadata) != movingPaneIndex % 9 || (movingPaneIndex / 9) * 9 + 7 != slot.slotIndex) cancelEvent(e)
         }
         if (cn.startsWith(termNames[1]) && slot.stack?.metadata == EnumDyeColor.LIME.metadata) cancelEvent(e)
-        if (cn.startsWith(termNames[2]) && (slot.stack.metadata != EnumDyeColor.RED.metadata || slot.stack.stackSize != e.container.lowerChestInventory.items.count { it?.metadata == EnumDyeColor.LIME.metadata } + 1)) cancelEvent(e)
+        if (cn.startsWith(termNames[2]) && (slot.stack?.metadata != EnumDyeColor.RED.metadata || slot.stack?.stackSize != e.container.lowerChestInventory.items.count { it?.metadata == EnumDyeColor.LIME.metadata } + 1)) cancelEvent(e)
         if (cn.startsWith(termNames[3])) if (StartsWith.shouldClick.size > 0 && !StartsWith.shouldClick.contains(slot)) cancelEvent(e)
         if (cn.startsWith(termNames[4])) if (ColorsSolver.shouldClick.size > 0 && !ColorsSolver.shouldClick.contains(slot)) cancelEvent(e)
         if (cn.startsWith(termNames[5])) if (slot.stack?.metadata == mostCommon) e.isCanceled = true

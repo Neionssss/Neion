@@ -22,14 +22,13 @@ object StartsWith {
     fun sssssloot(e: GuiContainerEvent.DrawSlotEvent) {
         if (!Config.startsWithSolver || dungeonFloor != 7 || e.container !is ContainerChest || !e.chestName.contains(TerminalFeatures.termNames[3])) return
         shouldClick.clear()
-        for (slot in e.container.inventorySlots) {
-            if (slot == mc.thePlayer.inventory) continue
+        e.container.inventorySlots.filter { it != mc.thePlayer.inventory }.forEach {
             val titler = Regex("^What starts with: ['\"](.+)['\"]\\?$").find(e.chestName) ?: return
-            val stack = slot.stack ?: continue
+            val stack = it.stack ?: return
             if (stack.cleanName().startsWith(titler.groupValues[1]) && !stack.isItemEnchanted) {
-                slot highlight Config.terminalColor.toJavaColor()
-                shouldClick.add(slot)
-            }
+                it highlight Config.terminalColor.toJavaColor()
+                shouldClick.add(it)
+            } else e.isCanceled = true
         }
     }
 }

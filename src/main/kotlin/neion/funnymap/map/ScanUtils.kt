@@ -59,6 +59,14 @@ object ScanUtils {
     }
 
     fun getStateFromIDWithRotation(iblockstate: IBlockState, rotation: Int) : IBlockState {
+        fun getRotatedFacing(facing: EnumFacing, rotation: Int): EnumFacing {
+            return when {
+                rotation.equalsOneOf(90, -270) -> facing.rotateY()
+                rotation.equalsOneOf(180, -180) -> facing.rotateY().rotateY()
+                rotation.equalsOneOf(270, -90) -> facing.rotateY().rotateY().rotateY()
+                else -> facing
+            }
+        }
         var blockstate = iblockstate
         // rotate if block has rotation data. this is really scuffed unfortunately
         if (blockstate.properties.containsKey(FACING_HORIZONTAL)) {
@@ -83,15 +91,6 @@ object ScanUtils {
             rotation.equalsOneOf(180, -180) -> BlockPos(-blockPos.x, blockPos.y, -blockPos.z)
             rotation.equalsOneOf(270, -90) -> BlockPos(blockPos.z, blockPos.y, -blockPos.x)
             else -> blockPos
-        }
-    }
-
-    private fun getRotatedFacing(facing: EnumFacing, rotation: Int): EnumFacing {
-        return when {
-            rotation.equalsOneOf(90, -270) -> facing.rotateY()
-            rotation.equalsOneOf(180, -180) -> facing.rotateY().rotateY()
-            rotation.equalsOneOf(270, -90) -> facing.rotateY().rotateY().rotateY()
-            else -> facing
         }
     }
 

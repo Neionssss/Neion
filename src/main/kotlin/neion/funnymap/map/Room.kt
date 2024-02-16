@@ -65,7 +65,3 @@ enum class Puzzle(val roomDataName: String, val tabName: String = roomDataName) 
     }
 }
 enum class RoomState { FAILED, GREEN, CLEARED, DISCOVERED, UNDISCOVERED }
-class Unknown(override val x: Int, override val z: Int) : Tile {
-    override val color = Color(0, 0, 0, 0)
-    override var state = RoomState.UNDISCOVERED
-}

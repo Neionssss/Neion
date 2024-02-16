@@ -12,12 +12,11 @@ import net.minecraftforge.client.event.RenderWorldLastEvent
 import net.minecraftforge.event.entity.player.PlayerInteractEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
-import scala.collection.parallel.ParIterableLike.Collect
 import java.awt.Color
 
 object SimonSaysSolver {
 
-    val clickInOrder = HashSet<BlockPos>()
+    val clickInOrder = mutableSetOf<BlockPos>()
     var cleared = false
 
     @SubscribeEvent
@@ -49,7 +48,7 @@ object SimonSaysSolver {
         if (x == 110 && y == 121 && z == 91) clickInOrder.clear()
         if (mc.theWorld.getBlockState(BlockPos(x, y, z)).block != Blocks.stone_button) return
         val pose = BlockPos(x + 1, y, z)
-        if (clickInOrder.contains(pose)) clickInOrder.remove(pose) else if (!mc.thePlayer.isSneaking) e.isCanceled = true
+        if (clickInOrder.contains(pose)) clickInOrder.remove(pose)
     }
 
     @SubscribeEvent

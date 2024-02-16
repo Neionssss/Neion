@@ -498,7 +498,7 @@ object RenderUtil {
             }
 
             // Handle player names
-            if (FMConfig.peekBind.isActive || FMConfig.playerHeads == 2 || FMConfig.playerHeads == 1 && mc.thePlayer.heldItem?.itemID.equalsOneOf("SPIRIT_LEAP", "INFINITE_SPIRIT_LEAP", "HAUNT_ABILITY")) {
+            if (name != mc.thePlayer.name && (FMConfig.peekBind.isActive || FMConfig.playerHeads == 2 || FMConfig.playerHeads == 1 && mc.thePlayer.heldItem?.itemID.equalsOneOf("SPIRIT_LEAP", "INFINITE_SPIRIT_LEAP", "HAUNT_ABILITY"))) {
                 GlStateManager.rotate(-player.yaw + 180f, 0f, 0f, 1f)
                 GlStateManager.translate(0f, 10f, 0f)
                 GlStateManager.scale(FMConfig.playerNameScale, FMConfig.playerNameScale, 1f)

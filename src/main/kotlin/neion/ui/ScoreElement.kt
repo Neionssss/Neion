@@ -5,6 +5,7 @@ import neion.Neion.Companion.mc
 import neion.funnymap.MapRender
 import neion.funnymap.RunInformation
 import neion.funnymap.ScoreCalculation
+import neion.utils.ItemUtils.equalsOneOf
 import neion.utils.Location
 import neion.utils.Location.inDungeons
 import neion.utils.RenderUtil
@@ -24,9 +25,9 @@ class ScoreElement : MovableGuiElement() {
         val lineThree = MapRender.lines.takeLastWhile { it != "split" && it != "split1" }.joinToString(separator = "    ")
         val l1sw = -fr.getStringWidth(lineOne) / 2
         val l2Sw = -fr.getStringWidth(lineTwo) / 2
-        RenderUtil.renderText(lineOne, l1sw, 0)
-        RenderUtil.renderText(lineTwo, l2Sw, if (l1sw == 0) 0 else 9)
-        RenderUtil.renderText(lineThree, -fr.getStringWidth(lineThree) / 2, if (l2Sw.and(l1sw) == 0) 0 else if (l2Sw.or(l1sw) == 0) 9 else 18)
+        RenderUtil.renderText(lineOne, 0, l1sw)
+        RenderUtil.renderText(lineTwo, 0, if (l1sw == 0) 0 else 9)
+        RenderUtil.renderText(lineThree, 0, if (l2Sw.and(l1sw) == 0) 0 else if (l2Sw.or(l1sw) == 0) 9 else 18)
     }
 
     override fun shouldRender(): Boolean {
@@ -50,7 +51,7 @@ class ScoreElement : MovableGuiElement() {
             list.add("split")
 
             if (FMConfig.scoreCrypts) list.add(getCrypts(FMConfig.scoreMinimizedName))
-            if (FMConfig.scoreMimic) list.add(getMimic(FMConfig.scoreMinimizedName))
+            if (FMConfig.scoreMimic && Location.dungeonFloor.equalsOneOf(6,7)) list.add(getMimic(FMConfig.scoreMinimizedName))
             if (FMConfig.scoreDeaths) list.add(getDeaths(FMConfig.scoreMinimizedName))
 
             list.add("split1")

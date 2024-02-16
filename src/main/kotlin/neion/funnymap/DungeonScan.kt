@@ -42,9 +42,7 @@ object DungeonScan {
                 if (!mc.theWorld.getChunkFromChunkCoords(xPos shr 4, zPos shr 4).isLoaded) allChunksLoaded = false
 
                 // This room has already been added in a previous scan.
-                if (Dungeon.Info.dungeonList[x + z * 11].run {
-                        this !is Unknown && (this as? Room)?.data?.name != "Unknown"
-                    }) continue
+                if (Dungeon.Info.dungeonList[x + z * 11] != null)  continue
 
                 scanRoom(xPos, zPos, z, x)?.let {
                     Dungeon.Info.dungeonList[z * 11 + x] = it
@@ -107,13 +105,13 @@ object DungeonScan {
                 Door(
                     x, z,
                     // Finds door type from door block
-                    when (mc.theWorld.getBlockState(BlockPos(x, 69, z)).block) {
-                        Blocks.coal_block -> DoorType.WITHER
-                        Blocks.monster_egg -> DoorType.ENTRANCE
-                        Blocks.stained_hardened_clay -> DoorType.BLOOD
-                        else -> DoorType.NORMAL
-                    }
-                )
+                        when (mc.theWorld.getBlockState(BlockPos(x, 70, z)).block) {
+                            Blocks.coal_block -> DoorType.WITHER
+                            Blocks.monster_egg -> DoorType.ENTRANCE
+                            Blocks.stained_hardened_clay -> DoorType.BLOOD
+                            else -> DoorType.NORMAL
+                        }
+                ).also { Dungeon.doors.add(it) }
             }
 
             // Connection between large rooms

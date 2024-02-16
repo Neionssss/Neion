@@ -15,7 +15,7 @@ class Door(override val x: Int, override val z: Int, var type: DoorType) : Tile 
         }
     }
 enum class DoorType {
-    BLOOD, ENTRANCE, NORMAL, WITHER;
+    BLOOD, ENTRANCE, NORMAL, WITHER, FAIRY;
 
     companion object {
         fun fromMapColor(color: Int) = when (color) {
