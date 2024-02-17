@@ -91,10 +91,6 @@ object RandomStuff {
         BlazeSolver.onTick()
         mc.mcProfiler.endSection()
         Display.setTitle(Config.mcTitle)
-        mc.theWorld?.loadedEntityList?.filterIsInstance<EntityArmorStand>()
-            ?.forEach { s ->
-                s.getEquipmentInSlot(1)?.getSkullTextured()?.let { TextUtils.info(it) }
-        }
     }
 
     fun length(): Int =
