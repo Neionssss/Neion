@@ -38,8 +38,4 @@ object ItemUtils {
         }
 
     fun ItemStack.cleanName() = this.displayName.stripControlCodes()
-
-    fun getTextureFromSkull(position: BlockPos?): String? {
-        return (mc.theWorld.getTileEntity(position) as TileEntitySkull).serializeNBT().getCompoundTag("Owner").getCompoundTag("Properties").getTagList("textures", Constants.NBT.TAG_COMPOUND).getCompoundTagAt(0).getString("Value")
-    }
 }

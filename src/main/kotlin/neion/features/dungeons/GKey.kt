@@ -3,6 +3,9 @@ package neion.features.dungeons
 import neion.Config
 import neion.Neion.Companion.mc
 import neion.events.ClickEvent
+import neion.utils.Location
+import neion.utils.Utils
+import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.init.Blocks
 import net.minecraft.item.ItemPickaxe
 import net.minecraft.util.MovingObjectPosition
@@ -60,7 +63,7 @@ object GKey {
 
     @SubscribeEvent
     fun onTick(e: TickEvent.ClientTickEvent) {
-        if (!Config.GGkey || !Config.GGkeyBind.isActive) return
+        if (!Config.GGkey || !Config.GGkeyBind.isActive || mc.ingameGUI.chatGUI.chatOpen) return
         val rt = mc.thePlayer?.rayTrace(Config.GRange.toDouble(), 0.0f)
         if (!blacklist.contains(mc.theWorld.getBlockState(rt?.blockPos).block) && System.currentTimeMillis() - last0l > Config.GDelay) {
             mc.theWorld.setBlockState(rt?.blockPos, Blocks.air.defaultState)
@@ -70,7 +73,7 @@ object GKey {
 
     @SubscribeEvent
     fun onRightClick(e: ClickEvent.RightClickEvent) {
-        if (!Config.rcmGB || Config.GGkeyBind.isActive || mc.objectMouseOver?.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return
+        if (!Config.rcmGB || !Location.inDungeons || Config.GGkeyBind.isActive || mc.objectMouseOver?.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return
         val rt = mc.thePlayer?.rayTrace(Config.GRange.toDouble(), 0.0f)
         if (mc.thePlayer.heldItem?.item is ItemPickaxe && !blacklist.contains(mc.theWorld.getBlockState(rt?.blockPos).block)) {
             e.isCanceled = mc.theWorld.setBlockState(rt?.blockPos, Blocks.air.defaultState)

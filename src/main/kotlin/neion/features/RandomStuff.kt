@@ -13,6 +13,7 @@ import neion.funnymap.Dungeon
 import neion.funnymap.map.ScanUtils
 import neion.ui.GuiRenderer
 import neion.utils.ItemUtils.equalsOneOf
+import neion.utils.ItemUtils.getSkullTextured
 import neion.utils.Location
 import neion.utils.Location.inDungeons
 import neion.utils.Location.inSkyblock
@@ -21,6 +22,7 @@ import neion.utils.TextUtils
 import neion.utils.Utils
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.settings.KeyBinding
+import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.init.Blocks
 import net.minecraft.init.Items
@@ -89,6 +91,10 @@ object RandomStuff {
         BlazeSolver.onTick()
         mc.mcProfiler.endSection()
         Display.setTitle(Config.mcTitle)
+        mc.theWorld?.loadedEntityList?.filterIsInstance<EntityArmorStand>()
+            ?.forEach { s ->
+                s.getEquipmentInSlot(1)?.getSkullTextured()?.let { TextUtils.info(it) }
+        }
     }
 
     fun length(): Int =

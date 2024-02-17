@@ -1,5 +1,3 @@
-import dev.architectury.pack200.java.Pack200Adapter
-
 plugins {
     idea
     java
@@ -22,12 +20,10 @@ sourceSets.main {
 loom {
     silentMojangMappingsLicense()
     forge {
-        pack200Provider.set(Pack200Adapter())
+        pack200Provider.set(dev.architectury.pack200.java.Pack200Adapter())
         mixinConfig("mixins.${modID}.json")
     }
 }
-
-// Dependencies:
 
 repositories {
     maven("https://repo.spongepowered.org/maven/")
@@ -37,11 +33,6 @@ repositories {
 val shadowImpl: Configuration by configurations.creating {
     configurations.implementation.get().extendsFrom(this)
 }
-
-val shadowMe: Configuration by configurations.creating {
-    configurations.implementation.get().extendsFrom(this)
-}
-
 
 dependencies {
     minecraft("com.mojang:minecraft:1.8.9")
@@ -89,7 +80,7 @@ tasks {
         inputFile.set(shadowJar.get().archiveFile)
     }
     shadowJar {
-        configurations = listOf(shadowImpl, shadowMe)
+        configurations = listOf(shadowImpl)
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
         exclude(

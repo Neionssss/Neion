@@ -24,8 +24,9 @@ object ColorsSolver {
         if (!Config.colorsSolver || dungeonFloor != 7 || e.container !is ContainerChest || !e.chestName.contains(TerminalFeatures.termNames[4])) return
         shouldClick.clear()
         e.container.inventorySlots?.filter { it != mc.thePlayer.inventory }?.forEach { slot ->
+            val stack = slot.stack ?: return
             val promptColor = EnumDyeColor.entries.find { e.chestName.contains(it.getName().replace("_", " ").uppercase()) }?.unlocalizedName ?: return
-            if (slot.stack?.unlocalizedName?.contains(promptColor)!! && slot.hasStack && !slot.stack?.isItemEnchanted!!) {
+            if (stack.unlocalizedName?.contains(promptColor)!! && !stack.isItemEnchanted) {
                 slot highlight Config.terminalColor.toJavaColor()
                 shouldClick.add(slot)
             } else e.isCanceled = true

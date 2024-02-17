@@ -146,7 +146,12 @@ object DungeonScan {
                 }
             }
 
-            else -> listOf(-15 to -15, 15 to -15, 15 to 15, -15 to 15).forEachIndexed { index, pair ->
+            else -> listOf(
+                15 to 15,
+                -15 to 15,
+                -15 to -15,
+                15 to -15
+            ).forEachIndexed { index, pair ->
                 val height = mc.theWorld.getChunkFromChunkCoords(room.x shr 4, room.z shr 4).getHeightValue(room.x and 15, room.z and 15)
                 if (mc.theWorld.getBlockState(
                         BlockPos(

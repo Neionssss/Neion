@@ -5,8 +5,6 @@ https://github.com/Skytils/SkytilsMod
 
 package neion.utils
 
-import cc.polyfrost.oneconfig.libs.universal.UGraphics
-import cc.polyfrost.oneconfig.libs.universal.UMatrixStack
 import neion.Config
 import neion.FMConfig
 import neion.Neion.Companion.mc
@@ -291,28 +289,6 @@ object RenderUtil {
         tessellator.draw()
     }
 
-    fun renderRectBorder(x: Double, y: Double, w: Double, h: Double, thickness: Double, color: Color) {
-        if (color.alpha == 0) return
-        preDraw()
-        color.bind()
-
-        worldRenderer.begin(GL_QUADS, DefaultVertexFormats.POSITION)
-        addQuadVertices(x - thickness, y, thickness, h)
-        addQuadVertices(x - thickness, y - thickness, w + thickness * 2, thickness)
-        addQuadVertices(x + w, y, thickness, h)
-        addQuadVertices(x - thickness, y + h, w + thickness * 2, thickness)
-        tessellator.draw()
-
-        postDraw()
-    }
-
-
-    fun addQuadVertices(x: Double, y: Double, w: Double, h: Double) {
-        worldRenderer.pos(x, y + h, 0.0).endVertex()
-        worldRenderer.pos(x + w, y + h, 0.0).endVertex()
-        worldRenderer.pos(x + w, y, 0.0).endVertex()
-        worldRenderer.pos(x, y, 0.0).endVertex()
-    }
 
     fun drawEntityBox(
         entity: Entity,
@@ -361,33 +337,31 @@ object RenderUtil {
     fun draw3DLine(
         pos1: Vec3,
         pos2: Vec3,
-        width: Int,
+        width: Float,
         color: Color,
     ) {
-        val matrixStack = UMatrixStack()
-        val worldRenderer = UGraphics.getFromTessellator()
         val (x,y,z) = mc.renderViewEntity.getInterpolatedPosition()
-        matrixStack.push()
-        matrixStack.translate(-x, -y, -z)
-        UGraphics.enableBlend()
-        UGraphics.enableAlpha()
-        UGraphics.disableLighting()
-        UGraphics.tryBlendFuncSeparate(770, 771, 1, 0)
-        glLineWidth(width.toFloat())
-        UGraphics.color4f(
+        glPushMatrix()
+        GlStateManager.translate(-x, -y, -z)
+        GlStateManager.enableBlend()
+        GlStateManager.enableAlpha()
+        GlStateManager.disableLighting()
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0)
+        glLineWidth(width)
+        glColor4f(
             color.red / 255f,
             color.green / 255f,
             color.blue / 255f,
             (color.alpha * 1f / 255f).coerceAtMost(1f)
         )
-        worldRenderer.beginWithActiveShader(UGraphics.DrawMode.LINE_STRIP, DefaultVertexFormats.POSITION)
-        worldRenderer.pos(matrixStack, pos1.xCoord, pos1.yCoord, pos1.zCoord).endVertex()
-        worldRenderer.pos(matrixStack, pos2.xCoord, pos2.yCoord, pos2.zCoord).endVertex()
-        worldRenderer.drawDirect()
-        matrixStack.pop()
-        UGraphics.disableBlend()
-        UGraphics.enableAlpha()
-        UGraphics.color4f(1f, 1f, 1f, 1f)
+        worldRenderer.begin(GL_LINE_STRIP, DefaultVertexFormats.POSITION)
+        worldRenderer.pos(pos1.xCoord, pos1.yCoord, pos1.zCoord).endVertex()
+        worldRenderer.pos(pos2.xCoord, pos2.yCoord, pos2.zCoord).endVertex()
+        tessellator.draw()
+        glPopMatrix()
+        GlStateManager.disableBlend()
+        GlStateManager.enableAlpha()
+        glColor4f(1f, 1f, 1f, 1f)
     }
 
     fun preDraw() {
@@ -409,6 +383,13 @@ object RenderUtil {
         GlStateManager.color(this.red / 255f, this.green / 255f, this.blue / 255f, this.alpha / 255f)
     }
 
+    fun addQuadVertices(x: Double, y: Double, w: Double, h: Double) {
+        worldRenderer.pos(x, y + h, 0.0).endVertex()
+        worldRenderer.pos(x + w, y + h, 0.0).endVertex()
+        worldRenderer.pos(x + w, y, 0.0).endVertex()
+        worldRenderer.pos(x, y, 0.0).endVertex()
+    }
+
     fun renderRect(x: Double, y: Double, w: Double, h: Double, color: Color) {
         if (color.alpha == 0) return
         preDraw()
@@ -416,6 +397,20 @@ object RenderUtil {
 
         worldRenderer.begin(GL_QUADS, DefaultVertexFormats.POSITION)
         addQuadVertices(x, y, w, h)
+        tessellator.draw()
+        postDraw()
+    }
+
+    fun renderRectBorder(x: Double, y: Double, w: Double, h: Double, thickness: Double, color: Color) {
+        if (color.alpha == 0) return
+        preDraw()
+        color.bind()
+
+        worldRenderer.begin(GL_QUADS, DefaultVertexFormats.POSITION)
+        addQuadVertices(x - thickness, y, thickness, h)
+        addQuadVertices(x - thickness, y - thickness, w + thickness * 2, thickness)
+        addQuadVertices(x + w, y, thickness, h)
+        addQuadVertices(x - thickness, y + h, w + thickness * 2, thickness)
         tessellator.draw()
 
         postDraw()
@@ -431,16 +426,6 @@ object RenderUtil {
         tessellator.draw()
     }
 
-    fun drawBox(aabb: AxisAlignedBB, color: Color, width: Float, ignoreDepth: Boolean) {
-        GlStateManager.pushMatrix()
-        preDraw()
-        GlStateManager.depthMask(!ignoreDepth)
-        glLineWidth(width)
-        drawOutlinedAABB(aabb, color)
-        GlStateManager.depthMask(true)
-        postDraw()
-        GlStateManager.popMatrix()
-    }
 
     fun renderCenteredText(text: List<String>, x: Int, y: Int, color: Int) {
         if (text.isEmpty()) return
@@ -448,10 +433,10 @@ object RenderUtil {
         GlStateManager.translate(x.toFloat(), y.toFloat(), 0f)
         GlStateManager.scale(FMConfig.textScale, FMConfig.textScale, 1f)
         val fontHeight = mc.fontRendererObj.FONT_HEIGHT + 1
-        val yTextOffset = text.size * fontHeight / -2f
+        val yTextOffset = text.size * fontHeight / -2
 
         text.withIndex().forEach { (index, text) ->
-            mc.fontRendererObj.drawString(text, mc.fontRendererObj.getStringWidth(text) / -2f, yTextOffset + index * fontHeight, color, true)
+            renderText(text, mc.fontRendererObj.getStringWidth(text) / -2, yTextOffset + index * fontHeight, color = color)
         }
         GlStateManager.popMatrix()
     }
@@ -459,20 +444,14 @@ object RenderUtil {
     fun drawPlayerHead(name: String, player: DungeonPlayer) {
         GlStateManager.pushMatrix()
         try {
-            // Translates to the player's location which is updated every tick.
-            if (player.isPlayer || name == mc.thePlayer.name) {
-                GlStateManager.translate(
-                    (mc.thePlayer.posX - DungeonScan.startX + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.first,
-                    (mc.thePlayer.posZ - DungeonScan.startZ + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.second,
-                    0.0
-                )
-            } else GlStateManager.translate(player.mapX.toFloat(), player.mapZ.toFloat(), 0f)
+            if (!player.isPlayer) return
+            GlStateManager.translate((mc.thePlayer.posX - DungeonScan.startX + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.first, (mc.thePlayer.posZ - DungeonScan.startZ + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.second, 0.0)
 
             // Apply head rotation and scaling
             GlStateManager.rotate(player.yaw + 180f, 0f, 0f, 1f)
             GlStateManager.scale(FMConfig.playerHeadScale, FMConfig.playerHeadScale, 1f)
 
-            if (FMConfig.mapVanillaMarker && (player.isPlayer || name == mc.thePlayer.name)) {
+            if (FMConfig.mapVanillaMarker) {
                 GlStateManager.rotate(180f, 0f, 0f, 1f)
                 GlStateManager.color(1f, 1f, 1f, 1f)
                 mc.textureManager.bindTexture(ResourceLocation("funnymap", "marker.png"))
@@ -486,7 +465,6 @@ object RenderUtil {
             } else {
                 // Render black border around the player head
                 renderRectBorder(-6.0, -6.0, 12.0, 12.0, 1.0, Color(0, 0, 0, 255))
-
                 preDraw()
                 GlStateManager.enableTexture2D()
                 GlStateManager.color(1f, 1f, 1f, 1f)
@@ -539,6 +517,7 @@ object RenderUtil {
     }
 
     fun outlineESP(event: RenderLivingEntityEvent, color: Color) {
+        val render = event.modelBase.render(event.entity, event.p_77036_2_, event.p_77036_3_, event.p_77036_4_, event.p_77036_5_, event.p_77036_6_, event.scaleFactor)
         val fancyGraphics = mc.gameSettings.fancyGraphics
         val gamma = mc.gameSettings.gammaSetting
         mc.gameSettings.fancyGraphics = false
@@ -548,31 +527,26 @@ object RenderUtil {
         checkSetupFBO()
         glColor4f(color.red / 255f, color.green / 255f, color.blue / 255f, color.alpha / 255f)
         renderOne()
-        render(event)
-        renderTwo()
-        render(event)
-        renderThree()
-        render(event)
-        renderFour()
-        render(event)
+        render
+        glStencilFunc(GL_NEVER, 0, 0xF)
+        glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+        render
+        glStencilFunc(GL_EQUAL, 1, 0xF)
+        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+        render
+        glDepthMask(false)
+        glDisable(GL_DEPTH_TEST)
+        glEnable(GL_POLYGON_OFFSET_LINE)
+        glPolygonOffset(1.0f, -2000000f)
+        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240.0f, 240.0f)
+        render
         glPopAttrib()
         glPopMatrix()
         mc.gameSettings.fancyGraphics = fancyGraphics
         mc.gameSettings.gammaSetting = gamma
     }
-
-    private fun render(event: RenderLivingEntityEvent) {
-        event.modelBase.render(
-            event.entity,
-            event.p_77036_2_,
-            event.p_77036_3_,
-            event.p_77036_4_,
-            event.p_77036_5_,
-            event.p_77036_6_,
-            event.scaleFactor
-        )
-    }
-
 
     private fun renderOne() {
         glDisable(GL_ALPHA_TEST)
@@ -590,34 +564,12 @@ object RenderUtil {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
     }
 
-    private fun renderTwo() {
-        glStencilFunc(GL_NEVER, 0, 0xF)
-        glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE)
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
-    }
-
-    private fun renderThree() {
-        glStencilFunc(GL_EQUAL, 1, 0xF)
-        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-    }
-
-    private fun renderFour() {
-        glDepthMask(false)
-        glDisable(GL_DEPTH_TEST)
-        glEnable(GL_POLYGON_OFFSET_LINE)
-        glPolygonOffset(1.0f, -2000000f)
-        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240.0f, 240.0f)
-    }
-
     private fun checkSetupFBO() {
-        val fbo = mc.framebuffer
-        if (fbo != null) {
+        val fbo = mc.framebuffer ?: return
             if (fbo.depthBuffer > -1) {
                 setupFBO(fbo)
                 fbo.depthBuffer = -1
             }
-        }
     }
 
     private fun setupFBO(fbo: Framebuffer) {

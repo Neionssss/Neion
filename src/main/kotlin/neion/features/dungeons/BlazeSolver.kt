@@ -56,7 +56,7 @@ object BlazeSolver {
                 RenderUtil.draw3DLine(
                     Vec3(pos1.posX, pos1.posY, pos1.posZ),
                     Vec3(pos.posX, pos.posY, pos.posZ),
-                    1,
+                    4f,
                     color
                 )
             }

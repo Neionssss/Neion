@@ -8,7 +8,6 @@ import neion.utils.Location.dungeonFloor
 import neion.utils.RenderUtil.highlight
 import net.minecraft.inventory.ContainerChest
 import net.minecraft.inventory.Slot
-import net.minecraftforge.client.event.GuiOpenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
 object StartsWith {

@@ -33,7 +33,7 @@ object PlayerESP {
     fun onRender3D(e: Render3DEvent) {
         if (!Config.playerESP) return
         mc.theWorld?.playerEntities?.forEach {
-            if ((it?.team as? ScorePlayerTeam)?.nameTagVisibility == Team.EnumVisible.NEVER || ((Config.freeCam || Config.showOwnName) && it.name == mc.thePlayer.name)) return
+            if ((it?.team as? ScorePlayerTeam)?.nameTagVisibility == Team.EnumVisible.NEVER || it.name == mc.thePlayer.name && (Config.freeCam || Config.showOwnName)) return
             GL11.glPushAttrib(GL11.GL_ENABLE_BIT)
             GL11.glPushMatrix()
             // Disable lightning and depth test

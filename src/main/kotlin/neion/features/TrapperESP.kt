@@ -59,7 +59,7 @@ object Trapper {
     fun onRenderWorld(e: RenderWorldLastEvent) {
         if (Config.trapperESP) {
             mc.theWorld?.loadedEntityList?.forEach {
-                if (mc.thePlayer.getDistanceToEntity(it) < 7 && clicker && it.displayName.unformattedText.contains("Trevor") && System.currentTimeMillis() - trapperCooldown > 20000) {
+                if (mc.thePlayer.getDistanceToEntity(it) < 7 && clicker && it.displayName.unformattedText.contains("Trevor") && System.currentTimeMillis() - trapperCooldown > 23000) {
                     mc.playerController.interactWithEntitySendPacket(mc.thePlayer, it)
                     clicker = false
                     trapperCooldown = System.currentTimeMillis()

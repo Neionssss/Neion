@@ -7,6 +7,7 @@ import neion.utils.TextUtils.containsAny
 import neion.utils.TextUtils.stripControlCodes
 import neion.utils.MathUtil.romanToDecimal
 import net.minecraft.init.Items
+import net.minecraft.inventory.ContainerChest
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -17,6 +18,8 @@ object Utils {
 
 	val ItemStack.extraAttributes: NBTTagCompound?
 		get() = this.getSubCompound("ExtraAttributes", false)
+
+	val containerChest = mc.thePlayer.openContainer as? ContainerChest
 
 	val ItemStack.itemID: String
 		get() = this.extraAttributes?.getString("id") ?: ""

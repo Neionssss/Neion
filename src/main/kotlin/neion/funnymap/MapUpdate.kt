@@ -64,14 +64,14 @@ object MapUpdate {
             }
         }
 
-        Dungeon.dungeonTeammates.forEach { (name, player) ->
+        Dungeon.dungeonTeammates.forEach { (_, player) ->
             MapUtils.getMapData()?.mapDecorations?.entries?.find { (icon, _) -> icon == player.icon }?.let { (_, vec4b) ->
                 player.isPlayer = vec4b.func_176110_a().toInt() == 1
                 player.mapX = vec4b.mapX
                 player.mapZ = vec4b.mapZ
                 player.yaw = vec4b.yaw
             }
-            if (player.isPlayer || name == mc.thePlayer.name) {
+            if (player.isPlayer) {
                 player.yaw = mc.thePlayer.rotationYaw
                 player.mapX = ((mc.thePlayer.posX - DungeonScan.startX + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.first).roundToInt()
                 player.mapZ = ((mc.thePlayer.posZ - DungeonScan.startZ + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.second).roundToInt()
