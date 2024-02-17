@@ -7,8 +7,10 @@ import neion.utils.ItemUtils.cleanName
  import neion.utils.ItemUtils.equalsOneOf
  import neion.utils.ItemUtils.lore
 import neion.utils.Location.inBoss
-import neion.utils.Utils
-import neion.utils.Utils.itemID
+ import neion.utils.TextUtils.containsAny
+ import neion.utils.Utils
+ import neion.utils.Utils.containerChest
+ import neion.utils.Utils.itemID
 import net.minecraft.entity.Entity
 import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.inventory.ContainerChest
@@ -52,13 +54,14 @@ object DungeonChestProfit {
     @SubscribeEvent
     fun onChest(e: ClientTickEvent) {
         if (!Config.chestOpener || !inBoss) return
-        val entity = mc.theWorld?.loadedEntityList?.filter { it is EntityArmorStand && it.getEquipmentInSlot(4).cleanName().equalsOneOf(Chestser.entries) } ?: return
+        val entity = mc.theWorld?.loadedEntityList?.filter { it is EntityArmorStand && Chestser.entries.any { s -> it.getEquipmentInSlot(4)?.cleanName() == s.p } } ?: return
         for (ent in entity) {
-            if (!noobmen.contains(ent) && System.currentTimeMillis() - timeWait > 100 && mc.thePlayer.getDistanceToEntity(ent) < 20) {
-                mc.playerController.interactWithEntitySendPacket(mc.thePlayer, ent)
-                timeWait = System.currentTimeMillis()
-                noobmen.add(ent)
-                mc.thePlayer.closeScreen()
+            if (!noobmen.contains(ent) && mc.thePlayer.getDistanceToEntity(ent) < 20) {
+                if (System.currentTimeMillis() - timeWait > 100 && containerChest == null) {
+                    mc.playerController.interactWithEntitySendPacket(mc.thePlayer, ent)
+                    timeWait = System.currentTimeMillis()
+                    noobmen.add(ent)
+                } else if (DungeonChest.entries.any { containerChest?.lowerChestInventory?.displayName?.unformattedText == it.displayText }) mc.thePlayer.closeScreen()
             }
         }
     }

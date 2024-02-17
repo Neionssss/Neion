@@ -444,14 +444,20 @@ object RenderUtil {
     fun drawPlayerHead(name: String, player: DungeonPlayer) {
         GlStateManager.pushMatrix()
         try {
-            if (!player.isPlayer) return
-            GlStateManager.translate((mc.thePlayer.posX - DungeonScan.startX + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.first, (mc.thePlayer.posZ - DungeonScan.startZ + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.second, 0.0)
+            // Translates to the player's location which is updated every tick.
+            if (player.isPlayer || name == mc.thePlayer.name) {
+                GlStateManager.translate(
+                    (mc.thePlayer.posX - DungeonScan.startX + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.first,
+                    (mc.thePlayer.posZ - DungeonScan.startZ + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.second,
+                    0.0
+                )
+            } else GlStateManager.translate(player.mapX.toFloat(), player.mapZ.toFloat(), 0f)
 
             // Apply head rotation and scaling
             GlStateManager.rotate(player.yaw + 180f, 0f, 0f, 1f)
             GlStateManager.scale(FMConfig.playerHeadScale, FMConfig.playerHeadScale, 1f)
 
-            if (FMConfig.mapVanillaMarker) {
+            if (FMConfig.mapVanillaMarker && (player.isPlayer || name == mc.thePlayer.name)) {
                 GlStateManager.rotate(180f, 0f, 0f, 1f)
                 GlStateManager.color(1f, 1f, 1f, 1f)
                 mc.textureManager.bindTexture(ResourceLocation("funnymap", "marker.png"))
@@ -465,6 +471,7 @@ object RenderUtil {
             } else {
                 // Render black border around the player head
                 renderRectBorder(-6.0, -6.0, 12.0, 12.0, 1.0, Color(0, 0, 0, 255))
+
                 preDraw()
                 GlStateManager.enableTexture2D()
                 GlStateManager.color(1f, 1f, 1f, 1f)
@@ -477,7 +484,7 @@ object RenderUtil {
             }
 
             // Handle player names
-            if (name != mc.thePlayer.name && (FMConfig.peekBind.isActive || FMConfig.playerHeads == 2 || FMConfig.playerHeads == 1 && mc.thePlayer.heldItem?.itemID.equalsOneOf("SPIRIT_LEAP", "INFINITE_SPIRIT_LEAP", "HAUNT_ABILITY"))) {
+            if (FMConfig.peekBind.isActive || FMConfig.playerHeads == 2 || FMConfig.playerHeads == 1 && mc.thePlayer.heldItem?.itemID.equalsOneOf("SPIRIT_LEAP", "INFINITE_SPIRIT_LEAP", "HAUNT_ABILITY")) {
                 GlStateManager.rotate(-player.yaw + 180f, 0f, 0f, 1f)
                 GlStateManager.translate(0f, 10f, 0f)
                 GlStateManager.scale(FMConfig.playerNameScale, FMConfig.playerNameScale, 1f)
