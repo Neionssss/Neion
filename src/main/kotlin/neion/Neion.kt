@@ -3,7 +3,6 @@ package neion
 import neion.commands.*
 import neion.features.*
 import neion.features.dungeons.*
-import neion.features.dungeons.terminals.*
 import neion.funnymap.Dungeon
 import neion.funnymap.RunInformation
 import neion.funnymap.WitherDoorESP
@@ -37,18 +36,13 @@ class Neion {
             RandomStuff,
             Trapper,
             JasperESP,
-            RubixSolver,
-            TerminalFeatures,
-            ColorsSolver,
-            NumbersSolver,
-            StartsWith,
+            TerminalSolvers,
             SimonSaysSolver,
             GKey,
             Croesus,
             MostStolenFile,
             MurderHelper,
             FreeCam,
-            PlayerESP,
             WeirdosSolver,
             TriviaSolver,
             BlazeSolver,
@@ -62,7 +56,7 @@ class Neion {
         listOf(
             FetchCommand,
             ArmorColorCommand,
-            FunnyMapCommands,
+            MapCommands,
             EditModeCommand,
             Neionssss
         ).forEach { ClientCommandHandler.instance.registerCommand(it) }
@@ -75,7 +69,7 @@ class Neion {
     companion object {
         const val MOD_ID = "neion"
         const val MOD_NAME = "Neion"
-        const val MOD_VERSION = "0.0.6"
+        const val MOD_VERSION = "0.0.7"
         const val CHAT_PREFIX = "§f§0[Neion]§f§r"
 
         @JvmStatic

@@ -127,7 +127,8 @@ object RunInformation {
     fun onEntityDeath(e: LivingDeathEvent) {
         if (!inDungeons || mimicKilled) return
         val entity = e.entity as? EntityZombie ?: return
-        if (entity.isChild && entity.totalArmorValue == 0) setMimicKilled()
+        for (i in 0..3)
+        if (entity.isChild && entity.getCurrentArmor(i) == null) setMimicKilled()
     }
 
     @SubscribeEvent
@@ -177,21 +178,18 @@ object RunInformation {
     }
 
     fun checkMimicDead() {
-        if (mimicKilled) return
-        if (mimicOpenTime == 0L || System.currentTimeMillis() - mimicOpenTime < 750) return
+        if (mimicKilled || mimicOpenTime == 0L || System.currentTimeMillis() - mimicOpenTime < 750) return
         Neion.mc.theWorld.loadedTileEntityList.filter { it is TileEntityChest && it.chestType == 1 }.forEach {
             if (it.pos != it) {
                 mimicOpenTime = System.currentTimeMillis()
                 mimicPos = it.pos
             }
         }
-        if (Neion.mc.thePlayer.getDistanceSq(mimicPos) < 400) {
-            if (Neion.mc.theWorld.loadedEntityList.none {
+            if (Neion.mc.thePlayer.getDistanceSq(mimicPos) < 400 && Neion.mc.theWorld.loadedEntityList.none {
                     it is EntityZombie && it.isChild && it.getCurrentArmor(3)
                         ?.getSubCompound("SkullOwner", false)
                         ?.getString("Id") == "bcb486a4-0cb5-35db-93f0-039fbdde03f0"
                 }) setMimicKilled()
-        }
     }
 
     fun setMimicKilled() {

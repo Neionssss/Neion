@@ -24,11 +24,9 @@ class ScoreElement : MovableGuiElement() {
         val lineOne = MapRender.lines.takeWhile { it != "split" }.joinToString(separator = "    ")
         val lineTwo = MapRender.lines.takeWhile { it != "split1" }.takeLastWhile { it != "split" }.joinToString(separator = "    ")
         val lineThree = MapRender.lines.takeLastWhile { it != "split" && it != "split1" }.joinToString(separator = "    ")
-        val l1sw = -fr.getStringWidth(lineOne) / 2
-        val l2Sw = -fr.getStringWidth(lineTwo) / 2
-        RenderUtil.renderText(lineOne, 0, l1sw)
-        RenderUtil.renderText(lineTwo, 0, if (l1sw == 0) 0 else 9)
-        RenderUtil.renderText(lineThree, 0, if (l2Sw.and(l1sw) == 0) 0 else if (l2Sw.or(l1sw) == 0) 9 else 18)
+        RenderUtil.renderText(lineOne, 0, 0)
+        RenderUtil.renderText(lineTwo, 0, 9)
+        RenderUtil.renderText(lineThree, 0, 18)
     }
 
     override fun shouldRender(): Boolean {

@@ -3,7 +3,7 @@ package neion.funnymap.map
 import com.google.common.collect.ComparisonChain
 import com.google.common.collect.Ordering
 import neion.Neion.Companion.mc
-import neion.funnymap.DungeonScan
+import neion.funnymap.Dungeon
 import neion.utils.ItemUtils.equalsOneOf
 import neion.utils.Location
 import net.minecraft.client.network.NetworkPlayerInfo
@@ -50,7 +50,7 @@ object MapUtils {
                     Pair(startX % (mapRoomSize + 4), startZ % (mapRoomSize + 4))
                 }
             }
-            coordMultiplier = (mapRoomSize + 4.0) / DungeonScan.roomSize
+            coordMultiplier = (mapRoomSize + 4.0) / Dungeon.roomSize
             return true
         }
         return false
@@ -68,9 +68,7 @@ object MapUtils {
                 if (currLength == 0) start = index
                 currLength++
             } else {
-                if (currLength >= 16) {
-                    return Pair(start, currLength)
-                }
+                if (currLength >= 16) return Pair(start, currLength)
                 currLength = 0
             }
         }

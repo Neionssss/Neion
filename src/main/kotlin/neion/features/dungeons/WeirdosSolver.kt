@@ -3,8 +3,9 @@ package neion.features.dungeons
 import neion.Config
 import neion.Neion.Companion.mc
 import neion.utils.Location.inDungeons
-import neion.utils.TextUtils.containsAny
 import neion.utils.RenderUtil
+import neion.utils.TextUtils.containsAny
+import net.minecraft.entity.Entity
 import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.init.Blocks
 import net.minecraft.util.BlockPos
@@ -17,8 +18,7 @@ import java.awt.Color
 
 object WeirdosSolver {
 
-    @JvmField
-    var riddleChest: BlockPos? = null
+    private var riddleChest: BlockPos? = null
 
     // Thanks Moolb https://i.imgur.com/ohLScw5.png
     private var solutions = listOf(
@@ -45,24 +45,34 @@ object WeirdosSolver {
         "is telling the truth.",
         "My chest has the reward!"
     )
+    val inter = HashSet<Entity>()
+    var lastInter = 0L
 
 
     @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
     fun onChat(event: ClientChatReceivedEvent) {
-        if (!Config.threeSolver || !inDungeons) return
-        val formatted = event.message.formattedText
+        if (!Config.threeSolver || !inDungeons || event.type == 2.toByte()) return
+        val formatted = event.message.formattedText ?: return
         if (formatted.startsWith("§a§lPUZZLE SOLVED ") && "wasn't fooled by " in formatted) riddleChest = null
         if (formatted.startsWith("§e[NPC] ")) {
-            mc.theWorld?.loadedEntityList?.find { it is EntityArmorStand && formatted.substringAfter("§c").substringBefore("§f") in it.customNameTag }?.let {
-                val chestLoc = EnumFacing.HORIZONTALS.map { dir -> it.position.offset(dir) }.find { mc.theWorld?.getBlockState(it)?.block == Blocks.chest }
-                if (formatted.containsAny(solutions)) riddleChest = chestLoc
-                if (formatted.containsAny(wrong)) mc.theWorld.setBlockState(chestLoc, Blocks.air.defaultState)
-            }
+            val chestLoc = EnumFacing.HORIZONTALS?.map { dir -> mc.theWorld?.loadedEntityList?.find { it is EntityArmorStand && formatted.substringAfter("§c").substringBefore("§f") in it.customNameTag }?.position?.offset(dir) }?.find { mc.theWorld?.getBlockState(it)?.block == Blocks.chest }
+            if (formatted.containsAny(solutions)) riddleChest = chestLoc
+            if (formatted.containsAny(wrong)) mc.theWorld.setBlockState(chestLoc, Blocks.air.defaultState)
         }
     }
 
     @SubscribeEvent
     fun onWorld(e: RenderWorldLastEvent) {
-        if (Config.threeSolver && inDungeons) riddleChest?.let { RenderUtil.drawBlockBox(it,Color.GREEN, outline = false, fill = true, esp = false) }
+        if (!inDungeons || !Config.threeSolver) return
+        if (riddleChest != null) RenderUtil.drawBlockBox(riddleChest!!, Color.GREEN, outline = false, fill = true, esp = false)
+            if (Config.autoWeirdos) {
+                mc.theWorld?.loadedEntityList?.filter { it is EntityArmorStand && it.customNameTag.contains("CLICK") }?.forEach {
+                    if (EditMode.getCurrentRoomPair()?.first?.data?.name == "Three Weirdos" && !inter.contains(it) && System.currentTimeMillis() - lastInter > 100 && mc.thePlayer.getDistanceToEntity(it) < 4) {
+                        lastInter = System.currentTimeMillis()
+                        inter.add(it)
+                        mc.playerController.interactWithEntitySendPacket(mc.thePlayer, it)
+                    }
+                }
+            }
+        }
     }
-}

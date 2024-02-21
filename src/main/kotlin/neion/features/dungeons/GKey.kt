@@ -4,8 +4,6 @@ import neion.Config
 import neion.Neion.Companion.mc
 import neion.events.ClickEvent
 import neion.utils.Location
-import neion.utils.Utils
-import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.init.Blocks
 import net.minecraft.item.ItemPickaxe
 import net.minecraft.util.MovingObjectPosition

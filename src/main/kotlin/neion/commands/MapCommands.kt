@@ -3,7 +3,6 @@ package neion.commands
 import neion.FMConfig
 import neion.Neion.Companion.mc
 import neion.funnymap.Dungeon
-import neion.funnymap.DungeonScan
 import neion.funnymap.MapUpdate
 import neion.funnymap.PlayerTracker
 import neion.funnymap.map.ScanUtils
@@ -13,9 +12,9 @@ import net.minecraft.client.gui.GuiScreen
 import net.minecraft.command.ICommandSender
 import net.minecraft.util.BlockPos
 
-object FunnyMapCommands : BaseCommand("nmap", listOf("nm")) {
+object MapCommands : BaseCommand("nmap", listOf("nm")) {
 
-    private val commands = listOf("help", "scan", "roomdata", "rooms")
+    private val commands = listOf("help", "reset", "roomdata", "rooms")
 
     override fun processCommand(player: EntityPlayerSP, args: Array<String>) {
         if (args.isEmpty()) {
@@ -35,7 +34,7 @@ object FunnyMapCommands : BaseCommand("nmap", listOf("nm")) {
             // Scans the dungeon
             "reset" -> {
                 Dungeon.reset()
-                DungeonScan.scan()
+                Dungeon.scan()
                 MapUpdate.getPlayers()
                 Dungeon.Info.started = true
             }

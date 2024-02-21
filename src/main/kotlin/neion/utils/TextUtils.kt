@@ -3,8 +3,7 @@ package neion.utils
 import cc.polyfrost.oneconfig.libs.universal.wrappers.message.UTextComponent
 import neion.Neion
 import net.minecraft.util.ChatComponentText
-import net.minecraft.util.IChatComponent
-import net.minecraft.util.StringUtils
+import kotlin.random.Random
 
 object TextUtils {
     fun info(text: String, prefix: Boolean = true) {
@@ -15,8 +14,9 @@ object TextUtils {
     }
 
     fun toggledMessage(message: String, state: Boolean) {
-        val stateText = if (state) "§aenabled" else "§cdisabled"
-        info("§9$message §8[$stateText§8]§r")
+        val rInt = Random.nextInt(9)
+        val stateText = if (state) "§r§${rInt}enabled" else "§r§${rInt}disabled"
+        info("§r§$rInt$message §r§$rInt[$stateText§r§$rInt]§r")
     }
 
     fun sendPartyChatMessage(message: String) {
@@ -39,5 +39,9 @@ object TextUtils {
     fun CharSequence?.containsAny(vararg sequences: CharSequence?): Boolean {
         if (this == null) return false
         return sequences.any { it != null && this.contains(it, true) }
+    }
+    fun CharSequence?.startsWithAny(vararg sequences: CharSequence?): Boolean {
+        if (this == null) return false
+        return sequences.any { it != null && this.startsWith(it, true) }
     }
 }

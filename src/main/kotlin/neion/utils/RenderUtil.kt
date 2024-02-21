@@ -9,7 +9,7 @@ import neion.Config
 import neion.FMConfig
 import neion.Neion.Companion.mc
 import neion.events.RenderLivingEntityEvent
-import neion.funnymap.DungeonScan
+import neion.funnymap.Dungeon
 import neion.funnymap.map.DungeonPlayer
 import neion.funnymap.map.MapUtils
 import neion.mixins.MinecraftAccessor
@@ -20,7 +20,6 @@ import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.OpenGlHelper
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
-import net.minecraft.client.shader.Framebuffer
 import net.minecraft.entity.Entity
 import net.minecraft.inventory.Slot
 import net.minecraft.util.*
@@ -36,6 +35,24 @@ object RenderUtil {
 
     private val tessellator = Tessellator.getInstance()
     private val worldRenderer = tessellator.worldRenderer
+
+
+    fun Color.bind() = GlStateManager.color(this.red / 255f, this.green / 255f, this.blue / 255f, this.alpha / 255f)
+
+    fun preDraw() {
+        GlStateManager.enableAlpha()
+        GlStateManager.enableBlend()
+        GlStateManager.disableDepth()
+        GlStateManager.disableLighting()
+        GlStateManager.disableTexture2D()
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0)
+    }
+
+    fun postDraw() {
+        GlStateManager.disableBlend()
+        GlStateManager.enableDepth()
+        GlStateManager.enableTexture2D()
+    }
 
 
     fun Entity.getInterpolatedPosition(): Triple<Double, Double, Double> {
@@ -54,6 +71,96 @@ object RenderUtil {
         )
     }
 
+    fun drawFilledAABB(aabb: AxisAlignedBB, color: Color) {
+        glColor4f(color.red / 255f, color.green / 255f, color.blue / 255f, 1f)
+
+        worldRenderer.begin(GL_QUADS, DefaultVertexFormats.POSITION)
+
+        worldRenderer.pos(aabb.minX, aabb.minY, aabb.minZ).endVertex()
+        worldRenderer.pos(aabb.minX, aabb.maxY, aabb.minZ).endVertex()
+        worldRenderer.pos(aabb.maxX, aabb.minY, aabb.minZ).endVertex()
+        worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.minZ).endVertex()
+        worldRenderer.pos(aabb.maxX, aabb.minY, aabb.maxZ).endVertex()
+        worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.maxZ).endVertex()
+        worldRenderer.pos(aabb.minX, aabb.minY, aabb.maxZ).endVertex()
+        worldRenderer.pos(aabb.minX, aabb.maxY, aabb.maxZ).endVertex()
+
+        worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.minZ).endVertex()
+        worldRenderer.pos(aabb.maxX, aabb.minY, aabb.minZ).endVertex()
+        worldRenderer.pos(aabb.minX, aabb.maxY, aabb.minZ).endVertex()
+        worldRenderer.pos(aabb.minX, aabb.minY, aabb.minZ).endVertex()
+        worldRenderer.pos(aabb.minX, aabb.maxY, aabb.maxZ).endVertex()
+        worldRenderer.pos(aabb.minX, aabb.minY, aabb.maxZ).endVertex()
+        worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.maxZ).endVertex()
+        worldRenderer.pos(aabb.maxX, aabb.minY, aabb.maxZ).endVertex()
+
+        worldRenderer.pos(aabb.minX, aabb.maxY, aabb.minZ).endVertex()
+        worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.minZ).endVertex()
+        worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.maxZ).endVertex()
+        worldRenderer.pos(aabb.minX, aabb.maxY, aabb.maxZ).endVertex()
+        worldRenderer.pos(aabb.minX, aabb.maxY, aabb.minZ).endVertex()
+        worldRenderer.pos(aabb.minX, aabb.maxY, aabb.maxZ).endVertex()
+        worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.maxZ).endVertex()
+        worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.minZ).endVertex()
+
+        worldRenderer.pos(aabb.minX, aabb.minY, aabb.minZ).endVertex()
+        worldRenderer.pos(aabb.maxX, aabb.minY, aabb.minZ).endVertex()
+        worldRenderer.pos(aabb.maxX, aabb.minY, aabb.maxZ).endVertex()
+        worldRenderer.pos(aabb.minX, aabb.minY, aabb.maxZ).endVertex()
+        worldRenderer.pos(aabb.minX, aabb.minY, aabb.minZ).endVertex()
+        worldRenderer.pos(aabb.minX, aabb.minY, aabb.maxZ).endVertex()
+        worldRenderer.pos(aabb.maxX, aabb.minY, aabb.maxZ).endVertex()
+        worldRenderer.pos(aabb.maxX, aabb.minY, aabb.minZ).endVertex()
+
+        worldRenderer.pos(aabb.minX, aabb.minY, aabb.minZ).endVertex()
+        worldRenderer.pos(aabb.minX, aabb.maxY, aabb.minZ).endVertex()
+        worldRenderer.pos(aabb.minX, aabb.minY, aabb.maxZ).endVertex()
+        worldRenderer.pos(aabb.minX, aabb.maxY, aabb.maxZ).endVertex()
+        worldRenderer.pos(aabb.maxX, aabb.minY, aabb.maxZ).endVertex()
+        worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.maxZ).endVertex()
+        worldRenderer.pos(aabb.maxX, aabb.minY, aabb.minZ).endVertex()
+        worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.minZ).endVertex()
+
+        worldRenderer.pos(aabb.minX, aabb.maxY, aabb.maxZ).endVertex()
+        worldRenderer.pos(aabb.minX, aabb.minY, aabb.maxZ).endVertex()
+        worldRenderer.pos(aabb.minX, aabb.maxY, aabb.minZ).endVertex()
+        worldRenderer.pos(aabb.minX, aabb.minY, aabb.minZ).endVertex()
+        worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.minZ).endVertex()
+        worldRenderer.pos(aabb.maxX, aabb.minY, aabb.minZ).endVertex()
+        worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.maxZ).endVertex()
+        worldRenderer.pos(aabb.maxX, aabb.minY, aabb.maxZ).endVertex()
+        tessellator.draw()
+    }
+
+
+
+    fun drawOutlinedAABB(aabb: AxisAlignedBB, color: Color) {
+        glColor4f(color.red / 255f, color.green / 255f, color.blue / 255f, 1f)
+
+        worldRenderer.begin(GL_LINE_STRIP, DefaultVertexFormats.POSITION)
+
+        worldRenderer.pos(aabb.minX, aabb.minY, aabb.minZ).endVertex()
+        worldRenderer.pos(aabb.minX, aabb.minY, aabb.maxZ).endVertex()
+        worldRenderer.pos(aabb.maxX, aabb.minY, aabb.maxZ).endVertex()
+        worldRenderer.pos(aabb.maxX, aabb.minY, aabb.minZ).endVertex()
+        worldRenderer.pos(aabb.minX, aabb.minY, aabb.minZ).endVertex()
+
+        worldRenderer.pos(aabb.minX, aabb.maxY, aabb.minZ).endVertex()
+        worldRenderer.pos(aabb.minX, aabb.maxY, aabb.maxZ).endVertex()
+        worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.maxZ).endVertex()
+        worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.minZ).endVertex()
+        worldRenderer.pos(aabb.minX, aabb.maxY, aabb.minZ).endVertex()
+
+        worldRenderer.pos(aabb.minX, aabb.maxY, aabb.maxZ).endVertex()
+        worldRenderer.pos(aabb.minX, aabb.minY, aabb.maxZ).endVertex()
+        worldRenderer.pos(aabb.maxX, aabb.minY, aabb.maxZ).endVertex()
+        worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.maxZ).endVertex()
+        worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.minZ).endVertex()
+        worldRenderer.pos(aabb.maxX, aabb.minY, aabb.minZ).endVertex()
+
+        tessellator.draw()
+    }
+
     infix fun Slot.highlight(color: Color) {
         GlStateManager.disableLighting()
         Gui.drawRect(
@@ -65,41 +172,6 @@ object RenderUtil {
         )
     }
 
-    fun drawBlockBox(blockPos: BlockPos, color: Color, outline: Boolean, fill: Boolean, esp: Boolean) {
-        if (!outline && !fill) return
-        val renderManager = mc.renderManager
-        val x = blockPos.x - renderManager.viewerPosX
-        val y = blockPos.y - renderManager.viewerPosY
-        val z = blockPos.z - renderManager.viewerPosZ
-
-        var axisAlignedBB = AxisAlignedBB(x, y, z, x + 1.0, y + 1.0, z + 1.0)
-        val block = mc.theWorld.getBlockState(blockPos).block
-        if (block != null) {
-            val player = mc.thePlayer
-            val posX = player.lastTickPosX + (player.posX - player.lastTickPosX) * pticks()
-            val posY = player.lastTickPosY + (player.posY - player.lastTickPosY) * pticks()
-            val posZ = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * pticks()
-            block.setBlockBoundsBasedOnState(mc.theWorld, blockPos)
-            axisAlignedBB = block.getSelectedBoundingBox(mc.theWorld, blockPos).offset(-posX, -posY, -posZ)
-        }
-
-        glPushMatrix()
-        glPushAttrib(GL_ALL_ATTRIB_BITS)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        glDisable(GL_TEXTURE_2D)
-        if (esp) glDisable(GL_DEPTH_TEST)
-        glDisable(GL_LIGHTING)
-        glDepthMask(false)
-
-        if (outline) {
-            glLineWidth(1.5f)
-            drawOutlinedAABB(axisAlignedBB, color)
-        }
-        if (fill) drawFilledAABB(axisAlignedBB, color)
-        glDepthMask(true)
-        glPopAttrib()
-        glPopMatrix()
-    }
 
     /**
      * Taken from NotEnoughUpdates under Creative Commons Attribution-NonCommercial 3.0
@@ -199,94 +271,40 @@ object RenderUtil {
         tessellator.draw()
     }
 
-        fun drawFilledAABB(aabb: AxisAlignedBB, color: Color) {
-        glColor4f(color.red / 255f, color.green / 255f, color.blue / 255f, 1f)
+    fun drawBlockBox(blockPos: BlockPos, color: Color, outline: Boolean, fill: Boolean, esp: Boolean) {
+        if (!outline && !fill) return
+        val renderManager = mc.renderManager
+        val x = blockPos.x - renderManager.viewerPosX
+        val y = blockPos.y - renderManager.viewerPosY
+        val z = blockPos.z - renderManager.viewerPosZ
 
-            worldRenderer.begin(GL_QUADS, DefaultVertexFormats.POSITION)
-
-            worldRenderer.pos(aabb.minX, aabb.minY, aabb.minZ).endVertex()
-            worldRenderer.pos(aabb.minX, aabb.maxY, aabb.minZ).endVertex()
-            worldRenderer.pos(aabb.maxX, aabb.minY, aabb.minZ).endVertex()
-            worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.minZ).endVertex()
-            worldRenderer.pos(aabb.maxX, aabb.minY, aabb.maxZ).endVertex()
-            worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.maxZ).endVertex()
-            worldRenderer.pos(aabb.minX, aabb.minY, aabb.maxZ).endVertex()
-            worldRenderer.pos(aabb.minX, aabb.maxY, aabb.maxZ).endVertex()
-
-            worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.minZ).endVertex()
-            worldRenderer.pos(aabb.maxX, aabb.minY, aabb.minZ).endVertex()
-            worldRenderer.pos(aabb.minX, aabb.maxY, aabb.minZ).endVertex()
-            worldRenderer.pos(aabb.minX, aabb.minY, aabb.minZ).endVertex()
-            worldRenderer.pos(aabb.minX, aabb.maxY, aabb.maxZ).endVertex()
-            worldRenderer.pos(aabb.minX, aabb.minY, aabb.maxZ).endVertex()
-            worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.maxZ).endVertex()
-            worldRenderer.pos(aabb.maxX, aabb.minY, aabb.maxZ).endVertex()
-
-            worldRenderer.pos(aabb.minX, aabb.maxY, aabb.minZ).endVertex()
-            worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.minZ).endVertex()
-            worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.maxZ).endVertex()
-            worldRenderer.pos(aabb.minX, aabb.maxY, aabb.maxZ).endVertex()
-            worldRenderer.pos(aabb.minX, aabb.maxY, aabb.minZ).endVertex()
-            worldRenderer.pos(aabb.minX, aabb.maxY, aabb.maxZ).endVertex()
-            worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.maxZ).endVertex()
-            worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.minZ).endVertex()
-
-            worldRenderer.pos(aabb.minX, aabb.minY, aabb.minZ).endVertex()
-            worldRenderer.pos(aabb.maxX, aabb.minY, aabb.minZ).endVertex()
-            worldRenderer.pos(aabb.maxX, aabb.minY, aabb.maxZ).endVertex()
-            worldRenderer.pos(aabb.minX, aabb.minY, aabb.maxZ).endVertex()
-            worldRenderer.pos(aabb.minX, aabb.minY, aabb.minZ).endVertex()
-            worldRenderer.pos(aabb.minX, aabb.minY, aabb.maxZ).endVertex()
-            worldRenderer.pos(aabb.maxX, aabb.minY, aabb.maxZ).endVertex()
-            worldRenderer.pos(aabb.maxX, aabb.minY, aabb.minZ).endVertex()
-
-            worldRenderer.pos(aabb.minX, aabb.minY, aabb.minZ).endVertex()
-            worldRenderer.pos(aabb.minX, aabb.maxY, aabb.minZ).endVertex()
-            worldRenderer.pos(aabb.minX, aabb.minY, aabb.maxZ).endVertex()
-            worldRenderer.pos(aabb.minX, aabb.maxY, aabb.maxZ).endVertex()
-            worldRenderer.pos(aabb.maxX, aabb.minY, aabb.maxZ).endVertex()
-            worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.maxZ).endVertex()
-            worldRenderer.pos(aabb.maxX, aabb.minY, aabb.minZ).endVertex()
-            worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.minZ).endVertex()
-
-            worldRenderer.pos(aabb.minX, aabb.maxY, aabb.maxZ).endVertex()
-            worldRenderer.pos(aabb.minX, aabb.minY, aabb.maxZ).endVertex()
-            worldRenderer.pos(aabb.minX, aabb.maxY, aabb.minZ).endVertex()
-            worldRenderer.pos(aabb.minX, aabb.minY, aabb.minZ).endVertex()
-            worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.minZ).endVertex()
-            worldRenderer.pos(aabb.maxX, aabb.minY, aabb.minZ).endVertex()
-            worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.maxZ).endVertex()
-            worldRenderer.pos(aabb.maxX, aabb.minY, aabb.maxZ).endVertex()
-            tessellator.draw()
+        var axisAlignedBB = AxisAlignedBB(x, y, z, x + 1.0, y + 1.0, z + 1.0)
+        val block = mc.theWorld.getBlockState(blockPos).block
+        if (block != null) {
+            val player = mc.thePlayer
+            val posX = player.lastTickPosX + (player.posX - player.lastTickPosX) * pticks()
+            val posY = player.lastTickPosY + (player.posY - player.lastTickPosY) * pticks()
+            val posZ = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * pticks()
+            block.setBlockBoundsBasedOnState(mc.theWorld, blockPos)
+            axisAlignedBB = block.getSelectedBoundingBox(mc.theWorld, blockPos).offset(-posX, -posY, -posZ)
         }
 
+        glPushMatrix()
+        glPushAttrib(GL_ALL_ATTRIB_BITS)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        glDisable(GL_TEXTURE_2D)
+        if (esp) glDisable(GL_DEPTH_TEST)
+        glDisable(GL_LIGHTING)
+        glDepthMask(false)
 
-
-    fun drawOutlinedAABB(aabb: AxisAlignedBB, color: Color) {
-        glColor4f(color.red / 255f, color.green / 255f, color.blue / 255f, 1f)
-
-        worldRenderer.begin(GL_LINE_STRIP, DefaultVertexFormats.POSITION)
-
-        worldRenderer.pos(aabb.minX, aabb.minY, aabb.minZ).endVertex()
-        worldRenderer.pos(aabb.minX, aabb.minY, aabb.maxZ).endVertex()
-        worldRenderer.pos(aabb.maxX, aabb.minY, aabb.maxZ).endVertex()
-        worldRenderer.pos(aabb.maxX, aabb.minY, aabb.minZ).endVertex()
-        worldRenderer.pos(aabb.minX, aabb.minY, aabb.minZ).endVertex()
-
-        worldRenderer.pos(aabb.minX, aabb.maxY, aabb.minZ).endVertex()
-        worldRenderer.pos(aabb.minX, aabb.maxY, aabb.maxZ).endVertex()
-        worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.maxZ).endVertex()
-        worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.minZ).endVertex()
-        worldRenderer.pos(aabb.minX, aabb.maxY, aabb.minZ).endVertex()
-
-        worldRenderer.pos(aabb.minX, aabb.maxY, aabb.maxZ).endVertex()
-        worldRenderer.pos(aabb.minX, aabb.minY, aabb.maxZ).endVertex()
-        worldRenderer.pos(aabb.maxX, aabb.minY, aabb.maxZ).endVertex()
-        worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.maxZ).endVertex()
-        worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.minZ).endVertex()
-        worldRenderer.pos(aabb.maxX, aabb.minY, aabb.minZ).endVertex()
-
-        tessellator.draw()
+        if (outline) {
+            glLineWidth(1.5f)
+            drawOutlinedAABB(axisAlignedBB, color)
+        }
+        if (fill) drawFilledAABB(axisAlignedBB, color)
+        glDepthMask(true)
+        glPopAttrib()
+        glPopMatrix()
     }
 
 
@@ -364,24 +382,6 @@ object RenderUtil {
         glColor4f(1f, 1f, 1f, 1f)
     }
 
-    fun preDraw() {
-        GlStateManager.enableAlpha()
-        GlStateManager.enableBlend()
-        GlStateManager.disableDepth()
-        GlStateManager.disableLighting()
-        GlStateManager.disableTexture2D()
-        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0)
-    }
-
-    fun postDraw() {
-        GlStateManager.disableBlend()
-        GlStateManager.enableDepth()
-        GlStateManager.enableTexture2D()
-    }
-
-    fun Color.bind() {
-        GlStateManager.color(this.red / 255f, this.green / 255f, this.blue / 255f, this.alpha / 255f)
-    }
 
     fun addQuadVertices(x: Double, y: Double, w: Double, h: Double) {
         worldRenderer.pos(x, y + h, 0.0).endVertex()
@@ -435,8 +435,8 @@ object RenderUtil {
         val fontHeight = mc.fontRendererObj.FONT_HEIGHT + 1
         val yTextOffset = text.size * fontHeight / -2
 
-        text.withIndex().forEach { (index, text) ->
-            renderText(text, mc.fontRendererObj.getStringWidth(text) / -2, yTextOffset + index * fontHeight, color = color)
+        text.forEachIndexed { index, texte ->
+            renderText(texte, mc.fontRendererObj.getStringWidth(texte) / -2, yTextOffset + index * fontHeight, color = color)
         }
         GlStateManager.popMatrix()
     }
@@ -447,8 +447,8 @@ object RenderUtil {
             // Translates to the player's location which is updated every tick.
             if (player.isPlayer || name == mc.thePlayer.name) {
                 GlStateManager.translate(
-                    (mc.thePlayer.posX - DungeonScan.startX + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.first,
-                    (mc.thePlayer.posZ - DungeonScan.startZ + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.second,
+                    (mc.thePlayer.posX - Dungeon.startX + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.first,
+                    (mc.thePlayer.posZ - Dungeon.startZ + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.second,
                     0.0
                 )
             } else GlStateManager.translate(player.mapX.toFloat(), player.mapZ.toFloat(), 0f)
@@ -484,7 +484,7 @@ object RenderUtil {
             }
 
             // Handle player names
-            if (FMConfig.peekBind.isActive || FMConfig.playerHeads == 2 || FMConfig.playerHeads == 1 && mc.thePlayer.heldItem?.itemID.equalsOneOf("SPIRIT_LEAP", "INFINITE_SPIRIT_LEAP", "HAUNT_ABILITY")) {
+            if (name != mc.thePlayer.name && (FMConfig.peekBind.isActive || FMConfig.playerHeads == 2 || FMConfig.playerHeads == 1 && mc.thePlayer.heldItem?.itemID.equalsOneOf("SPIRIT_LEAP", "INFINITE_SPIRIT_LEAP", "HAUNT_ABILITY"))) {
                 GlStateManager.rotate(-player.yaw + 180f, 0f, 0f, 1f)
                 GlStateManager.translate(0f, 10f, 0f)
                 GlStateManager.scale(FMConfig.playerNameScale, FMConfig.playerNameScale, 1f)
@@ -524,7 +524,7 @@ object RenderUtil {
     }
 
     fun outlineESP(event: RenderLivingEntityEvent, color: Color) {
-        val render = event.modelBase.render(event.entity, event.p_77036_2_, event.p_77036_3_, event.p_77036_4_, event.p_77036_5_, event.p_77036_6_, event.scaleFactor)
+        fun render() = event.modelBase.render(event.entity, event.p_77036_2_, event.p_77036_3_, event.p_77036_4_, event.p_77036_5_, event.p_77036_6_, event.scaleFactor)
         val fancyGraphics = mc.gameSettings.fancyGraphics
         val gamma = mc.gameSettings.gammaSetting
         mc.gameSettings.fancyGraphics = false
@@ -534,21 +534,21 @@ object RenderUtil {
         checkSetupFBO()
         glColor4f(color.red / 255f, color.green / 255f, color.blue / 255f, color.alpha / 255f)
         renderOne()
-        render
+        render()
         glStencilFunc(GL_NEVER, 0, 0xF)
         glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
-        render
+        render()
         glStencilFunc(GL_EQUAL, 1, 0xF)
         glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-        render
+        render()
         glDepthMask(false)
         glDisable(GL_DEPTH_TEST)
         glEnable(GL_POLYGON_OFFSET_LINE)
         glPolygonOffset(1.0f, -2000000f)
         OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240.0f, 240.0f)
-        render
+        render()
         glPopAttrib()
         glPopMatrix()
         mc.gameSettings.fancyGraphics = fancyGraphics
@@ -574,34 +574,30 @@ object RenderUtil {
     private fun checkSetupFBO() {
         val fbo = mc.framebuffer ?: return
             if (fbo.depthBuffer > -1) {
-                setupFBO(fbo)
+                    EXTFramebufferObject.glDeleteRenderbuffersEXT(fbo.depthBuffer)
+                    val stencilDepthBufferID = EXTFramebufferObject.glGenRenderbuffersEXT()
+                    EXTFramebufferObject.glBindRenderbufferEXT(EXTFramebufferObject.GL_RENDERBUFFER_EXT, stencilDepthBufferID)
+                    EXTFramebufferObject.glRenderbufferStorageEXT(
+                        EXTFramebufferObject.GL_RENDERBUFFER_EXT,
+                        EXTPackedDepthStencil.GL_DEPTH_STENCIL_EXT,
+                        mc.displayWidth,
+                        mc.displayHeight
+                    )
+                    EXTFramebufferObject.glFramebufferRenderbufferEXT(
+                        EXTFramebufferObject.GL_FRAMEBUFFER_EXT,
+                        EXTFramebufferObject.GL_STENCIL_ATTACHMENT_EXT,
+                        EXTFramebufferObject.GL_RENDERBUFFER_EXT,
+                        stencilDepthBufferID
+                    )
+                    EXTFramebufferObject.glFramebufferRenderbufferEXT(
+                        EXTFramebufferObject.GL_FRAMEBUFFER_EXT,
+                        EXTFramebufferObject.GL_DEPTH_ATTACHMENT_EXT,
+                        EXTFramebufferObject.GL_RENDERBUFFER_EXT,
+                        stencilDepthBufferID
+                    )
+                    if (fbo.depthBuffer > -1) fbo.depthBuffer = -1
                 fbo.depthBuffer = -1
             }
-    }
-
-    private fun setupFBO(fbo: Framebuffer) {
-        EXTFramebufferObject.glDeleteRenderbuffersEXT(fbo.depthBuffer)
-        val stencilDepthBufferID = EXTFramebufferObject.glGenRenderbuffersEXT()
-        EXTFramebufferObject.glBindRenderbufferEXT(EXTFramebufferObject.GL_RENDERBUFFER_EXT, stencilDepthBufferID)
-        EXTFramebufferObject.glRenderbufferStorageEXT(
-            EXTFramebufferObject.GL_RENDERBUFFER_EXT,
-            EXTPackedDepthStencil.GL_DEPTH_STENCIL_EXT,
-            mc.displayWidth,
-            mc.displayHeight
-        )
-        EXTFramebufferObject.glFramebufferRenderbufferEXT(
-            EXTFramebufferObject.GL_FRAMEBUFFER_EXT,
-            EXTFramebufferObject.GL_STENCIL_ATTACHMENT_EXT,
-            EXTFramebufferObject.GL_RENDERBUFFER_EXT,
-            stencilDepthBufferID
-        )
-        EXTFramebufferObject.glFramebufferRenderbufferEXT(
-            EXTFramebufferObject.GL_FRAMEBUFFER_EXT,
-            EXTFramebufferObject.GL_DEPTH_ATTACHMENT_EXT,
-            EXTFramebufferObject.GL_RENDERBUFFER_EXT,
-            stencilDepthBufferID
-        )
-    }
-
+        }
     fun pticks() = (mc as MinecraftAccessor).timer.renderPartialTicks
 }

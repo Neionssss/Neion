@@ -1,6 +1,7 @@
 package neion.features.dungeons
 
 import neion.Config
+import neion.Neion.Companion.mc
 import neion.events.CheckRenderEntityEvent
 import neion.utils.ItemUtils.cleanName
 import neion.utils.ItemUtils.getSkullTextured
@@ -58,7 +59,7 @@ object MostStolenFile {
         if (!inDungeons) return
         if (Config.randomStuff) {
             val entity = e.entity
-            if (entity is EntityItem && (entity.entityItem.cleanName() == "Revive Stone" || (entity.entityItem.itemDamage == 15 && entity.entityItem.item == Items.dye) || entity.entityItem.getSkullTextured()?.containsAny(cheapCoinsTextures) == true)) e.isCanceled = true
+            if (entity is EntityItem && (entity.entityItem.cleanName() == "Revive Stone" || (entity.entityItem.itemDamage == 15 && entity.entityItem.item == Items.dye) || entity.entityItem.getSkullTextured()?.containsAny(cheapCoinsTextures) == true)) mc.theWorld.removeEntity(entity)
             if (entity is EntityFallingBlock) e.isCanceled = true
             if (entity !is EntityArmorStand) return
             when (entity.inventory[4]?.getSkullTextured()) {
@@ -69,7 +70,7 @@ object MostStolenFile {
                 reviveStoneTexture,
                 premiumFleshTexture,
                 soulWeaverTexture,
-                -> e.isCanceled = true
+                -> mc.theWorld.removeEntity(entity)
             }
             if (entity.inventory[0]?.getSkullTextured() == healerFairyTexture) e.isCanceled = true
         }

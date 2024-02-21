@@ -1,6 +1,6 @@
 package neion.mixins;
 
-import neion.events.BossBarEvent;
+import neion.features.CustomGUI;
 import net.minecraft.entity.boss.BossStatus;
 import net.minecraft.entity.boss.IBossDisplayData;
 import org.spongepowered.asm.mixin.Mixin;
@@ -13,6 +13,6 @@ abstract class MixinBossStatus {
 
     @Inject(method = "setBossStatus", at = @At("HEAD"), cancellable = true)
     private static void onSetBossStatus(IBossDisplayData displayData, boolean hasColorModifierIn, CallbackInfo ci) {
-        if (new BossBarEvent(displayData, hasColorModifierIn).postAndCatch()) ci.cancel();
+         if (CustomGUI.INSTANCE.shouldNot(displayData)) ci.cancel();
     }
 }

@@ -1,11 +1,12 @@
 package neion.features
 
 import neion.Config
-import neion.events.BossBarEvent
 import neion.events.ChatEvent
 import neion.utils.ItemUtils.equalsOneOf
 import neion.utils.Location
+import neion.utils.Location.inSkyblock
 import neion.utils.TextUtils.containsAny
+import net.minecraft.entity.boss.IBossDisplayData
 import net.minecraftforge.client.event.ClientChatReceivedEvent
 import net.minecraftforge.client.event.RenderGameOverlayEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
@@ -21,7 +22,7 @@ object CustomGUI {
 
     @SubscribeEvent
     fun onSPacket(e: ClientChatReceivedEvent) {
-        if (Config.onlySkyblock && !Location.inSkyblock) return
+        if (Config.onlySkyblock && !inSkyblock) return
         if (Config.cancelServerMessages && e.type != 2.toByte() && !e.message.unformattedText.containsAny("ⓐ", "ⓑ", "ⓒ")) e.isCanceled = true
         if (Config.hideActionbar && e.type == 2.toByte()) e.isCanceled = true
     }
@@ -42,7 +43,7 @@ object CustomGUI {
 
     @SubscribeEvent
     fun onRenderOverlayPre(e: RenderGameOverlayEvent) {
-        if (Config.onlySkyblock && !Location.inSkyblock) return
+        if (Config.onlySkyblock && !inSkyblock) return
         if (Config.hideGUI && e.type.equalsOneOf(
                 RenderGameOverlayEvent.ElementType.FOOD,
                 RenderGameOverlayEvent.ElementType.AIR,
@@ -54,10 +55,9 @@ object CustomGUI {
     }
 
 
-    @SubscribeEvent
-    fun bossbarexcept(e: BossBarEvent) {
-        if (Config.onlySkyblock && !Location.inSkyblock) return
-        if (Config.BossBarHider && !e.displayData.displayName.unformattedText.containsAny(
+    fun shouldNot(displayData: IBossDisplayData): Boolean {
+        if (Config.onlySkyblock && !inSkyblock) return false
+        if (Config.BossBarHider && displayData.displayName.unformattedText.containsAny(
                 "Bonzo",
                 "Scarf",
                 "The Professor",
@@ -69,8 +69,7 @@ object CustomGUI {
                 "Goldor",
                 "Necron",
                 "The Watcher",
-                "Kuudra"
-            )
-        ) e.isCanceled = true
+                "Kuudra")) return false
+        return true
     }
 }

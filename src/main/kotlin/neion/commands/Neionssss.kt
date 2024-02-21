@@ -12,13 +12,7 @@ import net.minecraft.command.ICommandSender
 import net.minecraft.util.BlockPos
 
 object Neionssss: BaseCommand("neion", listOf("nn")) {
-    private val commands = listOf("loadConfig", "editGUI", "bzsell", "stopScan", "restartScan")
-    private val validNames = listOf(
-        "spirit_leap",
-        "superboom_tnt",
-        "ender_pearl",
-        "decoy"
-    )
+    private val commands = listOf("loadConfig", "edit", "bzsell", "stopScan", "restartScan")
 
     override fun processCommand(player: EntityPlayerSP, args: Array<String>) {
         if (args.isEmpty()) {
@@ -26,7 +20,7 @@ object Neionssss: BaseCommand("neion", listOf("nn")) {
             return
         }
         when (args[0]) {
-            "editGUI" -> Neion.display = EditLocationGui()
+            "edit" -> Neion.display = EditLocationGui()
             "bzsell" -> RandomStuff.onSell()
             "loadConfig" -> {
                 ScanUtils.loadExtras()
@@ -47,7 +41,6 @@ object Neionssss: BaseCommand("neion", listOf("nn")) {
     ): MutableList<String> {
         when (args.size) {
             1 -> return getListOfStringsMatchingLastWord(args, commands)
-            2 -> return getListOfStringsMatchingLastWord(args, validNames)
         }
         return mutableListOf()
     }

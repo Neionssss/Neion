@@ -6,11 +6,15 @@ import neion.utils.Location.inSkyblock
 import neion.utils.TextUtils.containsAny
 import neion.utils.TextUtils.stripControlCodes
 import neion.utils.MathUtil.romanToDecimal
+import net.minecraft.client.gui.GuiScreen
+import net.minecraft.client.gui.inventory.GuiChest
 import net.minecraft.init.Items
 import net.minecraft.inventory.ContainerChest
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
+import net.minecraft.network.play.client.C09PacketHeldItemChange
 
 object Utils {
 
@@ -19,8 +23,8 @@ object Utils {
 	val ItemStack.extraAttributes: NBTTagCompound?
 		get() = this.getSubCompound("ExtraAttributes", false)
 
-	val containerChest = mc.thePlayer.openContainer as? ContainerChest
-
+	val GuiScreen.chest: ContainerChest?
+		get() = (this as? GuiChest)?.inventorySlots as? ContainerChest
 	val ItemStack.itemID: String
 		get() = this.extraAttributes?.getString("id") ?: ""
 
@@ -51,13 +55,13 @@ object Utils {
 	)
 
 
-	fun getArea(): String? {
-		if (!inSkyblock) return null
+	fun getArea(): String {
+		if (!inSkyblock) return ""
 		for (entry in mc.netHandler.playerInfoMap) {
 			val areaText = entry?.displayName?.unformattedText ?: continue
 			if (areaText.startsWith("Area: ")) return areaText.substringAfter("Area: ")
 		}
-		return null
+		return ""
 	}
 
 	fun enchantNameToID(enchant: String): String {	
@@ -108,5 +112,20 @@ object Utils {
 
 	fun fetchEVERYWHERE(name: String): Int? {
 		return fetchBzPrices(name) ?: fetchAuction(name)
+	}
+
+	// wow FLC
+	fun useItem(itemSlot: Int, swapBack: Boolean = true) {
+		if (itemSlot < 9) {
+			val previous = mc.thePlayer.inventory.currentItem
+
+			mc.thePlayer.inventory.currentItem = itemSlot
+			mc.thePlayer.sendQueue.addToSendQueue(C09PacketHeldItemChange(itemSlot))
+			mc.thePlayer.sendQueue.addToSendQueue(C08PacketPlayerBlockPlacement(mc.thePlayer.inventory.getStackInSlot(itemSlot)))
+			if (swapBack) {
+				mc.thePlayer.inventory.currentItem = previous
+				mc.thePlayer.sendQueue.addToSendQueue(C09PacketHeldItemChange(previous))
+			}
+		}
 	}
 }

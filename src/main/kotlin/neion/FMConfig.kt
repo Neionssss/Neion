@@ -75,14 +75,6 @@ object FMConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") 
     )
     var mapVanillaMarker = false
 
-    @KeyBind(
-            name = "Peek rooms",
-            description = "Shows Room/Player names whenever keybind is Pressed",
-            category = "Map",
-            subcategory = "Toggle"
-    )
-    var peekBind = OneKeyBind(UKeyboard.KEY_NONE)
-
     @Button(
         name = "Reset Map Position",
         category = "Map",
@@ -192,6 +184,13 @@ object FMConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") 
     )
     var mapRoomNames = 1
 
+    @KeyBind(
+        name = "Peek rooms",
+        description = "Shows Room/Player names whenever keybind is Pressed",
+        category = "Rooms",
+    )
+    var peekBind = OneKeyBind(UKeyboard.KEY_NONE)
+
     @Dropdown(
         name = "Room Secrets",
         description = "Shows total secrets of rooms on map.",
@@ -211,9 +210,9 @@ object FMConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") 
         name = "Room Checkmarks",
         description = "Adds room checkmarks based on room state.",
         category = "Rooms",
-        options = ["None", "Default", "NEU"]
+        options = ["Default", "NEU"]
     )
-    var mapCheckmark = 1
+    var mapCheckmark = 0
 
 
     @Dropdown(

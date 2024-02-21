@@ -15,7 +15,7 @@ interface Tile {
 class Room(override val x: Int, override val z: Int, var data: RoomData) : Tile {
     var core = 0
     var isSeparator = false
-    override var state: RoomState = RoomState.UNDISCOVERED
+    override var state = RoomState.UNDISCOVERED
     override val color: Color
         get() = when (data.type) {
             RoomType.BLOOD -> FMConfig.colorBlood.toJavaColor()

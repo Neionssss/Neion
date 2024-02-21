@@ -9,7 +9,7 @@ object MapElement : MovableGuiElement() {
     override var x: Int by FMConfig::mapX
     override var y: Int by FMConfig::mapY
     override val h: Int
-        get() = if (FMConfig.mapShowRunInformation == 1) 142 else 128
+        get() = if (FMConfig.mapShowRunInformation == 1) (128 + MapRender.lines.size * 2.5).toInt() else 128
     override val w: Int
         get() = 135
     override var scale: Float by FMConfig::mapScale

@@ -3,26 +3,24 @@ package neion.features
 import neion.Config
 import neion.Neion.Companion.display
 import neion.Neion.Companion.mc
+import neion.events.CheckRenderEntityEvent
 import neion.events.PacketReceiveEvent
 import neion.events.PacketSentEvent
-import neion.features.dungeons.BlazeSolver
-import neion.features.dungeons.DungeonChestProfit
-import neion.features.dungeons.TriviaSolver
-import neion.features.dungeons.terminals.SimonSaysSolver
+import neion.features.dungeons.*
 import neion.funnymap.Dungeon
 import neion.funnymap.map.ScanUtils
 import neion.ui.GuiRenderer
 import neion.utils.ItemUtils.equalsOneOf
-import neion.utils.ItemUtils.getSkullTextured
 import neion.utils.Location
 import neion.utils.Location.inDungeons
 import neion.utils.Location.inSkyblock
 import neion.utils.RenderUtil
 import neion.utils.TextUtils
+import neion.utils.TextUtils.startsWithAny
 import neion.utils.Utils
+import net.minecraft.client.gui.inventory.GuiChest
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.settings.KeyBinding
-import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.init.Blocks
 import net.minecraft.init.Items
@@ -32,12 +30,10 @@ import net.minecraft.network.play.client.C01PacketChatMessage
 import net.minecraft.network.play.client.C0DPacketCloseWindow
 import net.minecraft.network.play.server.S2APacketParticles
 import net.minecraft.network.play.server.S2DPacketOpenWindow
-import net.minecraft.potion.Potion
 import net.minecraft.potion.PotionEffect
 import net.minecraftforge.client.event.ClientChatReceivedEvent
 import net.minecraftforge.client.event.EntityViewRenderEvent
 import net.minecraftforge.client.event.RenderBlockOverlayEvent
-import net.minecraftforge.client.event.RenderWorldLastEvent
 import net.minecraftforge.event.entity.living.LivingDeathEvent
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
@@ -68,9 +64,14 @@ object RandomStuff {
 
     @SubscribeEvent
     fun onChat(e: ClientChatReceivedEvent) {
-        if (!Config.autoSB || !e.message.unformattedText.contains("You were kicked while joining that server!") || !inSkyblock) return
-        TextUtils.info("You have auto SB turned on and will be auto-reconnected in a minute!")
-        Timer("ARC", false).schedule(50000) { mc.thePlayer.sendChatMessage("/play sb") }
+        if (!Config.autoSB || e.type == 2.toByte()) return
+        val messagee = e.message.unformattedText
+        if (inSkyblock && messagee.startsWith("You were kicked while joining that server!")) {
+            TextUtils.info("You have auto SB turned on and will be auto-reconnected in a minute!")
+            Timer("ARC", false).schedule(55000) { mc.thePlayer.sendChatMessage("/play sb") }
+        } else if (!inSkyblock && messagee.startsWithAny("You were kicked while joining that server!", "You tried to rejoin too fast, please try again in a moment!")) {
+            Timer("ARC", false).schedule(10000) { mc.thePlayer.sendChatMessage("/play sb") }
+        }
     }
 
     @SubscribeEvent
@@ -79,22 +80,20 @@ object RandomStuff {
         if (Config.noReverse3rdPerson && mc.gameSettings.thirdPersonView == 2) mc.gameSettings.thirdPersonView = 0
         if (Config.ToggleSprint) KeyBinding.setKeyBindState(mc.gameSettings.keyBindSprint.keyCode, true)
         if (Config.fakeHaste && inDungeons) mc.thePlayer.addPotionEffect(PotionEffect(3, 999999999, 2))
-        if (Config.funnyItems) mc.thePlayer.swingProgress = (length() * exp(-Random.nextFloat()))
+        if (Config.funnyItems) mc.thePlayer.swingProgress = (exp(-Random.nextFloat()) + -Config.itemSwingSpeed)
         mc.mcProfiler.startSection("fmspsa")
         if (display != null) {
             mc.displayGuiScreen(display)
             display = null
         }
         if (GuiRenderer.titleTicks > 0) GuiRenderer.titleTicks--
+        if (e.phase == TickEvent.Phase.START && mc.currentScreen !is GuiChest && TerminalSolvers.currentTerminal != TerminalSolvers.Terminal.NONE) TerminalSolvers.currentTerminal = TerminalSolvers.Terminal.NONE
         Dungeon.onTick()
         Location.onTick()
         BlazeSolver.onTick()
         mc.mcProfiler.endSection()
         Display.setTitle(Config.mcTitle)
     }
-
-    fun length(): Int =
-            if (Config.fakeHaste) 6 else if (mc.thePlayer.isPotionActive(Potion.digSpeed)) 6 - (1 + mc.thePlayer.getActivePotionEffect(Potion.digSpeed).amplifier) else (if (mc.thePlayer.isPotionActive(Potion.digSlowdown)) 6 + (1 + mc.thePlayer.getActivePotionEffect(Potion.digSlowdown).amplifier) * 2 else 6)
 
     // https://github.com/Harry282/Skyblock-Client/blob/main/src/main/kotlin/skyblockclient/features/AntiBlind.kt
     @SubscribeEvent
@@ -169,11 +168,11 @@ object RandomStuff {
         }
     }
 
-    // I have no idea why it doesn't work. Please help
+
     @SubscribeEvent
-    fun onRenderWorld(e: RenderWorldLastEvent) {
+    fun onRenderWorld(e: CheckRenderEntityEvent<*>) {
         if (!Config.itemESP || !inDungeons) return
-        val entity = EntityItem(mc.theWorld)
+        val entity = e.entity as? EntityItem ?: return
         if (mc.thePlayer.getDistanceSqToEntity(entity) < 200 && listOf(
                         Items.ender_pearl,
                         Items.spawn_egg,
@@ -184,7 +183,7 @@ object RandomStuff {
                         ItemBlock.getItemFromBlock(Blocks.skull),
                         ItemBlock.getItemFromBlock(Blocks.heavy_weighted_pressure_plate)
                 ).any { entity.entityItem.item == it })
-            RenderUtil.drawEntityBox(entity, Config.itemColor.toJavaColor(), outline = true, fill = true, esp = true)
+            RenderUtil.drawEntityBox(entity, Config.itemColor.toJavaColor(), true, false, true)
     }
 
     // Scuffed as fuck
@@ -216,6 +215,8 @@ object RandomStuff {
         JasperESP.espModeMap.clear()
         JasperESP.stopped = false
         DungeonChestProfit.canOpen = false
+        DungeonChestProfit.notOpened = true
+        DungeonChestProfit.anotherOne.clear()
         DungeonChestProfit.noobmen.clear()
         SimonSaysSolver.clickInOrder.clear()
         SimonSaysSolver.cleared = false

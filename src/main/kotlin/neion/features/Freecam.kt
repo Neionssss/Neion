@@ -9,6 +9,7 @@ import neion.events.PacketSentEvent
 import neion.utils.MovementUtils
 import net.minecraft.client.entity.EntityOtherPlayerMP
 import net.minecraft.network.play.client.C03PacketPlayer
+import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
 import net.minecraft.network.play.client.C0BPacketEntityAction
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
@@ -66,6 +67,6 @@ object FreeCam {
     fun onPacket(e: PacketSentEvent) {
         if (!Config.freeCam) return
         val packet = e.packet
-        if (packet is C03PacketPlayer || packet is C0BPacketEntityAction) e.isCanceled = true
+        if (packet is C03PacketPlayer || packet is C0BPacketEntityAction || packet is C08PacketPlayerBlockPlacement) e.isCanceled = true
     }
 }

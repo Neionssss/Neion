@@ -7,7 +7,7 @@ package neion.features.dungeons
 import neion.Neion
 import neion.events.ClickEvent
 import neion.funnymap.Dungeon
-import neion.funnymap.DungeonScan
+import neion.funnymap.MapUpdate
 import neion.funnymap.map.Room
 import neion.funnymap.map.RoomType
 import neion.funnymap.map.ScanUtils
@@ -34,7 +34,7 @@ object EditMode {
 
     fun getCurrentRoomPair(): Pair<Room, Int>? {
         val room = Dungeon.dungeonTeammates[Neion.mc.thePlayer.name]?.run { getCurrentRoom() } ?: return null
-        return if (room.data.type == RoomType.BOSS) Pair(room,0) else DungeonScan.rooms.entries.find { it.key.data.name == room.data.name }?.toPair()
+        return if (room.data.type == RoomType.BOSS) Pair(room,0) else MapUpdate.rooms.entries.find { it.key.data.name == room.data.name }?.toPair()
     }
 
     @SubscribeEvent

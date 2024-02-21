@@ -45,7 +45,7 @@ object Trapper {
             val command = siblings.getOrNull(3)?.chatStyle?.chatClickEvent?.value ?: return
             TextUtils.sendMessage(command)
         } else if (message.unformattedText.containsAny("Return to the Trapper soon to get a new animal to hunt!", "I couldn't locate any animals. Come back in a little bit!")) {
-            Timer("Trapper").schedule(750) {
+            Timer("Trapper").schedule(850) {
                 color = null
                 clicker = true
                 TextUtils.sendCommand("warp trapper")
@@ -59,7 +59,7 @@ object Trapper {
     fun onRenderWorld(e: RenderWorldLastEvent) {
         if (Config.trapperESP) {
             mc.theWorld?.loadedEntityList?.forEach {
-                if (mc.thePlayer.getDistanceToEntity(it) < 7 && clicker && it.displayName.unformattedText.contains("Trevor") && System.currentTimeMillis() - trapperCooldown > 23000) {
+                if (mc.thePlayer.getDistanceToEntity(it) < 7 && clicker && it.displayName.unformattedText.contains("Trevor") && System.currentTimeMillis() - trapperCooldown > 25000) {
                     mc.playerController.interactWithEntitySendPacket(mc.thePlayer, it)
                     clicker = false
                     trapperCooldown = System.currentTimeMillis()

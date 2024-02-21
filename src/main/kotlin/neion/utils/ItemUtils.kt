@@ -1,11 +1,8 @@
 package neion.utils
 
-import neion.Neion.Companion.mc
 import neion.utils.TextUtils.stripControlCodes
 import net.minecraft.init.Items
 import net.minecraft.item.ItemStack
-import net.minecraft.tileentity.TileEntitySkull
-import net.minecraft.util.BlockPos
 import net.minecraftforge.common.util.Constants
 
 object ItemUtils {

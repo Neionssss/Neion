@@ -25,7 +25,7 @@ object JasperESP {
     // https://i.imgur.com/7LYblVE.png
     @SubscribeEvent
     fun scanBlocks(e: RenderWorldLastEvent) {
-        if (!(Utils.getArea() ?: return).contains("Crystal Hollows") || !Config.JasperESP || scanning) return
+        if (!Utils.getArea().contains("Crystal Hollows") || !Config.JasperESP || scanning) return
         scanning = true
         Thread {
             BlockPos.getAllInBox(
@@ -40,7 +40,7 @@ object JasperESP {
 
     @SubscribeEvent
     fun onRenderWorld(e: RenderWorldLastEvent) {
-        if (!(Utils.getArea() ?: return).contains("Crystal Hollows")) return
+        if (!Utils.getArea().contains("Crystal Hollows")) return
         if (Config.JasperESP) espModeMap.forEach { RenderUtil.drawBlockBox(it,Color.magenta, true, false, true) }
         if (Config.chestESP) (mc.theWorld?.loadedTileEntityList as? TileEntityChest)?.pos?.let {
             RenderUtil.drawBlockBox(it, Color.blue,outline = true, fill = false, esp = true)

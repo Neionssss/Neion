@@ -13,7 +13,8 @@ out
 *.iml
 .idea
 .vscode
-hs_err_*.log
+hs_err_pid*
+replay_pid*
 
 # gradle
 build

@@ -5,7 +5,6 @@ import com.google.gson.reflect.TypeToken
 import neion.Neion
 import neion.Neion.Companion.mc
 import neion.funnymap.Dungeon
-import neion.funnymap.DungeonScan
 import neion.utils.ItemUtils.equalsOneOf
 import net.minecraft.block.Block
 import net.minecraft.block.BlockHopper
@@ -24,7 +23,7 @@ object ScanUtils {
     private val FACING_OMNI = PropertyDirection.create("facing")
     private val FACING_UP = BlockStem.FACING
     private val FACING_DOWN = BlockHopper.FACING
-    val roomList: Set<RoomData> = Gson().fromJson(mc.resourceManager.getResource(ResourceLocation("funnymap", "rooms.json")).inputStream.bufferedReader(), object : TypeToken<Set<RoomData>>() {}.type)
+    private val roomList: Set<RoomData> = Gson().fromJson(mc.resourceManager.getResource(ResourceLocation("funnymap", "rooms.json")).inputStream.bufferedReader(), object : TypeToken<Set<RoomData>>() {}.type)
 
 
     fun getRoomData(hash: Int): RoomData? {
@@ -32,23 +31,22 @@ object ScanUtils {
     }
 
     fun getRoomCentre(posX: Int, posZ: Int): Pair<Int, Int> {
-        val roomX = ((posX - DungeonScan.startX) / 32f).roundToInt()
-        val roomZ = ((posZ - DungeonScan.startZ) / 32f).roundToInt()
-        return Pair(roomX * 32 + DungeonScan.startX, roomZ * 32 + DungeonScan.startZ)
+        val roomX = ((posX - Dungeon.startX) / 32f).roundToInt()
+        val roomZ = ((posZ - Dungeon.startZ) / 32f).roundToInt()
+        return Pair(roomX * 32 + Dungeon.startX, roomZ * 32 + Dungeon.startZ)
     }
 
     fun getRoomFromPos(pos: BlockPos): Room? {
-        val x = ((pos.x - DungeonScan.startX + 15) shr 5)
-        val z = ((pos.z - DungeonScan.startZ + 15) shr 5)
+        val x = ((pos.x - Dungeon.startX + 15) shr 5)
+        val z = ((pos.z - Dungeon.startZ + 15) shr 5)
         val room = Dungeon.Info.dungeonList.getOrNull(x * 2 + z * 22)
         return if (room is Room) room else null
     }
 
     fun getCore(x: Int, z: Int): Int {
         val sb = StringBuilder(150)
-        val chunk = mc.theWorld.getChunkFromBlockCoords(BlockPos(x, 0, z))
         for (y in 140 downTo 12) {
-            val id = Block.blockRegistry.getIDForObject(chunk.getBlock(BlockPos(x, y, z)))
+            val id = Block.blockRegistry.getIDForObject(mc.theWorld.getChunkFromBlockCoords(BlockPos(x, 0, z)).getBlock(BlockPos(x, y, z)))
             if (!id.equalsOneOf(5, 54, 146)) sb.append(id)
         }
         return sb.toString().hashCode()

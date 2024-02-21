@@ -29,9 +29,9 @@ object TriviaSolver {
         if (message.contains("What SkyBlock year is it?")) {
             triviaAnswersJson = JsonArray()
             triviaAnswersJson.add(JsonPrimitive("Year ${(floor((System.currentTimeMillis() / 1000L).toDouble() - 1560276000) / 446400 + 1).toInt()}")) // Credit Danker's Skyblock Mod
-         } else {
+        } else {
             if (APIHandler.quizdata == null) APIHandler.quizdata = APIHandler.getResponse("https://data.skytils.gg/solvers/oruotrivia.json")
-            val triviaSolutions = APIHandler.quizdata!!.getAsJsonObject()
+            val triviaSolutions = APIHandler.quizdata!!.asJsonObject
             for (question in triviaSolutions.entrySet().map { it.key }) {
                 if (message.contains(question)) triviaAnswersJson = triviaSolutions.getAsJsonArray(question)
             }
@@ -43,18 +43,18 @@ object TriviaSolver {
                 val solution = triviaAnswersJson[i].asString
                 if (message.contains(solution)) {
                     triviaAnswer = solution
-                    if (mc.languageManager.currentLanguage.languageCode == "ru_RU") e.message = ChatComponentText("     " + EnumChatFormatting.RED + message[7] + " Это победа") else e.message = ChatComponentText("     " + EnumChatFormatting.RED + message[7] + " Right Answer")
+                    e.message = if (mc.languageManager.currentLanguage.languageCode == "ru_RU") ChatComponentText("     " + EnumChatFormatting.RED + message[7] + " Это победа") else ChatComponentText("     " + EnumChatFormatting.RED + message[7] + " Right Answer")
                 } else e.message = ChatComponentText("     " + EnumChatFormatting.DARK_GREEN + message[7] + " Wrong Answer")
             }
         }
     }
 
     @SubscribeEvent
-    fun onRenderArmorStandPre(e: RenderLivingEvent.Pre<EntityArmorStand?>) {
-        if (!Config.quizSolver || !inDungeons) return
-        val name = e.entity.customNameTag
-        if (name.containsAny("ⓐ", "ⓑ", "ⓒ") && triviaAnswer?.let { name.contains(it) }!!) {
-                if (mc.languageManager.currentLanguage.languageCode == "ru_RU") e.entity.customNameTag = "ЖМИ!!!" else e.entity.customNameTag = "Why don't you click me?"
+    fun onRenderArmorStandPre(e: RenderLivingEvent.Pre<EntityArmorStand>) {
+        if (!Config.quizSolver || !inDungeons || triviaAnswer == null) return
+        val name = e.entity
+            if (name.customNameTag.contains(triviaAnswer!!)) {
+                if (mc.languageManager.currentLanguage.languageCode == "ru_RU") name.customNameTag = "ЖМИ!!!" else name.customNameTag = "Why don't you click me?"
             }
         }
     }

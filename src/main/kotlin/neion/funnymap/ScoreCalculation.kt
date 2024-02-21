@@ -2,14 +2,10 @@ package neion.funnymap
 
 import neion.FMConfig
 import neion.Neion.Companion.mc
-import neion.funnymap.RunInformation.completedRoomsPercentage
-import neion.funnymap.RunInformation.mimicKilled
-import neion.funnymap.RunInformation.secretPercentage
 import neion.ui.GuiRenderer
 import neion.utils.APIHandler
 import neion.utils.Location
 import neion.utils.TextUtils
-import kotlin.math.roundToInt
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
@@ -25,7 +21,40 @@ object ScoreCalculation {
         get() = field.also { field = true }
 
     fun updateScore() {
-        score = getSkillScore() + getExplorationScore() + getSpeedScore(RunInformation.timeElapsed) + getBonusScore()
+        val roomPercent = RunInformation.completedRoomsPercentage.coerceAtMost(1f)
+        val explore = (60 * roomPercent + 40 * (RunInformation.secretPercentage / getSecretPercent()).coerceAtMost(1f)).toInt()
+        val skill = 20 + ((80 * roomPercent).toInt() - (RunInformation.totalPuzzles - RunInformation.completedPuzzles) * 10 - getDeathDeduction()).coerceAtLeast(0)
+        val limit = if (Location.masterMode) {
+            when (Location.dungeonFloor) {
+                1, 2, 3, 4, 5 -> 480
+                6 -> 600
+                else -> 840
+            }
+        } else when (Location.dungeonFloor) {
+            0 -> 1320
+            1, 2, 3, 5 -> 600
+            4, 6 -> 720
+            else -> 840
+        }
+            var percentageOver = RunInformation.timeElapsed - limit * 100 / limit
+            var deduction = 0f
+
+            if (RunInformation.timeElapsed > limit) {
+                deduction += (percentageOver.coerceAtMost(20) / 2)
+                percentageOver -= 20
+
+                deduction += (percentageOver.coerceAtMost(20) / 3.5f)
+                percentageOver -= 20
+
+                deduction += (percentageOver.coerceAtMost(10) / 4)
+                percentageOver -= 10
+
+                deduction += (percentageOver.coerceAtMost(10) / 5)
+                percentageOver -= 10
+
+                deduction += (percentageOver / 6)
+            }
+        score = skill + explore + (100 - deduction.toInt()) + getBonusScore()
         if (score >= 300 && !message300) {
             message270 = true
             if (FMConfig.scoreMessage != 0) TextUtils.sendPartyChatMessage(FMConfig.message300)
@@ -43,11 +72,7 @@ object ScoreCalculation {
         }
     }
 
-    fun getSkillScore(): Int {
-        val puzzleDeduction = (RunInformation.totalPuzzles - RunInformation.completedPuzzles) * 10
-        val roomPercent = completedRoomsPercentage.coerceAtMost(1f)
-        return 20 + ((80 * roomPercent).toInt() - puzzleDeduction - getDeathDeduction()).coerceAtLeast(0)
-    }
+
 
     fun getDeathDeduction(): Int {
         var deathDeduction = RunInformation.deathCount * 2
@@ -55,25 +80,10 @@ object ScoreCalculation {
         return deathDeduction.coerceAtLeast(0)
     }
 
-    fun getExplorationScore(): Int {
-        val secretPercent = (secretPercentage / getSecretPercent()).coerceAtMost(1f)
-        val roomPercent = completedRoomsPercentage.coerceAtMost(1f)
-        return (60 * roomPercent + 40 * secretPercent).toInt()
-    }
-
-    fun getSpeedScore(timeElapsed: Int): Int {
-        var score = 100
-        val limit = getTimeLimit()
-        if (timeElapsed < limit) return score
-        val percentageOver = (timeElapsed - limit) * 100f / limit
-        score -= getSpeedDeduction(percentageOver).toInt()
-        return if (Location.dungeonFloor == 0) (score * 0.7).roundToInt() else score
-    }
-
     fun getBonusScore(): Int {
         var score = 0
         score += RunInformation.cryptsCount.coerceAtMost(5)
-        if (mimicKilled) score += 2
+        if (RunInformation.mimicKilled) score += 2
         if (paul) score += 10
         return score
     }
@@ -90,50 +100,5 @@ object ScoreCalculation {
             6 -> .85f
             else -> 1f
         }
-    }
-
-    private fun getTimeLimit(): Int {
-        return if (Location.masterMode) {
-            when (Location.dungeonFloor) {
-                1, 2, 3, 4, 5 -> 480
-                6 -> 600
-                else -> 840
-            }
-        } else {
-            when (Location.dungeonFloor) {
-                0 -> 1320
-                1, 2, 3, 5 -> 600
-                4, 6 -> 720
-                else -> 840
-            }
-        }
-    }
-
-    /**
-     * This is a very ugly function, but it works.
-     * The formula on the wiki doesn't seem to work, this variation should never be more than 2 points off.
-     */
-    private fun getSpeedDeduction(percentage: Float): Float {
-        var percentageOver = percentage
-        var deduction = 0f
-
-        deduction += (percentageOver.coerceAtMost(20f) / 2f)
-        percentageOver -= 20f
-        if (percentageOver <= 0) return deduction
-
-        deduction += (percentageOver.coerceAtMost(20f) / 3.5f)
-        percentageOver -= 20f
-        if (percentageOver <= 0) return deduction
-
-        deduction += (percentageOver.coerceAtMost(10f) / 4f)
-        percentageOver -= 10f
-        if (percentageOver <= 0) return deduction
-
-        deduction += (percentageOver.coerceAtMost(10f) / 5f)
-        percentageOver -= 10f
-        if (percentageOver <= 0) return deduction
-
-        deduction += (percentageOver / 6f)
-        return deduction
     }
 }
