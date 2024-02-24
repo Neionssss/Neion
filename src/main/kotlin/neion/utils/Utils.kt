@@ -57,7 +57,7 @@ object Utils {
 
 	fun getArea(): String {
 		if (!inSkyblock) return ""
-		for (entry in mc.netHandler.playerInfoMap) {
+		for (entry in mc.netHandler?.playerInfoMap!!) {
 			val areaText = entry?.displayName?.unformattedText ?: continue
 			if (areaText.startsWith("Area: ")) return areaText.substringAfter("Area: ")
 		}

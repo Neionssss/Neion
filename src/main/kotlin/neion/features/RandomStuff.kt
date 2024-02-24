@@ -183,7 +183,7 @@ object RandomStuff {
                         ItemBlock.getItemFromBlock(Blocks.skull),
                         ItemBlock.getItemFromBlock(Blocks.heavy_weighted_pressure_plate)
                 ).any { entity.entityItem.item == it })
-            RenderUtil.drawEntityBox(entity, Config.itemColor.toJavaColor(), true, false, true)
+            RenderUtil.drawEntityBox(entity, Config.itemColor.toJavaColor(), true, false,true)
     }
 
     // Scuffed as fuck

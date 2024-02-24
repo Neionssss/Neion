@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(InventoryEffectRenderer.class)
-public class THATSMYMIXIN {
+abstract class THATSMYMIXIN {
     @Inject(method = "updateActivePotionEffects", at = @At(value = "HEAD"), cancellable = true)
     public void haser(CallbackInfo ci) {
         if (Config.INSTANCE.getHidePotionEffects() && Location.INSTANCE.getInSkyblock()) ci.cancel();

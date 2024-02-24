@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ItemArmor.class)
-public abstract class MixinItemArmor {
+abstract class MixinItemArmor {
 
     @Inject(method = "getColor", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;getTagCompound()Lnet/minecraft/nbt/NBTTagCompound;"), cancellable = true)
     private void replaceArmorColor(ItemStack stack, CallbackInfoReturnable<Integer> cir) {

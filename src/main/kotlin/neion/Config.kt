@@ -59,15 +59,13 @@ object Config : Config(Mod("Neion", ModType.SKYBLOCK), "neion-config.json") {
 
     @Switch(
         name = "Remove Selfie Camera",
-        description = "Get rid of pesky reverse third person!",
     )
     var noReverse3rdPerson = false
 
     @Switch(
         name = "No hurt cam",
     )
-    var hurtCamIntensity = false
-
+    var hurtCam = false
 
     @Switch(
             name = "Jasper Scanner",
@@ -116,6 +114,12 @@ object Config : Config(Mod("Neion", ModType.SKYBLOCK), "neion-config.json") {
     // Dungeons
     // ------------------------------------------
 
+
+    @Switch(
+        name = "Etherwarp Overlay",
+        category = "Dungeons"
+    )
+    var etherwarpOverlay = false
 
     @Switch(
         name = "Auto close dungeon chests",
@@ -191,8 +195,8 @@ object Config : Config(Mod("Neion", ModType.SKYBLOCK), "neion-config.json") {
 
 
     @Switch(
-        name = "Croesus Hider",
-        description = "You don't want to see those chests! I knew it",
+        name = "Croesus Helper",
+        description = "Hide unopened, highlight most profitable(not accurate)",
         category = "Dungeons",
         subcategory = "Chest Profit"
     )
@@ -279,14 +283,6 @@ object Config : Config(Mod("Neion", ModType.SKYBLOCK), "neion-config.json") {
     )
     var itemColor = OneColor(10, 15, 50)
 
-    @Slider(
-        name = "ESP outline width",
-        category = "Dungeons",
-        subcategory = "ESP",
-        min = 1F,
-        max = 10F
-    )
-    var espOutlineWidth = 1F
 
     // Solvers
     // ------------------------------------------------------------------
@@ -303,14 +299,6 @@ object Config : Config(Mod("Neion", ModType.SKYBLOCK), "neion-config.json") {
     )
     var lineToNextBlaze = false
 
-    @Number(
-        name = "Blazes Aligned",
-        category = "Solvers",
-        min = 2F,
-        max = 10F
-    )
-    var blazeLines = 2
-
     @Switch(
         name = "Three Weirdos Solver",
         category = "Solvers"
@@ -322,6 +310,12 @@ object Config : Config(Mod("Neion", ModType.SKYBLOCK), "neion-config.json") {
         category = "Solvers"
     )
     var quizSolver = false
+
+    @Switch(
+        name = "Auto-Weirdos",
+        category = "Solvers"
+    )
+    var autoWeirdos = false
 
     @Switch(
         name = "Rubix Terminal",
@@ -364,13 +358,6 @@ object Config : Config(Mod("Neion", ModType.SKYBLOCK), "neion-config.json") {
         subcategory = "Terminals"
     )
     var hideTooltips = false
-
-    @Switch(
-        name = "Middle Click Terminals",
-        category = "Solvers",
-        subcategory = "Terminals"
-    )
-    var middleClickTerms = false
 
     @Dropdown(
         name = "Prevent terminal misclicks",
@@ -478,7 +465,6 @@ object Config : Config(Mod("Neion", ModType.SKYBLOCK), "neion-config.json") {
     )
     var cleanerTab = false
 
-
     @Switch(
         name = "Murder Mystery Helper",
         category = "Other"
@@ -502,19 +488,14 @@ object Config : Config(Mod("Neion", ModType.SKYBLOCK), "neion-config.json") {
     )
     var cameraClip = false
 
-    @Switch(
-        name = "Player ESP",
+    @Slider(
+        name = "ESP outline width",
         category = "Other",
-        subcategory = "ESP"
+        subcategory = "ESP",
+        min = 1F,
+        max = 10F
     )
-    var playerESP = false
-
-    @Switch(
-        name = "Hide own name",
-        category = "Other",
-        subcategory = "ESP"
-    )
-    var showOwnName = false
+    var espOutlineWidth = 1F
 
     @Switch(
         name = "Freecam",
@@ -568,6 +549,13 @@ object Config : Config(Mod("Neion", ModType.SKYBLOCK), "neion-config.json") {
         subcategory = "Custom GUI"
     )
     var hideActionbar = false
+
+    @Switch(
+        name = "Hide Hand",
+        category = "GUI",
+        subcategory = "Custom GUI"
+    )
+    var renderHand = false
 
     @Switch(
         name = "Hide Boss bar",
@@ -789,6 +777,7 @@ object Config : Config(Mod("Neion", ModType.SKYBLOCK), "neion-config.json") {
         addDependency("blazeLines", "lineToNextBlaze")
         addDependency("blazeLines", "blazeSolver")
         addDependency("lineToNextBlaze", "blazeSolver")
+        addDependency("autoWeirdos", "threeSolver")
         hide("manaScale")
         hide("manaY")
         hide("manaX")

@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(EntityPlayerSP.class)
-public abstract class MixinEntityPlayerSP {
+abstract class MixinEntityPlayerSP {
 
     @Redirect(method = "pushOutOfBlocks", at = @At(value = "FIELD", target = "Lnet/minecraft/client/entity/EntityPlayerSP;noClip:Z"))
     public boolean shouldPrevent(EntityPlayerSP instance) {

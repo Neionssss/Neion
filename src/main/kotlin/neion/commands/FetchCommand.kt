@@ -11,6 +11,8 @@ import net.minecraft.client.entity.EntityPlayerSP
 
 // DA
 object FetchCommand : BaseCommand("fetch", listOf("fauc", "fbz")) {
+    private val newPrices
+        get() = APIHandler.refreshData()
     override fun processCommand(player: EntityPlayerSP, args: Array<String>) {
         val heldItemId = mc.thePlayer.heldItem
         val fetchingers = Utils.fetchEVERYWHERE(heldItemId.itemID) ?: Utils.fetchEVERYWHERE(Utils.enchantNameToID(heldItemId.lore[0])) ?: return
@@ -18,7 +20,7 @@ object FetchCommand : BaseCommand("fetch", listOf("fauc", "fbz")) {
             if (!mc.thePlayer.heldItem.isStackable) TextUtils.info("Current Lowest price of ${heldItemId.itemID} is ${MathUtil.fn(fetchingers)}")
             else TextUtils.info("Current price of ${heldItemId.stackSize} ${heldItemId.itemID} is ${MathUtil.fn(fetchingers * heldItemId.stackSize)} / Price per unit is ${MathUtil.fn(fetchingers)}")
         } else {
-            if (args[0] == "refreshPrices") APIHandler.refreshData() else {
+            if (args[0] == "refreshPrices") newPrices else {
                 val arg = Utils.getIdFromName(args[0])
                 val fetchinger = Utils.fetchEVERYWHERE(arg) ?: return
                 if (args.size > 1) {

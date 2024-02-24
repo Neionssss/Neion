@@ -43,17 +43,16 @@ object BlazeSolver {
     fun onWorldRender(e: RenderWorldLastEvent) {
         if (!Config.blazeSolver) return
         blist.forEachIndexed { i, blaze ->
-            val color = if (i == 0) Color.green else if (i == 1) Color.yellow else if (i == 2) Color.red else return
+            val color = if (i == 0) Color.green else if (i == 1) Color.yellow else return
             RenderUtil.drawEntityBox(EntityBlaze(mc.theWorld), color, esp = false, fill = false, outline = true, offset = Triple(blaze.posX.toFloat(),(blaze.posY-2).toFloat(),blaze.posZ.toFloat()))
-            if (Config.lineToNextBlaze && i > 0 && i < Config.blazeLines) {
-                val pos1 = blist[i - 1]
-                val pos = blist[i]
+            if (Config.lineToNextBlaze && i > 0) {
+                val pos1 = blist[0]
+                val pos = blist[1]
                 RenderUtil.draw3DLine(
                     Vec3(pos1.posX, pos1.posY, pos1.posZ),
                     Vec3(pos.posX, pos.posY, pos.posZ),
                     4f,
-                    color
-                )
+                    color)
             }
         }
     }

@@ -13,6 +13,7 @@ import net.minecraft.tileentity.TileEntityChest
 import net.minecraft.util.BlockPos
 import net.minecraftforge.client.event.RenderWorldLastEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
 import java.awt.Color
 
 
@@ -24,7 +25,7 @@ object JasperESP {
 
     // https://i.imgur.com/7LYblVE.png
     @SubscribeEvent
-    fun scanBlocks(e: RenderWorldLastEvent) {
+    fun scanBlocks(e: ClientTickEvent) {
         if (!Utils.getArea().contains("Crystal Hollows") || !Config.JasperESP || scanning) return
         scanning = true
         Thread {

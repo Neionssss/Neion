@@ -15,21 +15,28 @@ import neion.funnymap.map.MapUtils
 import neion.mixins.MinecraftAccessor
 import neion.utils.ItemUtils.equalsOneOf
 import neion.utils.Utils.itemID
+import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.Gui
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.OpenGlHelper
+import net.minecraft.client.renderer.RenderHelper
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
+import net.minecraft.client.shader.Framebuffer
 import net.minecraft.entity.Entity
 import net.minecraft.inventory.Slot
 import net.minecraft.util.*
+import net.minecraftforge.client.MinecraftForgeClient
 import org.lwjgl.opengl.EXTFramebufferObject
 import org.lwjgl.opengl.EXTPackedDepthStencil
 import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL13
+import org.lwjgl.opengl.GL30
 import java.awt.Color
 import kotlin.math.cos
 import kotlin.math.round
 import kotlin.math.sin
+
 
 object RenderUtil {
 
@@ -599,5 +606,6 @@ object RenderUtil {
                 fbo.depthBuffer = -1
             }
         }
+
     fun pticks() = (mc as MinecraftAccessor).timer.renderPartialTicks
 }

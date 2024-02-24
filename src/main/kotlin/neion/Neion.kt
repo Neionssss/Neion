@@ -51,7 +51,7 @@ class Neion {
             Dungeon,
             GFS,
             CustomGUI,
-            RunInformation, WitherDoorESP, EditMode, ArmorColor
+            RunInformation, WitherDoorESP, EditMode, ArmorColor, EtherwarpOverlay
         ).forEach(MinecraftForge.EVENT_BUS::register)
         listOf(
             FetchCommand,
@@ -64,7 +64,6 @@ class Neion {
         APIHandler.refreshData()
         ScanUtils.loadExtras()
     }
-
 
     companion object {
         const val MOD_ID = "neion"

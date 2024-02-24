@@ -7,7 +7,7 @@ import net.minecraft.entity.EntityLivingBase
 import net.minecraftforge.fml.common.eventhandler.Cancelable
 
 @Cancelable
-data class CheckRenderEntityEvent<T : Entity>(
+class CheckRenderEntityEvent<T : Entity>(
     val entity: T,
     val camera: ICamera,
     val camX: Double,

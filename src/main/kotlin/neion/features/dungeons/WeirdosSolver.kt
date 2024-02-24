@@ -55,7 +55,7 @@ object WeirdosSolver {
         val formatted = event.message.formattedText ?: return
         if (formatted.startsWith("§a§lPUZZLE SOLVED ") && "wasn't fooled by " in formatted) riddleChest = null
         if (formatted.startsWith("§e[NPC] ")) {
-            val chestLoc = EnumFacing.HORIZONTALS?.map { dir -> mc.theWorld?.loadedEntityList?.find { it is EntityArmorStand && formatted.substringAfter("§c").substringBefore("§f") in it.customNameTag }?.position?.offset(dir) }?.find { mc.theWorld?.getBlockState(it)?.block == Blocks.chest }
+            val chestLoc = EnumFacing.HORIZONTALS?.map { dir -> mc.theWorld?.loadedEntityList?.find { it is EntityArmorStand && formatted.substringAfter("§c").substringBefore("§f") in it.customNameTag }?.position?.offset(dir) }?.find { mc.theWorld?.getBlockState(it)?.block == Blocks.chest } ?: return
             if (formatted.containsAny(solutions)) riddleChest = chestLoc
             if (formatted.containsAny(wrong)) mc.theWorld.setBlockState(chestLoc, Blocks.air.defaultState)
         }
@@ -67,7 +67,7 @@ object WeirdosSolver {
         if (riddleChest != null) RenderUtil.drawBlockBox(riddleChest!!, Color.GREEN, outline = false, fill = true, esp = false)
             if (Config.autoWeirdos) {
                 mc.theWorld?.loadedEntityList?.filter { it is EntityArmorStand && it.customNameTag.contains("CLICK") }?.forEach {
-                    if (EditMode.getCurrentRoomPair()?.first?.data?.name == "Three Weirdos" && !inter.contains(it) && System.currentTimeMillis() - lastInter > 100 && mc.thePlayer.getDistanceToEntity(it) < 4) {
+                    if (EditMode.getCurrentRoomPair()?.first?.data?.name == "Three Weirdos" && !inter.contains(it) && System.currentTimeMillis() - lastInter > 90 && mc.thePlayer.getDistanceToEntity(it) < 5) {
                         lastInter = System.currentTimeMillis()
                         inter.add(it)
                         mc.playerController.interactWithEntitySendPacket(mc.thePlayer, it)

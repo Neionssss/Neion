@@ -102,9 +102,7 @@ object ScanUtils {
         }
     }
 
-    fun saveExtras() {
-        file.bufferedWriter().use { it.write(gson.toJson(extraRooms)) }
-    }
+    fun saveExtras() = file.bufferedWriter().use { it.write(gson.toJson(extraRooms)) }
 
     private val gson = GsonBuilder()
         .registerTypeAdapter(object : TypeToken<MutableSet<BlockPos>>() {}.type, SetBlockPosSerializer())
