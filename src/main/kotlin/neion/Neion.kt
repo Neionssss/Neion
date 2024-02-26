@@ -67,7 +67,7 @@ class Neion {
     companion object {
         const val MOD_ID = "neion"
         const val MOD_NAME = "Neion"
-        const val MOD_VERSION = "0.0.7"
+        const val MOD_VERSION = "0.0.8"
         const val CHAT_PREFIX = "§f§0[Neion]§f§r"
 
         @JvmStatic

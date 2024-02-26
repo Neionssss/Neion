@@ -93,6 +93,6 @@ object DungeonChestProfit {
         DIAMOND("Chest Diamond Right"),
         EMERALD("Chest Emerald Left"),
         OBSIDIAN("Chest Obsidian BottomLeft"),
-        BEDROCK("Chest Bedrock (Front Bottom Right)"),
+        BEDROCK("Chest Bedrock (Front Bottom Right)")
     }
 }
