@@ -227,7 +227,6 @@ object RandomStuff {
         JasperESP.espModeMap = null
         DungeonChestProfit.canOpen = false
         DungeonChestProfit.notOpened = true
-        DungeonChestProfit.anotherOne.clear()
         DungeonChestProfit.noobmen.clear()
         SimonSaysSolver.clickInOrder.clear()
         SimonSaysSolver.cleared = false

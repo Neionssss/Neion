@@ -6,6 +6,7 @@ import neion.events.GuiContainerEvent
 import neion.utils.APIHandler
 import neion.utils.ItemUtils.cleanName
 import neion.utils.Location.dungeonFloor
+import neion.utils.Location.inBoss
 import neion.utils.MathUtil
 import neion.utils.RenderUtil
 import neion.utils.RenderUtil.highlight
@@ -38,7 +39,7 @@ object TerminalSolvers {
 
     @SubscribeEvent
     fun onSlotdrraaww(e: GuiContainerEvent.DrawSlotEvent) {
-        if (dungeonFloor != 7 || e.container !is ContainerChest) return
+        if (!inBoss || dungeonFloor != 7 || e.container !is ContainerChest) return
         e.container.inventorySlots?.forEach { slot ->
             val stack = slot.stack ?: return
             if (slot.inventory == mc.thePlayer.inventory) return
@@ -52,7 +53,7 @@ object TerminalSolvers {
                             shouldClickColor.first().yDisplayPosition = 0
                         }
                         slot highlight Config.terminalColor.toJavaColor()
-                    } else stack.item = Item.getItemFromBlock(Blocks.glass)
+                    } else e.isCanceled = true
                 }
 
                 Terminal.STARTSWITH -> if (Config.startsWithSolver) {
@@ -63,10 +64,11 @@ object TerminalSolvers {
                             shouldClickStart.first().yDisplayPosition = 0
                         }
                         slot highlight Config.terminalColor.toJavaColor()
-                    } else stack.item = Item.getItemFromBlock(Blocks.glass)
+                    } else e.isCanceled = true
                 }
 
                 Terminal.RUBIX -> if (Config.rubixSolver) {
+                    e.isCanceled = false
                     val grid = e.container.inventorySlots.filter {
                         it.inventory == e.container.lowerChestInventory && it.stack?.displayName?.startsWith("§a") == true
                     }
@@ -82,6 +84,7 @@ object TerminalSolvers {
                             slote.xDisplayPosition + 4,
                             slote.yDisplayPosition + 9)
                     }
+                    if (stack.metadata == mostCommon) e.isCanceled = true
                 }
 
                 Terminal.NUMBERS -> {
@@ -91,7 +94,10 @@ object TerminalSolvers {
                     }
                 }
 
-                Terminal.CORRECTPANES -> if (stack.metadata == EnumDyeColor.GREEN.metadata) e.isCanceled = true
+                Terminal.CORRECTPANES -> {
+                    e.isCanceled = false
+                    if (stack.metadata == EnumDyeColor.GREEN.metadata) e.isCanceled = true
+                }
                 else -> {}
             }
         }

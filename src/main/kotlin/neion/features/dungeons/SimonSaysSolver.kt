@@ -4,6 +4,7 @@ import neion.Config
 import neion.Neion.Companion.mc
 import neion.utils.Location
 import neion.utils.RenderUtil
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.init.Blocks
 import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.BlockPos
@@ -55,7 +56,12 @@ object SimonSaysSolver {
             val x = click.x - mc.renderManager.viewerPosX
             val y = click.y - mc.renderManager.viewerPosY + .372
             val z = click.z - mc.renderManager.viewerPosZ + .308
+            GlStateManager.pushMatrix()
+            GlStateManager.disableLighting()
+            GlStateManager.disableDepth()
             RenderUtil.drawFilledAABB(AxisAlignedBB(x, y, z, x - .13, y + .26, z + .382), if (i == 0) Color.green else if (i == 1) Color.orange else Color.red)
+            GlStateManager.enableDepth()
+            GlStateManager.popMatrix()
         }
     }
 }

@@ -1,19 +1,15 @@
 package neion.features.dungeons
 
- import neion.Config
+import neion.Config
 import neion.Neion.Companion.mc
-import neion.events.GuiContainerEvent
 import neion.utils.ItemUtils.cleanName
- import neion.utils.ItemUtils.equalsOneOf
- import neion.utils.ItemUtils.lore
+import neion.utils.ItemUtils.lore
 import neion.utils.Location.inBoss
- import neion.utils.TextUtils.containsAny
- import neion.utils.Utils
- import neion.utils.Utils.containerChest
- import neion.utils.Utils.itemID
+import neion.utils.Utils
+import neion.utils.Utils.chest
+import neion.utils.Utils.itemID
 import net.minecraft.entity.Entity
 import net.minecraft.entity.item.EntityArmorStand
-import net.minecraft.inventory.ContainerChest
 import net.minecraft.item.ItemStack
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
@@ -23,48 +19,42 @@ object DungeonChestProfit {
 
     // https://i.imgur.com/k7mgy9U.png
     @SubscribeEvent
-    fun onNo(e: GuiContainerEvent.DrawSlotEvent) {
-        if (!Config.chestProfit || e.container !is ContainerChest || !inBoss) return
-        val inv = e.container.lowerChestInventory
-        val chestType = DungeonChest.getFromName(e.chestName) ?: return
-        val openChest = inv.getStackInSlot(31) ?: return
-        chestType.value = 0
-        chestType.price = Utils.getChestPrice(openChest.lore)
-        if (openChest.displayName == "§aOpen Reward Chest") {
-            canOpen = true
-            for (i in 9..17) {
-                val lootSlot = inv.getStackInSlot(i) ?: continue
-                if (lootSlot.lore.isNotEmpty()) {
-                    chestType.items.add(lootSlot)
-                    chestType.value += Utils.fetchEVERYWHERE(lootSlot.itemID)
-                        ?: Utils.fetchBzPrices(Utils.enchantNameToID(lootSlot.lore[0])) ?: Utils.getEssenceValue(
-                            lootSlot.displayName
-                        )
+    fun onNo(e: ClientTickEvent) {
+        if (!inBoss) return
+        val inv = mc.currentScreen?.chest
+            if (inv == null) {
+                if (Config.chestOpener) {
+                    mc.theWorld?.loadedEntityList?.filter {
+                        it is EntityArmorStand && Chestser.entries.any { w ->
+                            it.getEquipmentInSlot(4)?.cleanName() == w.s
+                        }
+                    }?.forEach { ent ->
+                        if (!noobmen.contains(ent) && mc.thePlayer.getDistanceToEntity(ent) < 20 && System.currentTimeMillis() - timeWait > 100) {
+                            mc.playerController.interactWithEntitySendPacket(mc.thePlayer, ent)
+                            timeWait = System.currentTimeMillis()
+                            noobmen.add(ent)
+                        }
+                        if (System.currentTimeMillis() - timeWait > 400 && notOpened) notOpened = false
+                    }
+                }
+            } else {
+                val chestType = DungeonChest.getFromName(inv.lowerChestInventory.displayName.unformattedText.trim()) ?: return
+                val sssa = inv.getSlot(31)?.stack ?: return
+                chestType.value = 0
+                chestType.price = Utils.getChestPrice(sssa.lore)
+                if (Config.chestProfit) canOpen = true
+                for (i in 9..17) {
+                    val lootSlot = inv.getSlot(i)?.stack ?: continue
+                    chestType.value += Utils.fetchEVERYWHERE(lootSlot.itemID) ?: Utils.fetchBzPrices(Utils.getBooksID(lootSlot)) ?: Utils.getEssenceValue(lootSlot.displayName)
+                    if (Config.chestOpener && System.currentTimeMillis() - timeWait > 125 && notOpened) mc.thePlayer.closeScreen()
                 }
             }
         }
-    }
 
     var canOpen = false
+    var notOpened = true
     val noobmen = mutableListOf<Entity>()
-    var timeWait = 0L
-
-
-    // https://i.imgur.com/yRyrZc5.png
-    @SubscribeEvent
-    fun onChest(e: ClientTickEvent) {
-        if (!Config.chestOpener || !inBoss) return
-        val entity = mc.theWorld?.loadedEntityList?.filter { it is EntityArmorStand && Chestser.entries.any { s -> it.getEquipmentInSlot(4)?.cleanName() == s.p } } ?: return
-        for (ent in entity) {
-            if (!noobmen.contains(ent) && mc.thePlayer.getDistanceToEntity(ent) < 20) {
-                if (System.currentTimeMillis() - timeWait > 100 && containerChest == null) {
-                    mc.playerController.interactWithEntitySendPacket(mc.thePlayer, ent)
-                    timeWait = System.currentTimeMillis()
-                    noobmen.add(ent)
-                } else if (DungeonChest.entries.any { containerChest?.lowerChestInventory?.displayName?.unformattedText == it.displayText }) mc.thePlayer.closeScreen()
-            }
-        }
-    }
+    private var timeWait = 0L
 
     // ----------------------------------------------------
 
@@ -96,12 +86,13 @@ object DungeonChestProfit {
             }
         }
     }
-    enum class Chestser(val p: String) {
-        WOODEN("Wooden Plank Chest"),
+
+    enum class Chestser(val s: String) {
+        WOOD("Wooden Plank Chest"),
         GOLD("Golden Skull"),
         DIAMOND("Chest Diamond Right"),
         EMERALD("Chest Emerald Left"),
         OBSIDIAN("Chest Obsidian BottomLeft"),
-        BEDROCK("Chest Bedrock (Front Bottom Right)");
+        BEDROCK("Chest Bedrock (Front Bottom Right)"),
     }
 }

@@ -167,8 +167,6 @@ object Config : Config(Mod("Neion", ModType.SKYBLOCK), "neion-config.json") {
     )
     var fakeHaste = false
 
-    //
-
     @Switch(
         name = "Dungeon Chest Profit",
         category = "Dungeons",
