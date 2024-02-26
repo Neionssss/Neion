@@ -55,7 +55,7 @@ object MapUpdate {
                 if (!playerLoaded) mc.theWorld.getPlayerEntityByName(name)?.let { setData(it) }
 
                 val room = getCurrentRoom()?.data?.name
-                val time = System.currentTimeMillis() - Dungeon.Info.startTime
+                val time = System.currentTimeMillis() - RunInformation.startTime
                 if (room != null && time > 1000) {
                     if (lastRoom == "") lastRoom = room
                     else if (lastRoom != room) {
@@ -95,7 +95,6 @@ object MapUpdate {
                 val mapX = MapUtils.startCorner.first + halfRoom + x * halfTile
                 val mapY = MapUtils.startCorner.second + halfRoom + z * halfTile
                 if (mapX.or(mapY) >= 128) continue
-                centerColors[z * 11 + x] = mapColors[mapY * 128 + mapX]
 
                 val sideIndex = if (x % 2 == 0 && z % 2 == 0) {
                     val topX = mapX - halfRoom
@@ -103,46 +102,10 @@ object MapUpdate {
                     topY * 128 + topX
                 } else if (z % 2 == 1) mapY * 128 + mapX - 4 else (mapY - 4) * 128 + mapX
 
+                centerColors[z * 11 + x] = mapColors[mapY * 128 + mapX]
                 sideColors[z * 11 + x] = mapColors[sideIndex]
-                fun mapTile(): Tile? {
-                    val worldX = Dungeon.startX + x * (Dungeon.roomSize shr 1)
-                    val worldZ = Dungeon.startZ + z * (Dungeon.roomSize shr 1)
-                    fun unknown(type: RoomType) = Room(worldX, worldZ, RoomData("Unknown", type, emptyList(), 0, 0, 0))
-
-                    val centerColor = centerColors[z * 11 + x].toInt()
-                    val sideColor = sideColors[z * 11 + x].toInt()
-                    if (centerColor == 0) return null
-                    return if (x % 2 == 0 && z % 2 == 0) {
-                        val type = RoomType.fromMapColor(sideColor) ?: return null
-                        unknown(type).apply {
-                            state = when (centerColor) {
-                                18 -> when (type) {
-                                    RoomType.BLOOD -> RoomState.DISCOVERED
-                                    RoomType.PUZZLE -> RoomState.FAILED
-                                    else -> state
-                                }
-
-                                30 -> when (type) {
-                                    RoomType.ENTRANCE -> RoomState.DISCOVERED
-                                    else -> RoomState.GREEN
-                                }
-
-                                34 -> RoomState.CLEARED
-                                else -> RoomState.DISCOVERED
-                            }
-                        }
-                    } else {
-                        if (sideColor == 0) Door(worldX, worldZ, DoorType.fromMapColor(centerColor) ?: return null).apply { if (centerColor != 85) state = RoomState.DISCOVERED }
-                        else {
-                            unknown(RoomType.fromMapColor(sideColor) ?: return null).apply {
-                                state = RoomState.DISCOVERED
-                                isSeparator = true
-                            }
-                        }
-                    }
-                }
-                val room = Dungeon.Info.dungeonList[z * 11 + x] ?: continue
-                val mapTile = mapTile() ?: continue
+                val room = Dungeon.dungeonList[z * 11 + x] ?: continue
+                val mapTile = mapTile(x,z,centerColors,sideColors) ?: continue
                 if (mapTile.state.ordinal < room.state.ordinal) {
                     (room as? Room)?.let {
                             listOf(-15 to -15, 15 to -15, 15 to 15, -15 to 15).forEachIndexed { index, pair ->
@@ -154,6 +117,43 @@ object MapUpdate {
                     room.state = mapTile.state
                 }
                 if (room is Door && room.type.equalsOneOf(DoorType.WITHER,DoorType.BLOOD) && !room.opened && mc.theWorld.getChunkFromChunkCoords(room.x shr 4, room.z shr 4).isLoaded && mc.theWorld.getBlockState(BlockPos(room.x, 69, room.z)).block == Blocks.air) room.opened = true
+            }
+        }
+    }
+    fun mapTile(x: Int,z: Int, centerColors: ByteArray, sideColors: ByteArray): Tile? {
+        val worldX = Dungeon.startX + x * (Dungeon.roomSize shr 1)
+        val worldZ = Dungeon.startZ + z * (Dungeon.roomSize shr 1)
+        fun unknown(type: RoomType) = Room(worldX, worldZ, RoomData("Unknown", type, emptyList(), 0, 0, 0))
+
+        val centerColor = centerColors[z * 11 + x].toInt()
+        val sideColor = sideColors[z * 11 + x].toInt()
+        if (centerColor == 0) return null
+        return if (x % 2 == 0 && z % 2 == 0) {
+            val type = RoomType.fromMapColor(sideColor) ?: return null
+            unknown(type).apply {
+                state = when (centerColor) {
+                    18 -> when (type) {
+                        RoomType.BLOOD -> RoomState.DISCOVERED
+                        RoomType.PUZZLE -> RoomState.FAILED
+                        else -> state
+                    }
+
+                    30 -> when (type) {
+                        RoomType.ENTRANCE -> RoomState.DISCOVERED
+                        else -> RoomState.GREEN
+                    }
+
+                    34 -> RoomState.CLEARED
+                    else -> RoomState.DISCOVERED
+                }
+            }
+        } else {
+            if (sideColor == 0) Door(worldX, worldZ, DoorType.fromMapColor(centerColor) ?: return null).apply { if (centerColor != 85) state = RoomState.DISCOVERED }
+            else {
+                unknown(RoomType.fromMapColor(sideColor) ?: return null).apply {
+                    state = RoomState.DISCOVERED
+                    isSeparator = true
+                }
             }
         }
     }

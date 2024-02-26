@@ -19,9 +19,7 @@ object EtherwarpUtils {
             return Vector3(f1 * f2, f3, f * f2).normalize()
         }
 
-        fun getComponents(): Array<Double> {
-            return arrayOf(this.x, this.y, this.z)
-        }
+        fun getComponents() = arrayOf(this.x, this.y, this.z)
 
         fun normalize(): Vector3 {
             val len = sqrt(this.x.pow(2) + this.y.pow(2) + this.z.pow(2))
@@ -82,12 +80,7 @@ object EtherwarpUtils {
             // Do block check function stuff
             val currentBlock = BlockPos(currentPos[0],currentPos[1],currentPos[2])
             if (isValidEtherwarpBlock(currentBlock)) return currentPos
-
-            // Non-air block reached
             if (mc.theWorld.getBlockState(currentBlock).block != Blocks.air) break
-
-
-            // End Reached
             if (currentPos == end.map { a -> floor(a) }) break
 
             // Find the next direction to step in

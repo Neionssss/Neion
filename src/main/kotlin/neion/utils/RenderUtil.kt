@@ -56,8 +56,10 @@ object RenderUtil {
     }
 
     fun postDraw() {
+        GlStateManager.disableAlpha()
         GlStateManager.disableBlend()
         GlStateManager.enableDepth()
+        GlStateManager.enableLighting()
         GlStateManager.enableTexture2D()
     }
 
@@ -280,39 +282,26 @@ object RenderUtil {
 
     fun drawBlockBox(blockPos: BlockPos, color: Color, outline: Boolean, fill: Boolean, esp: Boolean) {
         if (!outline && !fill) return
-        val renderManager = mc.renderManager
-        val x = blockPos.x - renderManager.viewerPosX
-        val y = blockPos.y - renderManager.viewerPosY
-        val z = blockPos.z - renderManager.viewerPosZ
+            val (x, y, z) = mc.thePlayer.getInterpolatedPosition()
+            val axisAlignedBB = mc.theWorld.getBlockState(blockPos).block.getSelectedBoundingBox(mc.theWorld, blockPos).offset(-x, -y, -z)
 
-        var axisAlignedBB = AxisAlignedBB(x, y, z, x + 1.0, y + 1.0, z + 1.0)
-        val block = mc.theWorld.getBlockState(blockPos).block
-        if (block != null) {
-            val player = mc.thePlayer
-            val posX = player.lastTickPosX + (player.posX - player.lastTickPosX) * pticks()
-            val posY = player.lastTickPosY + (player.posY - player.lastTickPosY) * pticks()
-            val posZ = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * pticks()
-            block.setBlockBoundsBasedOnState(mc.theWorld, blockPos)
-            axisAlignedBB = block.getSelectedBoundingBox(mc.theWorld, blockPos).offset(-posX, -posY, -posZ)
+            glPushMatrix()
+            glPushAttrib(GL_ALL_ATTRIB_BITS)
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+            glDisable(GL_TEXTURE_2D)
+            if (esp) glDisable(GL_DEPTH_TEST)
+            glDisable(GL_LIGHTING)
+            glDepthMask(false)
+
+            if (outline) {
+                glLineWidth(1.5f)
+                drawOutlinedAABB(axisAlignedBB, color)
+            }
+            if (fill) drawFilledAABB(axisAlignedBB, color)
+            glDepthMask(true)
+            glPopAttrib()
+            glPopMatrix()
         }
-
-        glPushMatrix()
-        glPushAttrib(GL_ALL_ATTRIB_BITS)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        glDisable(GL_TEXTURE_2D)
-        if (esp) glDisable(GL_DEPTH_TEST)
-        glDisable(GL_LIGHTING)
-        glDepthMask(false)
-
-        if (outline) {
-            glLineWidth(1.5f)
-            drawOutlinedAABB(axisAlignedBB, color)
-        }
-        if (fill) drawFilledAABB(axisAlignedBB, color)
-        glDepthMask(true)
-        glPopAttrib()
-        glPopMatrix()
-    }
 
 
     fun drawEntityBox(
@@ -434,7 +423,7 @@ object RenderUtil {
     }
 
 
-    fun renderCenteredText(text: List<String>, x: Int, y: Int, color: Int) {
+    fun renderCenteredText(text: List<String>, x: Int, y: Int, color: Color) {
         if (text.isEmpty()) return
         GlStateManager.pushMatrix()
         GlStateManager.translate(x.toFloat(), y.toFloat(), 0f)
@@ -443,14 +432,13 @@ object RenderUtil {
         val yTextOffset = text.size * fontHeight / -2
 
         text.forEachIndexed { index, texte ->
-            renderText(texte, mc.fontRendererObj.getStringWidth(texte) / -2, yTextOffset + index * fontHeight, color = color)
+            renderText(texte, mc.fontRendererObj.getStringWidth(texte) / -2, yTextOffset + index * fontHeight, color = color.rgb)
         }
         GlStateManager.popMatrix()
     }
 
     fun drawPlayerHead(name: String, player: DungeonPlayer) {
         GlStateManager.pushMatrix()
-        try {
             // Translates to the player's location which is updated every tick.
             if (player.isPlayer || name == mc.thePlayer.name) {
                 GlStateManager.translate(
@@ -497,10 +485,6 @@ object RenderUtil {
                 GlStateManager.scale(FMConfig.playerNameScale, FMConfig.playerNameScale, 1f)
                 renderText(name, -mc.fontRendererObj.getStringWidth(name) / 2, 0)
             }
-
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
         GlStateManager.popMatrix()
     }
 

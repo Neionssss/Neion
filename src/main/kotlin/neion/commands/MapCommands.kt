@@ -5,6 +5,7 @@ import neion.Neion.Companion.mc
 import neion.funnymap.Dungeon
 import neion.funnymap.MapUpdate
 import neion.funnymap.PlayerTracker
+import neion.funnymap.RunInformation
 import neion.funnymap.map.ScanUtils
 import neion.utils.TextUtils
 import net.minecraft.client.entity.EntityPlayerSP
@@ -25,9 +26,9 @@ object MapCommands : BaseCommand("nmap", listOf("nm")) {
             "help" -> {
                 TextUtils.info(
                     """
-                        #§b§l<§fFunnyMap Commands§b§l>
-                        #  §b/§ffunnymap §breset §9> §3Rescans the map.
-                        #  §b/§ffunnymap §broomdata §9> §3Copies current room data or room core to clipboard.
+                        #§b§l<§fMap Commands§b§l>
+                        #  §b/§fnm §breset §9> §3Rescans the map.
+                        #  §b/§fnm §broomdata §9> §3Copies current room data or room core to clipboard.
                     """.trimMargin("#")
                 )
             }
@@ -36,7 +37,7 @@ object MapCommands : BaseCommand("nmap", listOf("nm")) {
                 Dungeon.reset()
                 Dungeon.scan()
                 MapUpdate.getPlayers()
-                Dungeon.Info.started = true
+                RunInformation.started = true
             }
 
             // Copies room data or room core to clipboard

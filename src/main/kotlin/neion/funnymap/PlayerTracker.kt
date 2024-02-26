@@ -20,15 +20,11 @@ object PlayerTracker {
     val roomClears: MutableMap<RoomData, Set<String>> = mutableMapOf()
 
     fun roomStateChange(room: Tile, state: RoomState, newState: RoomState) {
-        if (room !is Room) return
-        if (newState.equalsOneOf(RoomState.CLEARED, RoomState.GREEN) && state != RoomState.CLEARED) {
-            val currentRooms = Dungeon.dungeonTeammates.map { Pair(it.value.formattedName, it.value.getCurrentRoom()) }
-            roomClears[room.data] = currentRooms.filter { it.first != "" && it.second?.core == room.data.cores[0] }.map { it.first }.toSet()
-        }
+        if (room is Room && newState.equalsOneOf(RoomState.CLEARED, RoomState.GREEN) && state != RoomState.CLEARED) roomClears[room.data] = Dungeon.dungeonTeammates.map { Pair(it.value.formattedName, it.value.getCurrentRoom()) }.filter { it.first != "" && it.second?.core == room.data.cores[0] }.map { it.first }.toSet()
     }
 
     fun onDungeonEnd() {
-        Dungeon.dungeonTeammates.forEach { it.value.roomVisits.add(Pair(System.currentTimeMillis() - Dungeon.Info.startTime - it.value.lastTime, it.value.lastRoom)) }
+        Dungeon.dungeonTeammates.forEach { it.value.roomVisits.add(Pair(System.currentTimeMillis() - RunInformation.startTime - it.value.lastTime, it.value.lastRoom)) }
 
         CoroutineScope(EmptyCoroutineContext).launch {
             Dungeon.dungeonTeammates.map { (_, player) ->

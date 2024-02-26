@@ -45,7 +45,7 @@ object SimonSaysSolver {
         if (x == 110 && y == 121 && z == 91) clickInOrder.clear()
         if (mc.theWorld.getBlockState(BlockPos(x, y, z)).block != Blocks.stone_button) return
         val pose = BlockPos(x + 1, y, z)
-        if (clickInOrder.contains(pose)) clickInOrder.remove(pose)
+        if (clickInOrder.first() == pose) clickInOrder.remove(pose) else e.isCanceled = true
     }
 
     @SubscribeEvent

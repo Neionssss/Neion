@@ -18,7 +18,6 @@ object CustomGUI {
     var maxSecretss = 0
     var leastMana = 0
     var maxedMana = 0
-    private val secretsRegex = Regex("(?<secrets>\\d+)/(?<maxSecrets>\\d+) Secrets") // That one is actually Skytils
 
     @SubscribeEvent
     fun onSPacket(e: ClientChatReceivedEvent) {
@@ -30,7 +29,7 @@ object CustomGUI {
     @SubscribeEvent
     fun onChat(e: ChatEvent) {
         if (e.packet.type == 2.toByte()) {
-            secretsRegex.find(e.text)?.destructured?.let { (secrets, maxSecrets) ->
+            Regex("(?<secrets>\\d+)/(?<maxSecrets>\\d+) Secrets").find(e.text)?.destructured?.let { (secrets, maxSecrets) ->
                 secretss = secrets.toInt()
                 maxSecretss = maxSecrets.toInt()
             }

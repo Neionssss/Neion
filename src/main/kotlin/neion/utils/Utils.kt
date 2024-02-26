@@ -37,22 +37,11 @@ object Utils {
 	}
 
 	fun fetchBzPrices(item: String): Int? {
-		if (APIHandler.profitData == null) APIHandler.refreshPrices()
 		val fewprices = APIHandler.profitData?.getAsJsonObject("products")?.getAsJsonObject(item)
 		val customItem = fewprices?.entrySet()?.map { it.key }?.get(3)
 		val itemi = fewprices?.getAsJsonObject(customItem) ?: return null
 		return itemi.get("sellPrice")?.asInt!!
 	}
-
-	private val ultimateBooks = listOf(
-		"Wisdom",
-		"Soul Eater",
-		"Bank",
-		"Legion",
-		"No Pain No Gain",
-		"One For All",
-		"Last Stand"
-	)
 
 
 	fun getArea(): String {
@@ -64,21 +53,29 @@ object Utils {
 		return ""
 	}
 
-	fun enchantNameToID(enchant: String): String {	
-		val enchantId = enchant.substringBeforeLast(" ").stripControlCodes().uppercase().replace(" ", "_")
-		val level = enchant.substringAfterLast(" ").stripControlCodes().romanToDecimal()
-		return if (!enchant.stripControlCodes().containsAny(ultimateBooks)) "ENCHANTMENT_${enchantId}_$level" else "ENCHANTMENT_ULTIMATE_${enchantId}_$level"
-	}
-
-	fun fetchAuction(item: String): Int? {
-		if (APIHandler.auctionData == null) APIHandler.refreshAuction()
-		return APIHandler.auctionData?.getAsJsonPrimitive(item)?.asInt ?: return null
+	fun getBooksID(itemStack: ItemStack): String {
+		val enchants = itemStack.extraAttributes?.getCompoundTag("enchantments")
+		val enchant = enchants?.keySet?.firstOrNull()
+		if (enchant != null) {
+			return "ENCHANTMENT_${enchant.uppercase()}_${enchants.getInteger(enchant)}"
+		}
+		return ""
 	}
 
 	fun getIdFromName(name: String): String {
 		return if (name.stripControlCodes().containsAny("Wither Shield", "Implosion", "Shadow Warp")) "${name}_SCROLL".replace(" ", "_").uppercase() else
 		if (name.contains("Wither Cloak Sword", true)) "WITHER_CLOAK" else
-			if (name.startsWith("§aEnchanted Book (")) enchantNameToID(name.substringAfter("(")).substringBefore(")")
+			if (name.startsWith("§aEnchanted Book (")) {
+				val enchantId = name.substringBeforeLast(" ").stripControlCodes().uppercase().replace(" ", "_")
+				val level = name.substringAfterLast(" ").stripControlCodes().romanToDecimal()
+				if (!name.stripControlCodes().containsAny("Wisdom",
+						"Soul Eater",
+						"Bank",
+						"Legion",
+						"No Pain No Gain",
+						"One For All",
+						"Last Stand")) "ENCHANTMENT_${enchantId}_$level" else "ENCHANTMENT_ULTIMATE_${enchantId}_$level"
+			}
 			else name.stripControlCodes().uppercase().replace(" ", "_").replace("`S", "").replace("'S", "")
 	}
 
@@ -111,7 +108,7 @@ object Utils {
 	}
 
 	fun fetchEVERYWHERE(name: String): Int? {
-		return fetchBzPrices(name) ?: fetchAuction(name)
+		return fetchBzPrices(name) ?: APIHandler.auctionData?.getAsJsonPrimitive(name)?.asInt
 	}
 
 	// wow FLC

@@ -10,6 +10,7 @@ import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.init.Blocks
 import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.Vec3
 import net.minecraftforge.client.event.ClientChatReceivedEvent
 import net.minecraftforge.client.event.RenderWorldLastEvent
 import net.minecraftforge.fml.common.eventhandler.EventPriority
@@ -18,7 +19,7 @@ import java.awt.Color
 
 object WeirdosSolver {
 
-    private var riddleChest: BlockPos? = null
+    var riddleChest: BlockPos? = null
 
     // Thanks Moolb https://i.imgur.com/ohLScw5.png
     private var solutions = listOf(
@@ -47,27 +48,37 @@ object WeirdosSolver {
     )
     val inter = HashSet<Entity>()
     var lastInter = 0L
+    var notYet = true
 
 
     @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
     fun onChat(event: ClientChatReceivedEvent) {
-        if (!Config.threeSolver || !inDungeons || event.type == 2.toByte()) return
+        if (!Config.threeSolver || !inDungeons || event.type == 2.toByte() || EditMode.getCurrentRoomPair()?.first?.data?.name != "Three Weirdos") return
         val formatted = event.message.formattedText ?: return
-        if (formatted.startsWith("§a§lPUZZLE SOLVED ") && "wasn't fooled by " in formatted) riddleChest = null
         if (formatted.startsWith("§e[NPC] ")) {
-            val chestLoc = EnumFacing.HORIZONTALS?.map { dir -> mc.theWorld?.loadedEntityList?.find { it is EntityArmorStand && formatted.substringAfter("§c").substringBefore("§f") in it.customNameTag }?.position?.offset(dir) }?.find { mc.theWorld?.getBlockState(it)?.block == Blocks.chest } ?: return
+            val loadedEntities = mc.theWorld.loadedEntityList ?: return
+            val entity = loadedEntities.find { it is EntityArmorStand && formatted.substringAfter("§c").substringBefore("§f") in it.customNameTag } ?: return
+            val chestLoc = EnumFacing.HORIZONTALS?.map { dir -> entity.position?.offset(dir) }?.find { mc.theWorld?.getBlockState(it)?.block == Blocks.chest } ?: return
             if (formatted.containsAny(solutions)) riddleChest = chestLoc
             if (formatted.containsAny(wrong)) mc.theWorld.setBlockState(chestLoc, Blocks.air.defaultState)
+            loadedEntities.filter { it.posX == entity.posX && it.posZ == entity.posZ }.forEach { mc.theWorld.removeEntity(it) }
         }
     }
 
     @SubscribeEvent
     fun onWorld(e: RenderWorldLastEvent) {
-        if (!inDungeons || !Config.threeSolver) return
-        if (riddleChest != null) RenderUtil.drawBlockBox(riddleChest!!, Color.GREEN, outline = false, fill = true, esp = false)
+        if (!inDungeons || !Config.threeSolver || EditMode.getCurrentRoomPair()?.first?.data?.name != "Three Weirdos") return
+        riddleChest?.let {
+            RenderUtil.drawBlockBox(it, Color.GREEN, outline = false, fill = true, esp = false)
+            EnumFacing.HORIZONTALS.map { dir ->
+                if (Config.autoWeirdos && notYet) {
+                    mc.playerController.onPlayerRightClick(mc.thePlayer,mc.theWorld,mc.thePlayer.heldItem, riddleChest, dir, Vec3(riddleChest!!.x.toDouble(), riddleChest!!.y.toDouble(), riddleChest!!.z.toDouble()))
+                    notYet = false
+                }}
+        }
             if (Config.autoWeirdos) {
                 mc.theWorld?.loadedEntityList?.filter { it is EntityArmorStand && it.customNameTag.contains("CLICK") }?.forEach {
-                    if (EditMode.getCurrentRoomPair()?.first?.data?.name == "Three Weirdos" && !inter.contains(it) && System.currentTimeMillis() - lastInter > 90 && mc.thePlayer.getDistanceToEntity(it) < 5) {
+                    if (EditMode.getCurrentRoomPair()?.first?.data?.name == "Three Weirdos" && !inter.contains(it) && System.currentTimeMillis() - lastInter > 50 && mc.thePlayer.getDistanceToEntity(it) < 5) {
                         lastInter = System.currentTimeMillis()
                         inter.add(it)
                         mc.playerController.interactWithEntitySendPacket(mc.thePlayer, it)

@@ -5,11 +5,11 @@ import neion.Config
 import neion.Neion.Companion.mc
 import neion.events.CheckRenderEntityEvent
 import neion.events.RenderLivingEntityEvent
+import neion.utils.ItemUtils.equalsOneOf
+import neion.utils.RenderUtil
 import neion.utils.TextUtils
 import neion.utils.Utils
-import neion.utils.RenderUtil
 import net.minecraft.client.entity.EntityOtherPlayerMP
-import net.minecraft.entity.Entity
 import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.init.Blocks
@@ -57,8 +57,8 @@ object MurderHelper {
         ItemBlock.getItemFromBlock(Blocks.double_plant),
     )
 
-    val murder = HashSet<Entity>()
-    val bowHolder = HashSet<Entity>()
+    val murder = HashSet<EntityOtherPlayerMP>()
+    val bowHolder = HashSet<EntityOtherPlayerMP>()
     var wrote = false
 
 
@@ -91,19 +91,17 @@ object MurderHelper {
                         Notifications.INSTANCE.send("Neion", "${it.name} has bow")
                         wrote = true
                     }
-                    if (it != entity) return@forEach
                     RenderUtil.outlineESP(e, Color.blue)
                 }
             }
         } else {
-            if (swords.any { entity.getEquipmentInSlot(0)?.item == it }) murder.add(entity)
+            if (entity.getEquipmentInSlot(0).item.equalsOneOf(swords)) murder.add(entity)
             if (murder.isNotEmpty()) {
                 murder.forEach {
                     if (!wrote) {
                         TextUtils.info("${it.name} is Murderer!")
                         wrote = true
                     }
-                    if (it != entity) return@forEach
                     RenderUtil.outlineESP(e, Color.red)
                 }
             }

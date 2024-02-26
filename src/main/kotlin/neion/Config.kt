@@ -121,6 +121,12 @@ object Config : Config(Mod("Neion", ModType.SKYBLOCK), "neion-config.json") {
     )
     var etherwarpOverlay = false
 
+    @Color(
+        name = "Etherwarp Color",
+        category = "Dungeons"
+    )
+    var etherwarpColor = OneColor(255,0,0)
+
     @Switch(
         name = "Auto close dungeon chests",
         category = "Dungeons",
@@ -196,7 +202,7 @@ object Config : Config(Mod("Neion", ModType.SKYBLOCK), "neion-config.json") {
 
     @Switch(
         name = "Croesus Helper",
-        description = "Hide unopened, highlight most profitable(not accurate)",
+        description = "Hide opened, highlight most profitable(not accurate) chests",
         category = "Dungeons",
         subcategory = "Chest Profit"
     )
@@ -306,6 +312,12 @@ object Config : Config(Mod("Neion", ModType.SKYBLOCK), "neion-config.json") {
     var threeSolver = false
 
     @Switch(
+        name = "Teleport Maze Solver",
+        category = "Solvers"
+    )
+    var tpMazeSolver = false
+
+    @Switch(
         name = "Quiz Solver",
         category = "Solvers"
     )
@@ -316,6 +328,14 @@ object Config : Config(Mod("Neion", ModType.SKYBLOCK), "neion-config.json") {
         category = "Solvers"
     )
     var autoWeirdos = false
+
+    @Switch(
+        name = "One-buttoned Terminal",
+        description = "Makes slots be in one place",
+        category = "Solvers",
+        subcategory = "Terminals"
+    )
+    var terminalHelper = false
 
     @Switch(
         name = "Rubix Terminal",

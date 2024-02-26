@@ -7,9 +7,7 @@ import net.minecraftforge.common.util.Constants
 
 object ItemUtils {
 
-    fun Any?.equalsOneOf(vararg other: Any): Boolean {
-        return other.any { this == it }
-    }
+    fun Any?.equalsOneOf(vararg other: Any): Boolean = other.any { this == it }
 
     fun ItemStack.getSkullTextured(): String? {
         if (item != Items.skull) return null
@@ -26,9 +24,7 @@ object ItemUtils {
             if (display.hasKey("Lore", 9)) {
                 val nbt = display.getTagList("Lore", 8)
                 val lore = ArrayList<String>()
-                for (ii in 0 until nbt.tagCount()) {
-                    lore.add(nbt.getStringTagAt(ii))
-                }
+                for (ii in 0 until nbt.tagCount()) lore.add(nbt.getStringTagAt(ii))
                 return lore
             }
             return emptyList()

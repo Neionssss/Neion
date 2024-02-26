@@ -191,26 +191,18 @@ object FMConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") 
     )
     var peekBind = OneKeyBind(UKeyboard.KEY_NONE)
 
-    @Dropdown(
+    @Switch(
         name = "Room Secrets",
         description = "Shows total secrets of rooms on map.",
         category = "Rooms",
-        options = ["Off", "On", "Replace Checkmark"]
     )
-    var mapRoomSecrets = 0
-
-    @Switch(
-        name = "Color Text",
-        description = "Colors name and secret count based on room state.",
-        category = "Rooms"
-    )
-    var mapColorText = false
+    var mapRoomSecrets = false
 
     @Dropdown(
         name = "Room Checkmarks",
         description = "Adds room checkmarks based on room state.",
         category = "Rooms",
-        options = ["Default", "NEU"]
+        options = ["Default", "NEU", "Secrets", "Room Names"]
     )
     var mapCheckmark = 0
 

@@ -43,7 +43,6 @@ object MapRender {
             FMConfig.mapBorder.toJavaColor()
         )
         renderRooms()
-        renderText()
         Dungeon.dungeonTeammates.forEach { (name, teammate) -> if (!teammate.dead) RenderUtil.drawPlayerHead(name, teammate) }
         if (FMConfig.mapShowRunInformation == 1) renderRunInformation()
     }
@@ -56,7 +55,7 @@ object MapRender {
 
         for (y in 0..10) {
             for (x in 0..10) {
-                val tile = Dungeon.Info.dungeonList[y * 11 + x] ?: continue
+                val tile = Dungeon.dungeonList[y * 11 + x] ?: continue
 
                 val xOffset = (x shr 1) * (mapRoomSize + connectorSize)
                 val yOffset = (y shr 1) * (mapRoomSize + connectorSize)
@@ -66,7 +65,7 @@ object MapRender {
 
                 var color = tile.color
 
-                    color = if (FMConfig.mapDarkenUndiscovered && Dungeon.Info.started && tile.state == RoomState.UNDISCOVERED) color.run {
+                    color = if (FMConfig.mapDarkenUndiscovered && RunInformation.started && tile.state == RoomState.UNDISCOVERED) color.run {
                         Color(
                             (red * (1 - FMConfig.mapDarkenPercent)).toInt(),
                             (green * (1 - FMConfig.mapDarkenPercent)).toInt(),
@@ -110,89 +109,80 @@ object MapRender {
                     }
                 }
             }
-        }
-        GlStateManager.popMatrix()
-    }
+            val checkmarkSize = when (FMConfig.mapCheckmark) {
+                1 -> 8.0 // default
+                else -> 10.0 // neu
+            }
 
-    private fun renderText() {
-        GlStateManager.pushMatrix()
-        GlStateManager.translate(MapUtils.startCorner.first.toFloat(), MapUtils.startCorner.second.toFloat(), 0f)
+            // Text / Checkmarks
+            Dungeon.uniqueRooms.forEach { (room,pos) ->
+                val xOffset = (pos.first shr 1) * (mapRoomSize + connectorSize)
+                val yOffset = (pos.second shr 1) * (mapRoomSize + connectorSize)
 
-        val connectorSize = mapRoomSize shr 2
-        val checkmarkSize = when (FMConfig.mapCheckmark) {
-            1 -> 8.0 // default
-            else -> 10.0 // neu
-        }
+                if (FMConfig.mapCheckmark.equalsOneOf(0,1) && !(FMConfig.mapRoomNames == 1 && room.data.type == RoomType.PUZZLE)) {
 
-        Dungeon.Info.uniqueRooms.forEach { (room,pos) ->
-            val xOffset = (pos.first shr 1) * (mapRoomSize + connectorSize)
-            val yOffset = (pos.second shr 1) * (mapRoomSize + connectorSize)
+                    when (FMConfig.mapCheckmark) {
+                        0 -> when (room.state) {
+                            RoomState.CLEARED -> defaultWhite
+                            RoomState.GREEN -> defaultGreen
+                            RoomState.FAILED -> defaultCross
+                            else -> null
+                        }
 
-            if (FMConfig.mapRoomSecrets != 2) {
+                        1 -> when (room.state) {
+                            RoomState.CLEARED -> neuWhite
+                            RoomState.GREEN -> neuGreen
+                            RoomState.FAILED -> neuCross
+                            else -> null
+                        }
 
-                when (FMConfig.mapCheckmark) {
-                    1 -> when (room.state) {
-                        RoomState.CLEARED -> defaultWhite
-                        RoomState.GREEN -> defaultGreen
-                        RoomState.FAILED -> defaultCross
                         else -> null
+                    }?.let {
+                        GlStateManager.enableAlpha()
+                        GlStateManager.color(255f, 255f, 255f, 255f)
+                        mc.textureManager?.bindTexture(it)
+                        RenderUtil.drawTexturedQuad(
+                            xOffset + (mapRoomSize - checkmarkSize) / 2,
+                            yOffset + (mapRoomSize - checkmarkSize) / 2,
+                            checkmarkSize,
+                            checkmarkSize
+                        )
+                        GlStateManager.disableAlpha()
                     }
-
-                    2 -> when (room.state) {
-                        RoomState.CLEARED -> neuWhite
-                        RoomState.GREEN -> neuGreen
-                        RoomState.FAILED -> neuCross
-                        else -> null
-                    }
-
-                    else -> null
-                }?.let {
-                    GlStateManager.enableAlpha()
-                    GlStateManager.color(255f, 255f, 255f, 255f)
-                    mc.textureManager.bindTexture(it)
-
-                    RenderUtil.drawTexturedQuad(
-                        xOffset + (mapRoomSize - checkmarkSize) / 2,
-                        yOffset + (mapRoomSize - checkmarkSize) / 2,
-                        checkmarkSize,
-                        checkmarkSize
-                    )
-                    GlStateManager.disableAlpha()
                 }
+
+                val color = when (room.state) {
+                    RoomState.GREEN -> Color.green
+                    RoomState.CLEARED -> Color.white
+                    RoomState.FAILED -> Color.red
+                    RoomState.DISCOVERED -> Color.yellow
+                    else -> Color.gray
+                }
+
+                if (FMConfig.mapCheckmark == 2) {
+                    GlStateManager.pushMatrix()
+                    GlStateManager.translate(
+                        xOffset + (mapRoomSize shr 1).toFloat(),
+                        yOffset + 2 + (mapRoomSize shr 1).toFloat(),
+                        0f
+                    )
+                    GlStateManager.scale(2f, 2f, 1f)
+                    RenderUtil.renderCenteredText(listOf(room.data.secrets.toString()), 0, 0, color)
+                    GlStateManager.popMatrix()
+                }
+
+                val name = mutableListOf<String>()
+
+                if (FMConfig.peekBind.isActive || FMConfig.mapCheckmark == 3 || (FMConfig.mapRoomNames != 0 && room.data.type.equalsOneOf(
+                        RoomType.PUZZLE,
+                        RoomType.TRAP) || FMConfig.mapRoomNames == 2 && room.data.type.equalsOneOf(
+                        RoomType.NORMAL,
+                        RoomType.RARE,
+                        RoomType.CHAMPION))) name.addAll(room.data.name.split(" "))
+                if (room.data.type == RoomType.NORMAL && FMConfig.mapRoomSecrets) name.add(room.data.secrets.toString())
+                // Offset + half of roomsize
+                RenderUtil.renderCenteredText(name, xOffset + mapRoomSize / 2, yOffset + mapRoomSize / 2, color)
             }
-
-            val color = if (FMConfig.mapColorText) when (room.state) {
-                RoomState.GREEN -> 0x55ff55
-                RoomState.CLEARED, RoomState.FAILED -> 0xffffff
-                else -> 0xaaaaaa
-            } else 0xffffff
-
-            if (FMConfig.mapRoomSecrets == 2) {
-                GlStateManager.pushMatrix()
-                GlStateManager.translate(
-                    xOffset + (mapRoomSize shr 1).toFloat(),
-                    yOffset + 2 + (mapRoomSize shr 1).toFloat(),
-                    0f
-                )
-                GlStateManager.scale(2f, 2f, 1f)
-                RenderUtil.renderCenteredText(listOf(room.data.secrets.toString()), 0, 0, color)
-                GlStateManager.popMatrix()
-            }
-
-            val name = mutableListOf<String>()
-
-            if (FMConfig.peekBind.isActive || (FMConfig.mapRoomNames != 0 && room.data.type.equalsOneOf(
-                    RoomType.PUZZLE,
-                    RoomType.TRAP
-                ) || FMConfig.mapRoomNames == 2 && room.data.type.equalsOneOf(
-                    RoomType.NORMAL,
-                    RoomType.RARE,
-                    RoomType.CHAMPION
-                ))
-            ) name.addAll(room.data.name.split(" "))
-            if (room.data.type == RoomType.NORMAL && FMConfig.mapRoomSecrets == 1) name.add(room.data.secrets.toString())
-            // Offset + half of roomsize
-            RenderUtil.renderCenteredText(name, xOffset + mapRoomSize / 2, yOffset + mapRoomSize / 2, color)
         }
         GlStateManager.popMatrix()
     }

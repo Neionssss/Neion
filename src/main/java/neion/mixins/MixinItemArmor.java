@@ -21,7 +21,7 @@ abstract class MixinItemArmor {
 
     @Inject(method = "getColor", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;getTagCompound()Lnet/minecraft/nbt/NBTTagCompound;"), cancellable = true)
     private void replaceArmorColor(ItemStack stack, CallbackInfoReturnable<Integer> cir) {
-            ArmorColorCommand.INSTANCE.replaceArmorColor(stack, cir);
+        ArmorColorCommand.INSTANCE.replaceArmorColor(stack, cir);
     }
 
     @Inject(method = "getColorFromItemStack", at = @At("HEAD"), cancellable = true)

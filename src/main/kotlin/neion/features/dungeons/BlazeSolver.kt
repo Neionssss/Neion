@@ -35,7 +35,7 @@ object BlazeSolver {
             blist.sortWith { a, b -> hpMap[b]?.let { it1 -> hpMap[a]?.compareTo(it1) }!! }
             if (blist.isEmpty()) return
             val (x, z) = ScanUtils.getRoomCentre(mc.thePlayer.posX.toInt(), mc.thePlayer.posZ.toInt())
-            if (mc.theWorld.getBlockState(BlockPos(x + 1, 118, z)).block !== Blocks.cobblestone) blist.reverse()
+            if (mc.theWorld.getBlockState(BlockPos(x + 1, 118, z)).block != Blocks.cobblestone) blist.reverse()
         }
     }
 

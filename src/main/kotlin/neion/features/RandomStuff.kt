@@ -12,12 +12,14 @@ import neion.funnymap.map.ScanUtils
 import neion.ui.GuiRenderer
 import neion.utils.ItemUtils.equalsOneOf
 import neion.utils.Location
+import neion.utils.Location.inBoss
 import neion.utils.Location.inDungeons
 import neion.utils.Location.inSkyblock
 import neion.utils.RenderUtil
 import neion.utils.TextUtils
 import neion.utils.TextUtils.startsWithAny
 import neion.utils.Utils
+import neion.utils.Utils.items
 import net.minecraft.client.gui.inventory.GuiChest
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.settings.KeyBinding
@@ -51,6 +53,8 @@ import kotlin.random.Random
 object RandomStuff {
 
 
+    private var lastGive = 0L
+
     @SubscribeEvent
     fun onConnect(e: ClientConnectedToServerEvent?) {
         if (Config.autoSB && !inSkyblock) {
@@ -81,7 +85,6 @@ object RandomStuff {
         if (Config.ToggleSprint) KeyBinding.setKeyBindState(mc.gameSettings.keyBindSprint.keyCode, true)
         if (Config.fakeHaste && inDungeons) mc.thePlayer.addPotionEffect(PotionEffect(3, 999999999, 2))
         if (Config.funnyItems) mc.thePlayer.swingProgress = (exp(-Random.nextFloat()) + -Config.itemSwingSpeed)
-        mc.mcProfiler.startSection("fmspsa")
         if (display != null) {
             mc.displayGuiScreen(display)
             display = null
@@ -91,8 +94,17 @@ object RandomStuff {
         Dungeon.onTick()
         Location.onTick()
         BlazeSolver.onTick()
-        mc.mcProfiler.endSection()
         Display.setTitle(Config.mcTitle)
+        if (Config.autoGFS && inDungeons) {
+            mc.thePlayer?.inventory?.items?.filter { it?.item == Items.ender_pearl && System.currentTimeMillis() - lastGive > 5000 }
+                ?.forEach {
+                    if (it != null) {
+                        if (it.stackSize > Config.minep) return
+                        TextUtils.sendCommand("gfs ender_pearl ${16 - it.stackSize}")
+                        lastGive = System.currentTimeMillis()
+                    }
+                }
+        }
     }
 
     // https://github.com/Harry282/Skyblock-Client/blob/main/src/main/kotlin/skyblockclient/features/AntiBlind.kt
@@ -108,6 +120,7 @@ object RandomStuff {
     @SubscribeEvent
     fun onMessageSendToServer(e: PacketSentEvent) {
         mapOf(
+                "//ai" to "/p settings allinvite",
                 "/d" to "warp dhub",
                 "/pko" to "p kickoffline",
                 "/f1" to "joininstance CATACOMBS_FLOOR_ONE",
@@ -168,10 +181,9 @@ object RandomStuff {
         }
     }
 
-
     @SubscribeEvent
     fun onRenderWorld(e: CheckRenderEntityEvent<*>) {
-        if (!Config.itemESP || !inDungeons) return
+        if (!Config.itemESP || !inDungeons || inBoss) return
         val entity = e.entity as? EntityItem ?: return
         if (mc.thePlayer.getDistanceSqToEntity(entity) < 200 && listOf(
                         Items.ender_pearl,
@@ -181,8 +193,7 @@ object RandomStuff {
                         Items.shears,
                         ItemBlock.getItemFromBlock(Blocks.iron_trapdoor),
                         ItemBlock.getItemFromBlock(Blocks.skull),
-                        ItemBlock.getItemFromBlock(Blocks.heavy_weighted_pressure_plate)
-                ).any { entity.entityItem.item == it })
+                        ItemBlock.getItemFromBlock(Blocks.heavy_weighted_pressure_plate)).any { entity.entityItem.item == it })
             RenderUtil.drawEntityBox(entity, Config.itemColor.toJavaColor(), true, false,true)
     }
 
@@ -212,17 +223,21 @@ object RandomStuff {
         MurderHelper.bowHolder.clear()
         BlazeSolver.blist.clear()
         MurderHelper.wrote = false
-        JasperESP.espModeMap.clear()
         JasperESP.stopped = false
+        JasperESP.espModeMap = null
         DungeonChestProfit.canOpen = false
         DungeonChestProfit.notOpened = true
         DungeonChestProfit.anotherOne.clear()
         DungeonChestProfit.noobmen.clear()
         SimonSaysSolver.clickInOrder.clear()
         SimonSaysSolver.cleared = false
+        TeleportMazeSolver.map.clear()
+        TeleportMazeSolver.rightOne = null
+        WeirdosSolver.riddleChest = null
+        WeirdosSolver.notYet = true
         inDungeons = false
         Location.dungeonFloor = -1
-        Location.inBoss = false
+        inBoss = false
         DungeonChestProfit.DungeonChest.entries.forEach(DungeonChestProfit.DungeonChest::reset)
         TriviaSolver.triviaAnswer = null
         ScanUtils.saveExtras()
@@ -235,6 +250,6 @@ object RandomStuff {
         inSkyblock = false
         inDungeons = false
         Location.dungeonFloor = -1
-        Location.inBoss = false
+        inBoss = false
     }
 }

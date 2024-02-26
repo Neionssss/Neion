@@ -22,7 +22,7 @@ object WitherDoorESP {
         Dungeon.doors.filter { it.type.equalsOneOf(DoorType.BLOOD,DoorType.WITHER) && !it.opened }.forEach {
             if (it.state == RoomState.UNDISCOVERED && FMConfig.witherDoorESP == 1) return@forEach
             val aabb = AxisAlignedBB(it.x - 1.0, 69.0, it.z - 1.0, it.x + 2.0, 73.0, it.z + 2.0).offset(-x,-y,-z)
-            val color = if (it.type == DoorType.BLOOD && Dungeon.Info.bloodKey || it.type == DoorType.WITHER && Dungeon.Info.keys > 0) FMConfig.keyC else FMConfig.noKeyC
+            val color = if (it.type == DoorType.BLOOD && RunInformation.bloodKey || it.type == DoorType.WITHER && RunInformation.keys > 0) FMConfig.keyC else FMConfig.noKeyC
                 GlStateManager.pushMatrix()
                 RenderUtil.preDraw()
                 GL11.glLineWidth(FMConfig.witherDoorOutlineWidth)

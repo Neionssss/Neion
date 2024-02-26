@@ -4,7 +4,7 @@ import neion.Config
 import neion.Neion.Companion.mc
 import neion.features.CustomGUI
 import neion.features.dungeons.DungeonChestProfit
-import neion.funnymap.Dungeon
+import neion.funnymap.RunInformation
 import neion.utils.Location
 import neion.utils.MathUtil
 import neion.utils.RenderUtil
@@ -50,7 +50,7 @@ object DungeonSecretDisplay : MovableGuiElement() {
     }
 
     override fun shouldRender(): Boolean {
-        if (!Location.inDungeons || !Dungeon.Info.started || !Config.showSecretsFocus) return false
+        if (!Location.inDungeons || !RunInformation.started || !Config.showSecretsFocus) return false
         return super.shouldRender()
     }
 }
@@ -67,7 +67,7 @@ object ClearedDisplay : MovableGuiElement() {
     }
 
         override fun shouldRender(): Boolean {
-            if (!Location.inDungeons || !Dungeon.Info.started || !Config.showClearedFocus) return false
+            if (!Location.inDungeons || !RunInformation.started || !Config.showClearedFocus) return false
             return super.shouldRender()
         }
 
@@ -94,7 +94,7 @@ object TimeDisplay : MovableGuiElement() {
     }
 
     override fun shouldRender(): Boolean {
-        if (!Location.inDungeons || !Dungeon.Info.started || !Config.showTimeFocus) return false
+        if (!Location.inDungeons || !RunInformation.started || !Config.showTimeFocus) return false
         return super.shouldRender()
     }
     fun time(): String {

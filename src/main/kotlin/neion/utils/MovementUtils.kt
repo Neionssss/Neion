@@ -19,7 +19,6 @@ object MovementUtils {
         mc.thePlayer.motionZ = cos(direction) * speed
     }
 
-    @JvmStatic
     val direction: Double
         get() {
             var rotationYaw = mc.thePlayer.rotationYaw

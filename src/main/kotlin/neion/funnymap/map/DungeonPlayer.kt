@@ -49,12 +49,11 @@ data class DungeonPlayer(val skin: ResourceLocation) {
         }
     }
 
-    /** Gets the player's room, used for room tracker and Extras */
     fun getCurrentRoom(): Room? {
         if (dead) return null
         if (Location.inBoss) return Room(0,0, RoomData("Boss ${Location.dungeonFloor}", RoomType.BOSS, listOf(), 0, 0, 0))
         val x = (mapX - MapUtils.startCorner.first) / (MapUtils.mapRoomSize + 4)
         val z = (mapZ - MapUtils.startCorner.second) / (MapUtils.mapRoomSize + 4)
-        return Dungeon.Info.dungeonList.getOrNull(x * 2 + z * 22) as? Room ?: return null
+        return Dungeon.dungeonList.getOrNull(x * 2 + z * 22) as? Room ?: return null
     }
 }

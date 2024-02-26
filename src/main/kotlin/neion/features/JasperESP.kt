@@ -21,7 +21,7 @@ object JasperESP {
 
     var scanning = false
     var stopped = false
-    var espModeMap = HashSet<BlockPos>()
+    var espModeMap: List<BlockPos>? = null
 
     // https://i.imgur.com/7LYblVE.png
     @SubscribeEvent
@@ -29,11 +29,11 @@ object JasperESP {
         if (!Utils.getArea().contains("Crystal Hollows") || !Config.JasperESP || scanning) return
         scanning = true
         Thread {
-            BlockPos.getAllInBox(
-                (mc.thePlayer.position.add(+Config.JasperESPRange, +100, +Config.JasperESPRange)),
-                (mc.thePlayer.position.add(-Config.JasperESPRange, -150, -Config.JasperESPRange))
-            ).filter { mc.theWorld.getBlockState(it).block.equalsOneOf(Blocks.stained_glass_pane, Blocks.stained_glass) && (mc.theWorld.getBlockState(it).getValue(BlockStainedGlass.COLOR) == EnumDyeColor.MAGENTA || mc.theWorld.getBlockState(it).getValue(BlockStainedGlassPane.COLOR) == EnumDyeColor.MAGENTA)
-            }.forEach { espModeMap.add(it) }
+            espModeMap = BlockPos.getAllInBox((mc.thePlayer.position.add(+Config.JasperESPRange, +150, +Config.JasperESPRange)),
+                (mc.thePlayer.position.add(-Config.JasperESPRange, -150, -Config.JasperESPRange))).filter {
+                    mc.theWorld.getBlockState(it).block.equalsOneOf(Blocks.stained_glass_pane, Blocks.stained_glass) &&
+                            (mc.theWorld.getBlockState(it).getValue(BlockStainedGlass.COLOR) == EnumDyeColor.MAGENTA ||
+                                    mc.theWorld.getBlockState(it).getValue(BlockStainedGlassPane.COLOR) == EnumDyeColor.MAGENTA) }
             mc.thePlayer.playSound("random.pop", 1f, 5f)
             if (!stopped) scanning = false
         }.start()
@@ -42,7 +42,7 @@ object JasperESP {
     @SubscribeEvent
     fun onRenderWorld(e: RenderWorldLastEvent) {
         if (!Utils.getArea().contains("Crystal Hollows")) return
-        if (Config.JasperESP) espModeMap.forEach { RenderUtil.drawBlockBox(it,Color.magenta, true, false, true) }
+        if (Config.JasperESP && espModeMap != null) espModeMap!!.forEach { RenderUtil.drawBlockBox(it,Color.magenta, true, false, true) }
         if (Config.chestESP) (mc.theWorld?.loadedTileEntityList as? TileEntityChest)?.pos?.let {
             RenderUtil.drawBlockBox(it, Color.blue,outline = true, fill = false, esp = true)
         }

@@ -39,7 +39,7 @@ object ScanUtils {
     fun getRoomFromPos(pos: BlockPos): Room? {
         val x = ((pos.x - Dungeon.startX + 15) shr 5)
         val z = ((pos.z - Dungeon.startZ + 15) shr 5)
-        val room = Dungeon.Info.dungeonList.getOrNull(x * 2 + z * 22)
+        val room = Dungeon.dungeonList.getOrNull(x * 2 + z * 22)
         return if (room is Room) room else null
     }
 

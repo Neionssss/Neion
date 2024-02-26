@@ -22,7 +22,6 @@ object CancelInteract {
             Blocks.trapped_chest,
             Blocks.stone_button,
             Blocks.wooden_button,
-            Blocks.air
-        ).contains(instance.getBlockState(blockPos).block)
+            Blocks.air).contains(instance.getBlockState(blockPos).block)
     }
 }

@@ -12,7 +12,6 @@ import net.minecraft.network.play.client.C03PacketPlayer
 import net.minecraft.util.BlockPos
 import net.minecraftforge.client.event.RenderWorldLastEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import java.awt.Color
 
 object EtherwarpOverlay {
 
@@ -29,7 +28,7 @@ object EtherwarpOverlay {
     fun onRenderWorld(e: RenderWorldLastEvent) {
         if (Config.etherwarpOverlay && mc.thePlayer.isSneaking && isHoldingEtherwarpItem()) {
             val (x, y, z) = EtherwarpUtils.traverseVoxels() ?: return
-            RenderUtil.drawBlockBox(BlockPos(x, y, z), Color.red, true, false, true)
+            RenderUtil.drawBlockBox(BlockPos(x, y, z), Config.etherwarpColor.toJavaColor(), true, false, true)
         }
     }
 }

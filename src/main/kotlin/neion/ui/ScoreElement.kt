@@ -5,7 +5,6 @@ import neion.Neion.Companion.mc
 import neion.funnymap.Dungeon
 import neion.funnymap.MapRender
 import neion.funnymap.RunInformation
-import neion.funnymap.ScoreCalculation
 import neion.utils.ItemUtils.equalsOneOf
 import neion.utils.Location
 import neion.utils.Location.inDungeons
@@ -65,12 +64,12 @@ class ScoreElement : MovableGuiElement() {
 
         private fun getScore(minimized: Boolean = false): String {
             val scoreColor = when {
-                ScoreCalculation.score < 270 -> "§c"
-                ScoreCalculation.score < 300 -> "§e"
+                RunInformation.score < 270 -> "§c"
+                RunInformation.score < 300 -> "§e"
                 else -> "§a"
             }
             var line = if (minimized) "" else "§7Score: "
-            line += "$scoreColor${ScoreCalculation.score}"
+            line += "$scoreColor${RunInformation.score}"
 
             return line
         }
@@ -110,7 +109,7 @@ class ScoreElement : MovableGuiElement() {
             var line = if (minimized) "§7P: " else "§7Puzzles: "
             line += "$color${RunInformation.completedPuzzles}"
             if (total) line += "§7/$color${RunInformation.totalPuzzles}"
-            line += if (Dungeon.Info.failedPuzzles <= 0) "§a✔" else "§c✘"
+            line += if (RunInformation.failedPuzzles <= 0) "§a✔" else "§c✘"
             return line
         }
     }

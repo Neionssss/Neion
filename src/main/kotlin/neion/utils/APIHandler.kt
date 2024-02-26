@@ -36,28 +36,16 @@ object APIHandler {
     }
 
 
-    fun refreshPrices() {
-        profitData = getResponse("https://api.hypixel.net/skyblock/bazaar")
-        println("Refreshed bazaar prices at" + Date.from(Instant.now()))
-    }
-
-    fun refreshAuction() {
-        auctionData = getResponse("https://moulberry.codes/lowestbin.json")
-        println("Refreshed auction prices at" + Date.from(Instant.now()))
-    }
-
     fun refreshData() {
-        refreshPrices()
-        refreshAuction()
-        hasBonusPaulScore()
+        profitData = getResponse("https://api.hypixel.net/skyblock/bazaar")
+        auctionData = getResponse("https://moulberry.codes/lowestbin.json")
         quizdata = getResponse("https://data.skytils.gg/solvers/oruotrivia.json")
+        hasBonusPaulScore()
     }
 
     fun getSecrets(uuid: String): Int {
         val response = getResponse("https://api.hypixel.net/player?key=${FMConfig.apiKey}&uuid=${uuid}")
-        if (response["success"]?.asBoolean == true) {
-            return response["player"].asJsonObject?.get("achievements")?.asJsonObject?.get("skyblock_treasure_hunter")?.asJsonPrimitive?.asInt ?: return 0
-        }
+        if (response["success"]?.asBoolean == true) return response["player"].asJsonObject?.get("achievements")?.asJsonObject?.get("skyblock_treasure_hunter")?.asJsonPrimitive?.asInt ?: return 0
         return 0
     }
 

@@ -49,9 +49,8 @@ class Neion {
             GuiRenderer,
             DungeonChestProfit,
             Dungeon,
-            GFS,
             CustomGUI,
-            RunInformation, WitherDoorESP, EditMode, ArmorColor, EtherwarpOverlay
+            RunInformation, WitherDoorESP, EditMode, ArmorColor, EtherwarpOverlay, TeleportMazeSolver
         ).forEach(MinecraftForge.EVENT_BUS::register)
         listOf(
             FetchCommand,
@@ -59,7 +58,7 @@ class Neion {
             MapCommands,
             EditModeCommand,
             Neionssss
-        ).forEach { ClientCommandHandler.instance.registerCommand(it) }
+        ).forEach(ClientCommandHandler.instance::registerCommand)
         Configurator.loadData()
         APIHandler.refreshData()
         ScanUtils.loadExtras()

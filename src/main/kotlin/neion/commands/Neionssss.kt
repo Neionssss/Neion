@@ -26,8 +26,8 @@ object Neionssss: BaseCommand("neion", listOf("nn")) {
                 ScanUtils.loadExtras()
                 Configurator.loadData()
             }
-            "stopScan" -> JasperESP.stopped = true
-            "restartScan" -> {
+            "stopGemScan" -> JasperESP.stopped = true
+            "restartGemScan" -> {
                 JasperESP.stopped = false
                 JasperESP.scanning = false
             }
