@@ -55,11 +55,8 @@ object Utils {
 
 	fun getBooksID(itemStack: ItemStack): String {
 		val enchants = itemStack.extraAttributes?.getCompoundTag("enchantments")
-		val enchant = enchants?.keySet?.firstOrNull()
-		if (enchant != null) {
-			return "ENCHANTMENT_${enchant.uppercase()}_${enchants.getInteger(enchant)}"
-		}
-		return ""
+		val enchant = enchants?.keySet?.firstOrNull() ?: return ""
+		return "ENCHANTMENT_${enchant.uppercase()}_${enchants.getInteger(enchant)}"
 	}
 
 	fun getIdFromName(name: String): String {

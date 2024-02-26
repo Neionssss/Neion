@@ -511,6 +511,9 @@ object RenderUtil {
                 true
             )
         }
+        GlStateManager.enableLighting()
+        GlStateManager.enableDepth()
+        GlStateManager.enableBlend()
         GlStateManager.popMatrix()
     }
 
