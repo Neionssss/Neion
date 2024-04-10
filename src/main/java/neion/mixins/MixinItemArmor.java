@@ -6,11 +6,8 @@
 package neion.mixins;
 
 import neion.commands.ArmorColorCommand;
-import neion.features.ArmorColor;
-import neion.utils.Utils;
 import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;

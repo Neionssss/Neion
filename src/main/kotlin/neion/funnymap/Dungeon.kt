@@ -1,223 +1,147 @@
 package neion.funnymap
 
-import cc.polyfrost.oneconfig.libs.universal.UChat
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import neion.Config
-import neion.FMConfig
 import neion.Neion.Companion.mc
-import neion.events.ChatEvent
 import neion.features.dungeons.EditMode
+import neion.funnymap.RunInformation.firstResult
 import neion.funnymap.map.*
-import neion.utils.ItemUtils.equalsOneOf
 import neion.utils.Location
-import neion.utils.RenderUtil
-import neion.utils.TextUtils.matchesAny
+import neion.utils.TextUtils.stripControlCodes
+import neion.utils.Utils.equalsOneOf
 import net.minecraft.block.Block
-import net.minecraft.event.ClickEvent
-import net.minecraft.init.Blocks
-import net.minecraft.tileentity.TileEntityChest
 import net.minecraft.util.BlockPos
-import net.minecraftforge.client.event.RenderWorldLastEvent
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import java.awt.Color
+import net.minecraft.util.ResourceLocation
+import net.minecraft.util.StringUtils
+import kotlin.math.roundToInt
 
 object Dungeon {
 
-    private val shouldScan: Boolean
-        get() = !isScanning && !hasScanned && System.currentTimeMillis() - lastScanTime >= 250 && Location.dungeonFloor != -1
     val dungeonList = Array<Tile?>(121) { null }
     val uniqueRooms = mutableListOf<Pair<Room, Pair<Int, Int>>>()
-    var roomCount = 0
-    var cryptCount = 0
-    var secretCount = 0
-    const val roomSize = 32
+    const val ROOMSIZE = 32
 
     /**
      * The starting coordinates to start scanning (the north-west corner).
      */
-    const val startX = -185
-    const val startZ = -185
+    const val STARTX = -185
+    const val STARTZ = -185
 
     private var lastScanTime = 0L
     private var isScanning = false
     private var hasScanned = false
-    val dungeonTeammates = mutableMapOf<String, DungeonPlayer>()
-    val doors = mutableListOf<Door>()
-
-
-    // https://i.imgur.com/NutLQZQ.png
-    fun getMimicRoom(): Room? {
-        mc.theWorld.loadedTileEntityList.filter { it is TileEntityChest && it.chestType == 1 }.groupingBy {
-            ScanUtils.getRoomFromPos(it.pos)
-        }.eachCount().forEach { (room, trappedChests) ->
-            return dungeonList.filterIsInstance<Room>().find { it == room && it.data.trappedChests < trappedChests }
-        }
-        return null
-    }
+    val players = mutableMapOf<String, DungeonPlayer>()
+    val roomList: Set<RoomData> = Gson().fromJson(mc.resourceManager.getResource(ResourceLocation("funnymap", "rooms.json")).inputStream.bufferedReader(), object : TypeToken<Set<RoomData>>() {}.type)
+    private var mimicOpenTime = 0L
+    private var mimicPos: BlockPos? = null
 
     fun onTick() {
         if (!Location.inDungeons) return
-        if (FMConfig.scanMimic && !RunInformation.mimicFound && Location.dungeonFloor.equalsOneOf(6, 7) && getMimicRoom() != null) {
-            if (FMConfig.mimicInfo) UChat.chat("&7Mimic Room: &c${getMimicRoom()?.data?.name}")
-            RunInformation.mimicFound = true
-        }
-
         if (!MapUtils.calibrated()) MapUtils.calibrated()
         MapUpdate.updateRooms()
-        RunInformation.checkMimicDeath()
         RunInformation.updateScore()
-        MapUtils.getDungeonTabList()?.let {
-            MapUpdate.updatePlayers(it)
-            RunInformation.updatePuzzleCount(it)
-        }
-        if (shouldScan) scan()
-        if (Config.preBlocks) {
-            (EditMode.getCurrentRoomPair() ?: return).run roomPair@{
-                ScanUtils.extraRooms[this.first.data.name]?.run {
-                    this.preBlocks.forEach { (blockID, posList) ->
-                        posList.forEach {
-                            mc.theWorld.setBlockState(
-                                ScanUtils.getRealPos(it, this@roomPair),
-                                ScanUtils.getStateFromIDWithRotation(Block.getStateById(blockID), this@roomPair.second))
-                        }
-                    }
-                }
-            }
+        fetchTabInfo()
+        if (!isScanning && !hasScanned && System.currentTimeMillis() - lastScanTime >= 250 && Location.dungeonFloor != -1) scanRoom()
+        if (Config.preBlocks) MapUtils.extraRooms[EditMode.getCurrentRoomPair()?.first?.data?.name!!]?.preBlocks?.map { p ->
+            p.value.forEach { mc.theWorld.setBlockState(MapUtils.getRealPos(it), MapUtils.getStateIDWithRotation(Block.getStateById(p.key))) }
         }
     }
 
-    fun scan() {
+    private fun scanRoom() {
         isScanning = true
-        var allChunksLoaded = true
 
-        // Scans the dungeon in a 11x11 grid.
-        for (x in 0..10) {
-            for (z in 0..10) {
-                // Translates the grid index into world position.
-                val xPos = startX + x * (roomSize shr 1)
-                val zPos = startZ + z * (roomSize shr 1)
+        for (column in 0..10) {
+            for (row in 0..10) {
+                val xPos = STARTX + column * (ROOMSIZE shr 1)
+                val zPos = STARTZ + row * (ROOMSIZE shr 1)
 
-                if (!mc.theWorld.getChunkFromChunkCoords(xPos shr 4, zPos shr 4).isLoaded) allChunksLoaded = false
+                val chunk = mc.theWorld.getChunkFromChunkCoords(xPos shr 4, zPos shr 4)
 
-                // This room has already been added in a previous scan.
-                if (dungeonList[x + z * 11] != null) continue
-                dungeonList[z * 11 + x] = scanRoom(xPos, zPos, z, x)
+                hasScanned = chunk.isLoaded
+
+                val height = chunk.getHeightValue(xPos and 15, zPos and 15)
+
+                if (height == 0) return
+
+                val rowEven = row and 1 == 0
+                val columnEven = column and 1 == 0
+
+                if (dungeonList[column + row * 11] == null) when {
+                    // Scanning a room
+                    rowEven && columnEven -> {
+                        val newRoom = Room(xPos, zPos)
+                        val duplicateRoom = uniqueRooms.firstOrNull { it.first.data.name == newRoom.data.name }
+
+                        if (duplicateRoom == null) uniqueRooms.add(newRoom to (column to row)) else {
+                            uniqueRooms.remove(duplicateRoom)
+                            if (newRoom.x < duplicateRoom.first.x || (newRoom.x == duplicateRoom.first.x && newRoom.z < duplicateRoom.first.z)) uniqueRooms.add(newRoom to (column to row))
+                        }
+
+                        dungeonList[row * 11 + column] = newRoom
+                    }
+
+                    // Trap has block at 82
+                    height.equalsOneOf(74, 82) -> dungeonList[row * 11 + column] = Door(xPos, zPos)
+
+                    // Connection between large rooms
+                    else -> if ((dungeonList[if (rowEven) row * 11 + column - 1 else (row - 1) * 11 + column] as? Room)?.data?.type == RoomType.ENTRANCE) dungeonList[row * 11 + column] = Door(xPos, zPos, DoorType.ENTRANCE)
+                }
             }
-        }
-
-        if (allChunksLoaded) {
-            roomCount = dungeonList.filter { it is Room && !it.isSeparator }.size
-            hasScanned = true
         }
 
         lastScanTime = System.currentTimeMillis()
         isScanning = false
     }
 
-    private fun scanRoom(x: Int, z: Int, row: Int, column: Int): Tile? {
-        val height = mc.theWorld.getChunkFromChunkCoords(x shr 4, z shr 4).getHeightValue(x and 15, z and 15)
-        if (height == 0) return null
+    private fun fetchTabInfo() {
+        val list = MapUtils.getDungeonTabList() ?: return
+        val tabText = stripControlCodes(list.find { s -> s.equalsOneOf(5, 9, 13, 17, 1) }?.second).trim()
+        val name = tabText.substringAfterLast("] ").split(" ")[0]
+        if (name != "") players[name]?.run {
+            dead = tabText.contains("(DEAD)")
+            icon = if (dead) "" else "icon-$name"
+            if (!playerLoaded) setData(mc.theWorld.getPlayerEntityByName(name))
 
-        val rowEven = row and 1 == 0
-        val columnEven = column and 1 == 0
-
-        return when {
-            // Scanning a room
-            rowEven && columnEven -> {
-                val roomCore = ScanUtils.getCore(x, z)
-                Room(x, z, ScanUtils.getRoomData(roomCore) ?: return null).apply {
-                    core = roomCore
-                    // Checks if a room with the same name has already been scanned.
-                    val duplicateRoom = uniqueRooms.firstOrNull { it.first.data.name == data.name }
-                    if (duplicateRoom == null) {
-                        uniqueRooms.add(this to (column to row))
-                        cryptCount += data.crypts
-                        secretCount += data.secrets
-                        when (data.type) {
-                            RoomType.TRAP -> RunInformation.trapType = data.name.split(" ")[0]
-                            RoomType.PUZZLE -> Puzzle.fromName(data.name)
-                                ?.let { RunInformation.puzzles.putIfAbsent(it, false) }
-
-                            RoomType.FAIRY -> MapUpdate.rooms[this] = 0
-                            RoomType.ENTRANCE -> {
-                                listOf(
-                                    0 to -7,
-                                    7 to 0,
-                                    0 to 7,
-                                    -7 to 0
-                                ).forEachIndexed { index, pair ->
-                                    if (mc.theWorld.getBlockState(
-                                            BlockPos(
-                                                x + pair.first,
-                                                70,
-                                                z + pair.second
-                                            )
-                                        ).block == Blocks.air
-                                    ) MapUpdate.rooms[this] = index * 90
-                                }
-                            }
-
-
-                            else -> {}
-                        }
-                    } else if (x < duplicateRoom.first.x || (x == duplicateRoom.first.x && z < duplicateRoom.first.z)) {
-                        uniqueRooms.remove(duplicateRoom)
-                        uniqueRooms.add(this to (column to row))
-                    }
-                }
-            }
-            // Can only be the center "block" of a 2x2 room.
-            !rowEven && !columnEven -> {
-                dungeonList[column - 1 + (row - 1) * 11]?.let {
-                    if (it is Room) Room(x, z, it.data).apply { isSeparator = true } else null
-                }
-            }
-
-            // Doorway between rooms
-            // Old trap has a single block at 82 / New also does unfortunately
-            height.equalsOneOf(74, 82) -> {
-                Door(
-                    x, z,
-                    // Finds door type from door block
-                    when (mc.theWorld.getBlockState(BlockPos(x, 70, z)).block) {
-                        Blocks.coal_block -> DoorType.WITHER
-                        Blocks.monster_egg -> DoorType.ENTRANCE
-                        Blocks.stained_hardened_clay -> DoorType.BLOOD
-                        else -> DoorType.NORMAL
-                    }
-                ).also { doors.add(it) }
-            }
-
-            // Connection between large rooms
-            else -> {
-                dungeonList[if (rowEven) row * 11 + column - 1 else (row - 1) * 11 + column].let {
-                    if (it !is Room) return null
-                    if (it.data.type == RoomType.ENTRANCE) Door(x, z, DoorType.ENTRANCE)
-                    else Room(x, z, it.data).apply { isSeparator = true }
+            val room = getCurrentRoom()
+            val time = System.currentTimeMillis() - RunInformation.startTime
+            if (room != null && time > 1000) {
+                if (lastRoom == null) lastRoom = room else if (lastRoom != room) {
+                    roomVisits.add(Pair(time - lastTime, lastRoom!!))
+                    lastTime = time
+                    lastRoom = room
                 }
             }
         }
+
+        players.forEach { (_, player) ->
+            MapUtils.getMapData()?.mapDecorations?.entries?.find { map -> map.key == player.icon }
+                ?.let { (_, vec4b) ->
+                    player.isPlayer = vec4b.func_176110_a().toInt() == 1
+                    player.mapX = vec4b.func_176112_b() + 128 shr 1
+                    player.mapZ = vec4b.func_176113_c() + 128 shr 1
+                    player.yaw = vec4b.func_176111_d() * 22.5f
+                }
+            if (player.isPlayer) {
+                player.yaw = mc.thePlayer.rotationYaw
+                player.mapX = ((mc.thePlayer.posX - STARTX + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.first).roundToInt()
+                player.mapZ = ((mc.thePlayer.posZ - STARTZ + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.second).roundToInt()
+            }
+        }
+
+        if (RunInformation.totalPuzzles == 0) RunInformation.totalPuzzles = firstResult(Regex("§r§b§lPuzzles: §r§f\\((?<count>\\d)\\)§r"), list.find { s -> s.second.contains("Puzzles:") }?.second!!)?.toIntOrNull() ?: RunInformation.totalPuzzles
     }
 
-    @SubscribeEvent
-    fun onRenderWorld(e: RenderWorldLastEvent) {
-        if (!FMConfig.highLightMimic || !Location.inDungeons) return
-        mc.theWorld.loadedTileEntityList.filter { it is TileEntityChest && it.chestType == 1 && ScanUtils.getRoomFromPos(it.pos) == getMimicRoom() }.forEach {
-            if (getMimicRoom() == EditMode.getCurrentRoomPair()?.first) RenderUtil.drawBlockBox(it.pos, Color.blue, outline = true, fill = false, esp = true)
-        }
-    }
 
 
     fun reset() {
         dungeonList.fill(null)
         uniqueRooms.clear()
-        roomCount = 0
-        cryptCount = 0
-        secretCount = 0
-        dungeonTeammates.clear()
-        doors.clear()
-        PlayerTracker.roomClears.clear()
+        players.clear()
+        mimicPos = null
+        mimicOpenTime = 0L
         hasScanned = false
-        MapUpdate.rooms.clear()
         RunInformation.reset()
+
     }
 }

@@ -1,8 +1,3 @@
-/*
- *  Credit Hytils Reborn by Polyfrost
- * https://github.com/Polyfrost/Hytils-Reborn
- */
-
 package neion.mixins;
 
 import cc.polyfrost.oneconfig.utils.hypixel.HypixelUtils;
@@ -27,12 +22,12 @@ abstract class HideTabPingMixin {
         if (Config.INSTANCE.getCleanerTab()) ci.cancel();
     }
 
-    private String tabFooterAdvertisement = "§aRanks, Boosters & MORE! §r§c§lSTORE.HYPIXEL.NET";
+    private String footer = "§aRanks, Boosters & MORE! §r§c§lSTORE.HYPIXEL.NET";
     @Redirect(method = "renderPlayerlist", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/FontRenderer;listFormattedStringToWidth(Ljava/lang/String;I)Ljava/util/List;"))
     private List<String> hideAdvertisementsInTabHeader(FontRenderer instance, String formatted, int wrapWidth) {
         if (Config.INSTANCE.getCleanerTab() && HypixelUtils.INSTANCE.isHypixel()) {
             if (formatted.contains("§bYou are playing on §r§e§lMC.HYPIXEL.NET")) return Collections.emptyList();
-            if (formatted.contains(tabFooterAdvertisement)) return instance.listFormattedStringToWidth(formatted.trim().replace(tabFooterAdvertisement, ""), wrapWidth - 50);
+            if (formatted.contains(footer)) return instance.listFormattedStringToWidth(formatted.trim().replace(footer, ""), wrapWidth);
         }
         return instance.listFormattedStringToWidth(formatted, wrapWidth - 50);
     }

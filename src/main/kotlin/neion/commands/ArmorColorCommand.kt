@@ -17,11 +17,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable
 import java.awt.Color
 
 object ArmorColorCommand : BaseCommand("color", listOf("armourcolour", "armorcolour", "armourcolor", "armorcolor")) {
-    override fun getCommandUsage(player: EntityPlayerSP): String = "/armorcolor <clearall/clear/Int>"
 
     override fun processCommand(player: EntityPlayerSP, args: Array<String>) {
         if (args.isEmpty()) {
-            TextUtils.info("§b" + getCommandUsage(player))
+            TextUtils.info("§b" + "&4Usage: &7/color <clearall/clear/Int>")
             return
         }
         val item = player.heldItem ?: throw WrongUsageException("Please hold leather armor piece!")
@@ -45,13 +44,8 @@ object ArmorColorCommand : BaseCommand("color", listOf("armourcolour", "armorcol
 
             else -> {
                 if (!inSkyblock) throw WrongUsageException("You must be in Skyblock to use this command!")
-                if ((item.item as? ItemArmor)?.armorMaterial != ItemArmor.ArmorMaterial.LEATHER) TextUtils.info("You must hold a leather armor piece to use this command")
-                val color = try {
-                    Color(args[0].toInt())
-                } catch (e: IllegalArgumentException) {
-                    throw SyntaxErrorException("§cOnly integer works")
-                }
-                ArmorColor.armorColors[uuid] = color.rgb
+                if ((item.item as? ItemArmor)?.armorMaterial != ItemArmor.ArmorMaterial.LEATHER) return TextUtils.info("You must hold a leather armor piece to use this command")
+                ArmorColor.armorColors[uuid] = try { Color(args[0].toInt()).rgb } catch (e: IllegalArgumentException) { throw SyntaxErrorException("§cOnly integer works") }
                 ArmorColor.saveConfig()
                 TextUtils.info("§aSet the color of your ${item.displayName}§a to ${args[0]}!")
             }
@@ -61,7 +55,7 @@ object ArmorColorCommand : BaseCommand("color", listOf("armourcolour", "armorcol
     fun replaceArmorColor(stack: ItemStack, cir: CallbackInfoReturnable<Int>) {
         if (!inSkyblock) return
         val extraAttributes = stack.extraAttributes ?: return
-            val uuid = extraAttributes.getString("uuid")
-            if (extraAttributes.hasKey("uuid") && ArmorColor.armorColors.containsKey(uuid)) cir.returnValue = ArmorColor.armorColors[uuid]!!.toInt()
+        val uuid = extraAttributes.getString("uuid")
+        if (extraAttributes.hasKey("uuid") && ArmorColor.armorColors.containsKey(uuid)) cir.returnValue = ArmorColor.armorColors[uuid]
     }
 }

@@ -1,47 +1,15 @@
 package neion.utils
 
-import cc.polyfrost.oneconfig.libs.universal.wrappers.message.UTextComponent
 import neion.Neion
 import net.minecraft.util.ChatComponentText
-import kotlin.random.Random
+import net.minecraft.util.EnumChatFormatting
 
 object TextUtils {
-    fun info(text: String, prefix: Boolean = true) {
-        if (Neion.mc.thePlayer == null) return
-
-        val textPrefix = if (prefix) "${Neion.CHAT_PREFIX} " else ""
-        Neion.mc.thePlayer.addChatMessage(ChatComponentText("$textPrefix$text§r"))
-    }
-
-    fun toggledMessage(message: String, state: Boolean) {
-        val rInt = Random.nextInt(9)
-        val stateText = if (state) "§r§${rInt}enabled" else "§r§${rInt}disabled"
-        info("§r§$rInt$message §r§$rInt[$stateText§r§$rInt]§r")
-    }
-
-    fun sendPartyChatMessage(message: String) {
-        sendMessage("/pc $message")
-    }
-
-    fun sendCommand(message: String) {
-        sendMessage("/$message")
-    }
-
-    fun sendMessage(message: String) {
-        Neion.mc.thePlayer.sendChatMessage(message)
-    }
-
-    fun String?.stripControlCodes(): String = UTextComponent.stripFormatting(this ?: "")
-
-    fun CharSequence.containsAny(sequences: Iterable<CharSequence>): Boolean = sequences.any { contains(it) }
+    fun info(text: String, prefix: Boolean = true) = Neion.mc.thePlayer.addChatMessage(ChatComponentText("${(if (prefix) "§f§0[Neion]§f§r" else "")}$text§r"))
+    fun toggledMessage(message: String, state: Boolean) = info("§r§$2$message §r§$2[${if (state) "§r§$2enabled" else "§r§$3disabled"}§r§$3]§r")
+    fun sendCommand(message: String) = sendMessage("/$message")
+    fun sendMessage(message: String) = Neion.mc.thePlayer.sendChatMessage(message)
+    fun stripControlCodes(string: String?): String = EnumChatFormatting.getTextWithoutFormattingCodes(string ?: "")
     fun CharSequence.matchesAny(vararg sequences: Regex): Boolean = sequences.any { matches(it) }
-    fun CharSequence.matchesAny(sequences: List<Regex>): Boolean = sequences.any { matches(it) }
-    fun CharSequence?.containsAny(vararg sequences: CharSequence?): Boolean {
-        if (this == null) return false
-        return sequences.any { it != null && this.contains(it, true) }
-    }
-    fun CharSequence?.startsWithAny(vararg sequences: CharSequence?): Boolean {
-        if (this == null) return false
-        return sequences.any { it != null && this.startsWith(it, true) }
-    }
+    fun CharSequence?.containsAny(vararg sequences: CharSequence?) = this != null && sequences.any { it != null && contains(it, true) }
 }

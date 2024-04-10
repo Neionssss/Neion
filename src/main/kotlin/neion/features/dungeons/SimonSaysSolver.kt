@@ -46,7 +46,7 @@ object SimonSaysSolver {
         if (x == 110 && y == 121 && z == 91) clickInOrder.clear()
         if (mc.theWorld.getBlockState(BlockPos(x, y, z)).block != Blocks.stone_button) return
         val pose = BlockPos(x + 1, y, z)
-        if (clickInOrder.first() == pose) clickInOrder.remove(pose) else e.isCanceled = true
+        if (clickInOrder.first() == pose) clickInOrder.remove(pose) else if (!mc.thePlayer.isSneaking) e.isCanceled = true
     }
 
     @SubscribeEvent
@@ -59,7 +59,7 @@ object SimonSaysSolver {
             GlStateManager.pushMatrix()
             GlStateManager.disableLighting()
             GlStateManager.disableDepth()
-            RenderUtil.drawFilledAABB(AxisAlignedBB(x, y, z, x - .13, y + .26, z + .382), if (i == 0) Color.green else if (i == 1) Color.orange else Color.red)
+            RenderUtil.drawAABB(AxisAlignedBB(x, y, z, x - .13, y + .26, z + .382), if (i == 0) Color.green else if (i == 1) Color.orange else Color.red, fill = true)
             GlStateManager.enableDepth()
             GlStateManager.popMatrix()
         }

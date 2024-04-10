@@ -2,9 +2,9 @@ package neion.features
 
 import neion.Config
 import neion.events.ChatEvent
-import neion.utils.ItemUtils.equalsOneOf
 import neion.utils.Location.inSkyblock
 import neion.utils.TextUtils.containsAny
+import neion.utils.Utils.equalsOneOf
 import net.minecraft.entity.boss.IBossDisplayData
 import net.minecraft.util.ChatComponentText
 import net.minecraftforge.client.event.ClientChatReceivedEvent
@@ -18,8 +18,11 @@ object CustomGUI {
     var maxSecretss = 0
     var leastMana = 0
     var maxedMana = 0
-    val secretRegex = Regex("(?<secrets>\\d+)/(?<maxSecrets>\\d+) Secrets")
-    val manaRegex = Regex("(?<lmana>\\d+)/(?<mmana>\\d+). Mana")
+    var leastHealth = 0
+    var maxHealth = 0
+    private val secretRegex = Regex("(?<secrets>\\d+)/(?<maxSecrets>\\d+) Secrets")
+    private val manaRegex = Regex("(?<lmana>\\d+)/(?<mmana>\\d+). Mana")
+    private val healthRegex = Regex("(?<lHealth>\\d+)/(?<mHealth>\\d+)❤")
 
     @SubscribeEvent
     fun onSPacket(e: ClientChatReceivedEvent) {
@@ -29,6 +32,7 @@ object CustomGUI {
             if (Config.hideActionbar) e.isCanceled = true
             if (Config.showSecretsFocus) e.message = ChatComponentText(e.message.unformattedText.replace(secretRegex, ""))
             if (Config.showManaFocus) e.message = ChatComponentText(e.message.unformattedText.replace(",","").replace(manaRegex, ""))
+            if (Config.showHealth) e.message = ChatComponentText(e.message.unformattedText.replace(",","").replace(healthRegex, ""))
         }
     }
 
@@ -43,6 +47,10 @@ object CustomGUI {
                 leastMana = lmana.toInt()
                 maxedMana = mmana.toInt()
             }
+            healthRegex.find(e.text.replace(",",""))?.destructured?.let { (lHealth,mHealth) ->
+                leastHealth = lHealth.toInt()
+                maxHealth = mHealth.toInt()
+            }
         }
     }
 
@@ -55,7 +63,7 @@ object CustomGUI {
                 RenderGameOverlayEvent.ElementType.ARMOR,
                 RenderGameOverlayEvent.ElementType.HEALTHMOUNT,
                 RenderGameOverlayEvent.ElementType.PORTAL)) e.isCanceled = true
-        if (Config.guiHideFocus && e.type == RenderGameOverlayEvent.ElementType.EXPERIENCE) e.isCanceled = true
+        if (Config.hideExperience && e.type == RenderGameOverlayEvent.ElementType.EXPERIENCE) e.isCanceled = true
         if (Config.hideHealth && e.type == RenderGameOverlayEvent.ElementType.HEALTH) e.isCanceled = true
     }
 

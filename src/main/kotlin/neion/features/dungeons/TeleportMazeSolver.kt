@@ -3,6 +3,7 @@ package neion.features.dungeons
 import neion.Config
 import neion.Neion.Companion.mc
 import neion.events.PacketReceiveEvent
+import neion.funnymap.map.MapUtils.getCurrentRoom
 import neion.utils.Location
 import neion.utils.RenderUtil
 import net.minecraft.init.Blocks
@@ -24,29 +25,26 @@ object TeleportMazeSolver {
 
     @SubscribeEvent
     fun onPacket(e: PacketReceiveEvent) {
-        if (!Config.tpMazeSolver || !Location.inDungeons || EditMode.getCurrentRoomPair()?.first?.data?.name != "TP Maze") return
+        if (!Config.tpMazeSolver || !Location.inDungeons || getCurrentRoom()?.data?.name != "TP Maze") return
         (e.packet as? S08PacketPlayerPosLook)?.apply {
             val tpPad = getPad(BlockPos(x, y, z)) ?: return
-            getPad(mc.thePlayer.position)?.let { map.putIfAbsent(tpPad, Color.red) }
+            getPad(mc.thePlayer.position)?.let { map[it] = Color.red }
             if (tpPad !in map.keys) {
                 map.putIfAbsent(tpPad, Color.red)
                 val radians = PI / 180
                 val yaw1 = (-yaw * radians - PI).toFloat()
                 val pitch1 = -cos(-pitch * radians)
                 val vec = Vec3(sin(yaw1) * pitch1, 69.0, cos(yaw1) * pitch1)
-                for (i in 4..23) rightOne = getBlocks(
-                    BlockPos(x + vec.xCoord * i, vec.yCoord, z + vec.zCoord * i),
-                    2
-                ).find { it !in map.keys && mc.theWorld.getBlockState(it).block == Blocks.end_portal_frame }
+                for (i in 4..23) rightOne = getBlocks(BlockPos(x + vec.xCoord * i, vec.yCoord, z + vec.zCoord * i), 2).find { it !in map.keys && mc.theWorld.getBlockState(it).block == Blocks.end_portal_frame }
             }
         }
     }
 
     @SubscribeEvent
     fun onRenderWorld(e: RenderWorldLastEvent) {
-        if (!Config.tpMazeSolver || !Location.inDungeons || EditMode.getCurrentRoomPair()?.first?.data?.name != "TP Maze") return
-        map.map { RenderUtil.drawBlockBox(it.key,it.value, outline = true, fill = true,esp = false) }
-        rightOne?.let { RenderUtil.drawBlockBox(it, Color.green, outline = true, fill = true, esp = false) }
+        if (!Config.tpMazeSolver || !Location.inDungeons || getCurrentRoom()?.data?.name != "TP Maze") return
+        map.map { RenderUtil.drawBlockBox(it.key,it.value, fill = true,esp = false) }
+        rightOne?.let { RenderUtil.drawBlockBox(it, Color.green, fill = true, esp = false) }
     }
 
     private fun getBlocks(center: BlockPos, radius: Int) = BlockPos.getAllInBox(BlockPos(center.x - radius, 69, center.z - radius), BlockPos(center.x + radius, 69, center.z + radius))

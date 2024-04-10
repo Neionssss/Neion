@@ -2,14 +2,13 @@ package neion
 
 import cc.polyfrost.oneconfig.config.Config
 import cc.polyfrost.oneconfig.config.annotations.*
-import cc.polyfrost.oneconfig.config.annotations.Number
 import cc.polyfrost.oneconfig.config.core.OneColor
 import cc.polyfrost.oneconfig.config.core.OneKeyBind
 import cc.polyfrost.oneconfig.config.data.Mod
 import cc.polyfrost.oneconfig.config.data.ModType
-import cc.polyfrost.oneconfig.libs.universal.UKeyboard
+import org.lwjgl.input.Keyboard
 
-object FMConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") {
+object MapConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") {
 
     @Switch(
         name = "Map Enabled",
@@ -42,22 +41,6 @@ object FMConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") 
     )
     var scanMimic = true
 
-    @Switch(
-        name = "Highlight Mimic",
-        description = "Draws a box at Mimic chest",
-        category = "Map",
-        subcategory = "Toggle"
-    )
-    var highLightMimic = false
-
-    @Switch(
-        name = "Mimic Room Info",
-        description = "Sends a message in chat with name of the room mimic in",
-        category = "Map",
-        subcategory = "Toggle"
-    )
-    var mimicInfo = false
-
     @Dropdown(
         name = "Show Player Names",
         description = "Show player name under player head",
@@ -65,7 +48,7 @@ object FMConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") 
         subcategory = "Toggle",
         options = ["Off", "Holding Leap", "Always"]
     )
-    var playerHeads = 0
+    var playerHeads = 1
 
     @Switch(
         name = "Vanilla Head Marker",
@@ -74,45 +57,6 @@ object FMConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") 
         subcategory = "Toggle"
     )
     var mapVanillaMarker = false
-
-    @Button(
-        name = "Reset Map Position",
-        category = "Map",
-        subcategory = "Size",
-        text = "Reset"
-    )
-    fun resetMapLocation() {
-        mapX = 10
-        mapY = 10
-    }
-
-    @Number(
-        name = "Map X",
-        category = "Map",
-        subcategory = "Size",
-        min = 0f,
-        max = 1000f
-    )
-    var mapX = 10
-
-    @Number(
-        name = "Map Y",
-        category = "Map",
-        subcategory = "Size",
-        min = 0f,
-        max = 1000f
-    )
-    var mapY = 10
-
-    @Slider(
-        name = "Map Size",
-        description = "Scale of entire map.",
-        category = "Map",
-        subcategory = "Size",
-        min = 0.1f,
-        max = 4f
-    )
-    var mapScale = 1f
 
     @Slider(
         name = "Map Text Scale",
@@ -132,7 +76,7 @@ object FMConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") 
         min = 0f,
         max = 2f,
     )
-    var playerHeadScale = 1f
+    var playerHeadScale = 0.7f
 
     @Slider(
         name = "Player Name Scale",
@@ -143,31 +87,6 @@ object FMConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") 
         max = 2f,
     )
     var playerNameScale = 0.8f
-
-    @Color(
-        name = "Map Background Color",
-        category = "Map",
-        subcategory = "Render",
-        allowAlpha = true
-    )
-    var mapBackground = OneColor(0, 0, 0, 179/255)
-
-    @Color(
-        name = "Map Border Color",
-        category = "Map",
-        subcategory = "Render",
-        allowAlpha = true
-    )
-    var mapBorder = OneColor(0, 0, 0, 255)
-
-    @Slider(
-        name = "Border Thickness",
-        category = "Map",
-        subcategory = "Render",
-        min = 0f,
-        max = 10f
-    )
-    var mapBorderWidth = 3f
 
     @Switch(
         name = "Dark Undiscovered Rooms",
@@ -180,7 +99,7 @@ object FMConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") 
         name = "Room Names",
         description = "Shows names of rooms on map.",
         category = "Rooms",
-        options = ["None", "Puzzles / Trap", "All"]
+        options = ["None", "Puzzles / Trap"]
     )
     var mapRoomNames = 1
 
@@ -189,7 +108,7 @@ object FMConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") 
         description = "Shows Room/Player names whenever keybind is Pressed",
         category = "Rooms",
     )
-    var peekBind = OneKeyBind(UKeyboard.KEY_NONE)
+    var peekBind = OneKeyBind(Keyboard.KEY_NONE)
 
     @Switch(
         name = "Room Secrets",
@@ -251,11 +170,31 @@ object FMConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") 
     )
     var mapDarkenPercent = 0.4f
 
+
+    @Slider(
+        name = "Border Thickness",
+        category = "Colors",
+        min = 0f,
+        max = 10f
+    )
+    var mapBorderWidth = 3f
+
+    @Color(
+        name = "Map Background Color",
+        category = "Colors",
+    )
+    var mapBackground = OneColor(0, 0, 0, 179/255)
+
+    @Color(
+        name = "Map Border Color",
+        category = "Colors",
+    )
+    var mapBorder = OneColor(0, 0, 0, 255)
+
     @Color(
         name = "Blood Door",
         category = "Colors",
         subcategory = "Doors",
-        allowAlpha = true
     )
     var colorBloodDoor = OneColor(231, 0, 0)
 
@@ -263,7 +202,6 @@ object FMConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") 
         name = "Entrance Door",
         category = "Colors",
         subcategory = "Doors",
-        allowAlpha = true
     )
     var colorEntranceDoor = OneColor(20, 133, 0)
 
@@ -271,7 +209,6 @@ object FMConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") 
         name = "Normal Door",
         category = "Colors",
         subcategory = "Doors",
-        allowAlpha = true
     )
     var colorRoomDoor = OneColor(92, 52, 14)
 
@@ -279,7 +216,6 @@ object FMConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") 
         name = "Wither Door",
         category = "Colors",
         subcategory = "Doors",
-        allowAlpha = true
     )
     var colorWitherDoor = OneColor(0, 0, 0)
 
@@ -287,23 +223,13 @@ object FMConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") 
         name = "Opened Door",
         category = "Colors",
         subcategory = "Doors",
-        allowAlpha = true
     )
     var colorOpenedDoor = OneColor(92, 52, 14)
-
-    @Color(
-        name = "Blood Room",
-        category = "Colors",
-        subcategory = "Rooms",
-        allowAlpha = true
-    )
-    var colorBlood = OneColor(255, 0, 0)
 
     @Color(
         name = "Entrance Room",
         category = "Colors",
         subcategory = "Rooms",
-        allowAlpha = true
     )
     var colorEntrance = OneColor(20, 133, 0)
 
@@ -311,7 +237,6 @@ object FMConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") 
         name = "Fairy Room",
         category = "Colors",
         subcategory = "Rooms",
-        allowAlpha = true
     )
     var colorFairy = OneColor(224, 0, 255)
 
@@ -319,7 +244,6 @@ object FMConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") 
         name = "Miniboss Room",
         category = "Colors",
         subcategory = "Rooms",
-        allowAlpha = true
     )
     var colorMiniboss = OneColor(254, 223, 0)
 
@@ -327,7 +251,6 @@ object FMConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") 
         name = "Normal Room",
         category = "Colors",
         subcategory = "Rooms",
-        allowAlpha = true
     )
     var colorRoom = OneColor(107, 58, 17)
 
@@ -335,7 +258,6 @@ object FMConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") 
         name = "Mimic Room",
         category = "Colors",
         subcategory = "Rooms",
-        allowAlpha = true
     )
     var colorRoomMimic = OneColor(186, 66, 52)
 
@@ -343,7 +265,6 @@ object FMConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") 
         name = "Puzzle Room",
         category = "Colors",
         subcategory = "Rooms",
-        allowAlpha = true
     )
     var colorPuzzle = OneColor(117, 0, 133)
 
@@ -351,7 +272,6 @@ object FMConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") 
         name = "Rare Room",
         category = "Colors",
         subcategory = "Rooms",
-        allowAlpha = true
     )
     var colorRare = OneColor(255, 203, 89)
 
@@ -359,7 +279,6 @@ object FMConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") 
         name = "Trap Room",
         category = "Colors",
         subcategory = "Rooms",
-        allowAlpha = true
     )
     var colorTrap = OneColor(216, 127, 51)
 
@@ -384,34 +303,6 @@ object FMConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") 
         subcategory = "Toggle"
     )
     var scoreHideInBoss = false
-
-    @Number(
-        name = "Score Calc X",
-        category = "Score",
-        subcategory = "Size",
-        min = 1f,
-        max = 20f
-    )
-    var scoreX = 10
-
-    @Number(
-        name = "Score Calc Y",
-        category = "Score",
-        subcategory = "Size",
-        min = 1f,
-        max = 20f
-    )
-    var scoreY = 10
-
-    @Slider(
-        name = "Score Calc Size",
-        description = "Scale of score calc.",
-        category = "Score",
-        subcategory = "Size",
-        min = 0.1f,
-        max = 4f,
-    )
-    var scoreScale = 1f
 
     @Switch(
         name = "Score",
@@ -457,57 +348,12 @@ object FMConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") 
     )
     var scorePuzzles = 0
 
-    @Dropdown(
-        name = "Score Messages",
-        category = "Score",
-        subcategory = "Message",
-        options = ["Off", "300", "270 and 300"]
-    )
-    var scoreMessage = 0
-
-    @Dropdown(
-        name = "Score Title",
-        description = "Shows score messages as a title notification.",
-        category = "Score",
-        subcategory = "Message",
-        options = ["Off", "300", "270 and 300"]
-    )
-    var scoreTitle = 0
-
-    @Text(
-        name = "270 Message",
-        category = "Score",
-        subcategory = "Message"
-    )
-    var message270 = "270 Score"
-
-    @Text(
-        name = "300 Message",
-        category = "Score",
-        subcategory = "Message"
-    )
-    var message300 = "300 Score"
-
     @Switch(
         name = "300 Time",
         category = "Score",
         subcategory = "Message"
     )
     var timeTo300 = false
-
-    @Switch(
-            name = "Mimic Message",
-            category = "Score",
-            subcategory = "Message"
-    )
-    var mimicMessageEnabled = false
-
-    @Text(
-            name = "Mimic Message Text",
-            category = "Score",
-            subcategory = "Message"
-    )
-    var mimicMessage = "Mimic Killed!"
 
     @Dropdown(
         name = "Show Run Information",
@@ -536,17 +382,4 @@ object FMConfig : Config(Mod("NeionMap", ModType.SKYBLOCK), "nmap-config.json") 
         category = "Debug"
     )
     var paulBonus = false
-
-    fun init() {
-        fun hide(option: String?) {
-            if (optionNames.containsKey(option)) optionNames[option]!!.addHideCondition { true }
-        }
-        initialize()
-        hide("scoreX")
-        hide("scoreY")
-        hide("scoreScale")
-        hide("mapX")
-        hide("mapY")
-        hide("mapScale")
-    }
 }

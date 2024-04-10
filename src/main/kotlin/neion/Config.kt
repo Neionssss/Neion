@@ -32,12 +32,6 @@ object Config : Config(Mod("Neion", ModType.SKYBLOCK), "neion-config.json") {
     var hideDeathAnimation = false
 
     @Switch(
-        name = "Hide Enchant rune effects",
-        description = "Yoy",
-    )
-    var HideEnchantRune = false
-
-    @Switch(
         name = "Hide gray Damage numbers"
     )
     var hidegrayDamage = false
@@ -67,26 +61,6 @@ object Config : Config(Mod("Neion", ModType.SKYBLOCK), "neion-config.json") {
     )
     var hurtCam = false
 
-    @Switch(
-            name = "Jasper Scanner",
-            subcategory = "Gemstone"
-    )
-    var JasperESP = false
-
-    @Switch(
-            name = "Chest ESP",
-            subcategory = "Gemstone"
-    )
-    var chestESP = false
-
-    @Slider(
-            name = "Scan Range",
-            description = "Range for scanning (blocks)",
-            subcategory = "Gemstone",
-            min = 512F,
-            max = 1024F
-    )
-    var JasperESPRange = 512
 
     // Keybindings
     @KeyBind(name = "gui", subcategory = "Keybindings")
@@ -114,18 +88,6 @@ object Config : Config(Mod("Neion", ModType.SKYBLOCK), "neion-config.json") {
     // Dungeons
     // ------------------------------------------
 
-
-    @Switch(
-        name = "Etherwarp Overlay",
-        category = "Dungeons"
-    )
-    var etherwarpOverlay = false
-
-    @Color(
-        name = "Etherwarp Color",
-        category = "Dungeons"
-    )
-    var etherwarpColor = OneColor(255,0,0)
 
     @Switch(
         name = "Auto close dungeon chests",
@@ -161,13 +123,6 @@ object Config : Config(Mod("Neion", ModType.SKYBLOCK), "neion-config.json") {
     var preBlocks = false
 
     @Switch(
-        name = "Fake Haste",
-        description = "No silverfish required!",
-        category = "Dungeons"
-    )
-    var fakeHaste = false
-
-    @Switch(
         name = "Dungeon Chest Profit",
         category = "Dungeons",
         subcategory = "Chest Profit"
@@ -182,14 +137,6 @@ object Config : Config(Mod("Neion", ModType.SKYBLOCK), "neion-config.json") {
     )
     var chestOpener = false
 
-
-    @Switch(
-        name = "Hide Heart Particles",
-        description = "Useful for hyperion and healer bullshit",
-        category = "Dungeons",
-    )
-    var hideHeartParticles = false
-
     @Switch(
         name = "Hide Extra Nametags",
         description = "Removes non-star mob nametags",
@@ -197,96 +144,20 @@ object Config : Config(Mod("Neion", ModType.SKYBLOCK), "neion-config.json") {
     )
     var hideTags = false
 
-
     @Switch(
-        name = "Croesus Helper",
-        description = "Hide opened, highlight most profitable(not accurate) chests",
+        name = "Croesus chest helper",
+        description = "Hides opened chests",
         category = "Dungeons",
         subcategory = "Chest Profit"
     )
     var croesus = false
 
     @Switch(
-        name = "Show Dungeon Key chests",
+        name = "Show Key chests",
         category = "Dungeons",
         subcategory = "Chest Profit"
     )
     var showKeyChests = false
-
-    @Switch(
-        name = "Auto Croesus",
-        description = "I don't think you should trust him",
-        category = "Dungeons",
-        subcategory = "Chest Profit"
-    )
-    var autoCroesus = false
-
-    @Slider(
-        name = "Auto Croesus Delay",
-        category = "Dungeons",
-        subcategory = "Chest Profit",
-        min = 300f,
-        max = 1500f
-    )
-    var autoCroesusDelay = 1000
-
-    @Switch(
-        name = "Ghost Block",
-        description = "GhOsTbLoCk",
-        category = "Dungeons",
-        subcategory = "GKey"
-    )
-    var GGkey = false
-
-    @Switch(
-        name = "Right Click Pick GB",
-        category = "Dungeons",
-        subcategory = "GKey"
-    )
-    var rcmGB = false
-
-    @KeyBind(
-        name = "GKey Keybind",
-        category = "Dungeons",
-        subcategory = "GKey"
-    )
-    var GGkeyBind = OneKeyBind(UKeyboard.KEY_NONE)
-
-    @Slider(
-        name = "GKey Delay",
-        category = "Dungeons",
-        subcategory = "GKey",
-        min = 0f,
-        max = 500f
-    )
-    var GDelay = 50f
-
-    @Slider(
-        name = "GKey Range",
-        category = "Dungeons",
-        subcategory = "GKey",
-        min = 5f,
-        max = 100f,
-        step = 0
-    )
-    var GRange = 5f
-
-    // DungeonESP
-
-    @Switch(
-        name = "Dropped Items ESP",
-        category = "Dungeons",
-        subcategory = "ESP"
-    )
-    var itemESP = false
-
-    @Color(
-        name = "Item Color",
-        category = "Dungeons",
-        subcategory = "ESP"
-    )
-    var itemColor = OneColor(10, 15, 50)
-
 
     // Solvers
     // ------------------------------------------------------------------
@@ -434,30 +305,16 @@ object Config : Config(Mod("Neion", ModType.SKYBLOCK), "neion-config.json") {
 
 
     @Switch(
-            name = "Automatic Sprint",
-            category = "Other",
+        name = "Automatic Sprint",
+        category = "Other",
     )
     var ToggleSprint = false
 
     @Switch(
-            name = "Disable Blindness",
-            category = "Other"
-    )
-    var disableBlind = false
-
-    @Switch(
-        name = "Funny Items",
+        name = "Disable Blindness",
         category = "Other"
     )
-    var funnyItems = false
-
-    @Slider(
-        name = "Item swing speed",
-        category = "Other",
-        min = -2f,
-        max = 1f
-    )
-    var itemSwingSpeed = 0f
+    var disableBlind = false
 
     @Switch(
         name = "Prevent Pushing out from Blocks",
@@ -466,16 +323,10 @@ object Config : Config(Mod("Neion", ModType.SKYBLOCK), "neion-config.json") {
     var preventPushing = false
 
     @Switch(
-        name = "Remove Fire F3 fire overlay",
+        name = "Remove Fire F5 fire overlay",
         category = "Other"
     )
-    var removeF3Fire = false
-
-    @Text(
-        name = "Minecraft Title",
-        category = "Other"
-    )
-    var mcTitle = "Minecraft 1.8.9"
+    var removeF5Fire = false
 
     @Switch(
         name = "Cleaner Tab",
@@ -488,6 +339,13 @@ object Config : Config(Mod("Neion", ModType.SKYBLOCK), "neion-config.json") {
         category = "Other"
     )
     var murderHelper = false
+
+    @Switch(
+        name = "F5 Camera",
+        category = "Other",
+        subcategory = "Camera"
+    )
+    var f5Camera = false
 
     @Slider(
         name = "F5 Camera Distance",
@@ -505,15 +363,6 @@ object Config : Config(Mod("Neion", ModType.SKYBLOCK), "neion-config.json") {
         subcategory = "Camera"
     )
     var cameraClip = false
-
-    @Slider(
-        name = "ESP outline width",
-        category = "Other",
-        subcategory = "ESP",
-        min = 1F,
-        max = 10F
-    )
-    var espOutlineWidth = 1F
 
     @Switch(
         name = "Freecam",
@@ -544,7 +393,7 @@ object Config : Config(Mod("Neion", ModType.SKYBLOCK), "neion-config.json") {
         subcategory = "Custom GUI"
     )
     fun editGUI() {
-        Neion.display = EditLocationGui()
+        Neion.display = EditLocationGui
     }
 
     @Switch(
@@ -602,7 +451,7 @@ object Config : Config(Mod("Neion", ModType.SKYBLOCK), "neion-config.json") {
         category = "GUI",
         subcategory = "Custom GUI"
     )
-    var guiHideFocus = false
+    var hideExperience = false
 
     @Switch(
         name = "Hide Scoreboard",
@@ -624,6 +473,20 @@ object Config : Config(Mod("Neion", ModType.SKYBLOCK), "neion-config.json") {
         subcategory = "Custom GUI"
     )
     var manaColor = OneColor(0, 20, 155)
+
+    @Switch(
+        name = "Custom Health",
+        category = "GUI",
+        subcategory = "Custom GUI"
+    )
+    var showHealth = false
+
+    @Color(
+        name = "Health Color",
+        category = "GUI",
+        subcategory = "Custom GUI"
+    )
+    var healthColor = OneColor(255,0,0)
 
     // DungeonsGUI
 
@@ -655,162 +518,10 @@ object Config : Config(Mod("Neion", ModType.SKYBLOCK), "neion-config.json") {
     )
     var percentColor = OneColor(255, 0, 0 ,255)
 
-
     @Color(
         name = "Elapsed Time Color",
         category = "GUI",
         subcategory = "Dungeons GUI"
     )
     var timeColor = OneColor(0, 0, 255, 255)
-
-    @Number(
-        name = "X Value",
-        category = "GUI",
-        min = 0f,
-        max = 1000f
-    )
-    var x = 10
-
-    @Number(
-        name = "Y Value",
-        category = "GUI",
-        min = 0f,
-        max = 1000f
-    )
-    var y = 10
-
-    @Number(
-        name = "Scaler",
-        category = "GUI",
-        min = 0.1f,
-        max = 4f
-    )
-    var scale = 1f
-
-    //
-    @Number(
-        name = "Secret X",
-        category = "GUI",
-        min = 0f,
-        max = 1000f
-    )
-    var xY = 500
-
-    @Number(
-        name = "Secret Y",
-        category = "GUI",
-        min = 0f,
-        max = 1000f
-    )
-    var yY = 470
-
-    @Number(
-        name = "Secret Scale",
-        category = "GUI",
-        min = 0f,
-        max = 1000f
-    )
-    var secretsScale = 1f
-
-    //
-    @Number(
-        name = "Cleared X",
-        category = "GUI",
-        min = 0f,
-        max = 1000f
-    )
-    var clearedX = 840
-
-    @Number(
-        name = "Cleared Y",
-        category = "GUI",
-        min = 0f,
-        max = 1000f
-    )
-    var clearedY = 470
-
-    @Number(
-        name = "Cleared Scale",
-        category = "GUI",
-        min = 0.1f,
-        max = 1000f
-    )
-    var clearedScale = 1f
-
-    @Number(
-        name = "Time X",
-        category = "GUI",
-        min = 0f,
-        max = 1000f
-    )
-    var timeX = 840
-
-    @Number(
-        name = "Time Y",
-        category = "GUI",
-        min = 0f,
-        max = 1000f
-    )
-    var timeY = 200
-
-    @Number(
-        name = "Time Scale",
-        category = "GUI",
-        min = 0f,
-        max = 1000f
-    )
-    var timeScale = 1f
-
-    @Number(
-        name = "Mana X",
-        category = "GUI",
-        min = 0f,
-        max = 1000f
-    )
-    var manaX = 500
-
-    @Number(
-        name = "Mana Y",
-        category = "GUI",
-        min = 0f,
-        max = 1000f
-    )
-    var manaY = 500
-
-    @Number(
-        name = "Mana Scale",
-        category = "GUI",
-        min = 0.1f,
-        max = 4f
-    )
-    var manaScale = 1f
-
-    fun init() {
-        fun hide(option: String?) {
-            if (optionNames.containsKey(option)) optionNames[option]!!.addHideCondition { true }
-        }
-        initialize()
-        addDependency("autoCroesus", "croesus")
-        addDependency("showKeyChests", "croesus")
-        addDependency("blazeLines", "lineToNextBlaze")
-        addDependency("blazeLines", "blazeSolver")
-        addDependency("lineToNextBlaze", "blazeSolver")
-        addDependency("autoWeirdos", "threeSolver")
-        hide("manaScale")
-        hide("manaY")
-        hide("manaX")
-        hide("timeScale")
-        hide("timeY")
-        hide("timeX")
-        hide("clearedScale")
-        hide("clearedY")
-        hide("clearedX")
-        hide("secretsScale")
-        hide("yY")
-        hide("xY")
-        hide("scale")
-        hide("x")
-        hide("y")
-    }
 }
-

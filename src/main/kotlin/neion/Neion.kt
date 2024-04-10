@@ -1,13 +1,17 @@
 package neion
 
-import neion.commands.*
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.google.gson.reflect.TypeToken
+import neion.commands.ArmorColorCommand
+import neion.commands.EditModeCommand
+import neion.commands.MapCommands
+import neion.commands.Neionssss
 import neion.features.*
 import neion.features.dungeons.*
-import neion.funnymap.Dungeon
-import neion.funnymap.RunInformation
 import neion.funnymap.WitherDoorESP
-import neion.funnymap.map.ScanUtils
-import neion.ui.Configurator
+import neion.funnymap.map.MapUtils
+import neion.ui.EditLocationGui
 import neion.ui.GuiRenderer
 import neion.utils.APIHandler
 import net.minecraft.client.Minecraft
@@ -21,26 +25,24 @@ import java.io.File
 
 @Mod(
     modid = Neion.MOD_ID,
-    name = Neion.MOD_NAME,
-    version = Neion.MOD_VERSION,
+    name = "Neion",
+    version = "0.0.8",
 )
 
 class Neion {
 
     @Mod.EventHandler
     fun init(e: FMLInitializationEvent) {
-        Config.init()
-        FMConfig.init()
+        MapConfig.initialize()
+        Config.initialize()
         listOf(
             this,
             RandomStuff,
             Trapper,
-            JasperESP,
             TerminalSolvers,
             SimonSaysSolver,
-            GKey,
             Croesus,
-            MostStolenFile,
+            EntityHider,
             MurderHelper,
             FreeCam,
             WeirdosSolver,
@@ -48,36 +50,34 @@ class Neion {
             BlazeSolver,
             GuiRenderer,
             DungeonChestProfit,
-            Dungeon,
             CustomGUI,
-            RunInformation, WitherDoorESP, EditMode, ArmorColor, EtherwarpOverlay, TeleportMazeSolver
+            WitherDoorESP, EditMode, ArmorColor, TeleportMazeSolver
         ).forEach(MinecraftForge.EVENT_BUS::register)
         listOf(
-            FetchCommand,
             ArmorColorCommand,
             MapCommands,
             EditModeCommand,
             Neionssss
         ).forEach(ClientCommandHandler.instance::registerCommand)
-        Configurator.loadData()
+        ArmorColor.loadConfig()
         APIHandler.refreshData()
-        ScanUtils.loadExtras()
+        MapUtils.loadExtras()
+        EditLocationGui.file.createNewFile()
+        with(EditLocationGui.file.bufferedReader().readText()) {
+            if (this != "") GuiRenderer.positions = gson.fromJson(this, object : TypeToken<HashMap<String, Triple<Int, Int, Float>>>() {}.type)
+        }
     }
 
     companion object {
         const val MOD_ID = "neion"
-        const val MOD_NAME = "Neion"
-        const val MOD_VERSION = "0.0.8"
-        const val CHAT_PREFIX = "§f§0[Neion]§f§r"
 
         @JvmStatic
         val mc: Minecraft by lazy {
             Minecraft.getMinecraft()
         }
 
-        val modDir by lazy {
-            File(File(mc.mcDataDir, "config"), "neion").also { it.mkdirs() }
-        }
+        val modDir by lazy { File(File(mc.mcDataDir, "config"), "neion").also { it.mkdirs() } }
+        val gson: Gson = GsonBuilder().setPrettyPrinting().create()
         var display: GuiScreen? = null
     }
 }

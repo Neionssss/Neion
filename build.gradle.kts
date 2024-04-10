@@ -13,9 +13,7 @@ val modVersion: String by project
 version = modVersion
 group = modID
 
-sourceSets.main {
-    output.setResourcesDir(file("${layout.buildDirectory.asFile.get()}/classes/kotlin/main"))
-}
+sourceSets.main { output.setResourcesDir(kotlin.classesDirectory) }
 
 loom {
     silentMojangMappingsLicense()
@@ -50,17 +48,7 @@ tasks {
         inputs.property("modid", modID)
         inputs.property("version", version)
         inputs.property("mcversion", "1.8.9")
-
-        filesMatching(listOf("mcmod.info", "mixins.${modID}.json")) {
-            expand(
-                mapOf(
-                    "modname" to modName,
-                    "modid" to modID,
-                    "version" to version,
-                    "mcversion" to "1.8.9"
-                )
-            )
-        }
+        filesMatching(listOf("mcmod.info", "mixins.${modID}.json")) { expand(mapOf("modname" to modName, "modid" to modID, "version" to version, "mcversion" to "1.8.9")) }
         dependsOn(compileJava)
     }
     jar {
@@ -76,9 +64,7 @@ tasks {
         enabled = false
     }
 
-    remapJar {
-        inputFile.set(shadowJar.get().archiveFile)
-    }
+    remapJar { inputFile.set(shadowJar.get().archiveFile) }
     shadowJar {
         configurations = listOf(shadowImpl)
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
@@ -100,9 +86,7 @@ tasks {
             "fabric.mod.json"
         )
     }
-    withType<JavaCompile> {
-        options.encoding = "UTF-8"
-    }
+    withType<JavaCompile> { options.encoding = "UTF-8" }
 }
 
 java.toolchain.languageVersion.set(JavaLanguageVersion.of(8))

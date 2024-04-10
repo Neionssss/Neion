@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 abstract class MixinBossStatus {
 
     @Inject(method = "setBossStatus", at = @At("HEAD"), cancellable = true)
-    private static void onSetBossStatus(IBossDisplayData displayData, boolean hasColorModifierIn, CallbackInfo ci) {
+    private static void onSetBossStatus(IBossDisplayData displayData, boolean s, CallbackInfo ci) {
          if (CustomGUI.INSTANCE.shouldNot(displayData)) ci.cancel();
     }
 }

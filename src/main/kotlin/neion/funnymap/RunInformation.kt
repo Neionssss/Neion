@@ -1,33 +1,28 @@
 package neion.funnymap
 
-import neion.FMConfig
+import neion.MapConfig
 import neion.Neion.Companion.mc
 import neion.events.PacketReceiveEvent
-import neion.funnymap.map.MapUtils
-import neion.funnymap.map.Puzzle
-import neion.funnymap.map.Room
-import neion.funnymap.map.RoomState
-import neion.ui.GuiRenderer
+import neion.funnymap.map.*
 import neion.utils.APIHandler
-import neion.utils.ItemUtils.equalsOneOf
 import neion.utils.Location
 import neion.utils.Location.inDungeons
 import neion.utils.TextUtils
+import neion.utils.TextUtils.containsAny
 import neion.utils.TextUtils.matchesAny
 import neion.utils.TextUtils.stripControlCodes
-import net.minecraft.client.network.NetworkPlayerInfo
+import neion.utils.Utils.equalsOneOf
 import net.minecraft.entity.monster.EntityZombie
 import net.minecraft.event.ClickEvent
+import net.minecraft.event.HoverEvent
 import net.minecraft.network.play.server.S02PacketChat
 import net.minecraft.network.play.server.S38PacketPlayerListItem
 import net.minecraft.network.play.server.S3EPacketTeams
-import net.minecraft.tileentity.TileEntityChest
-import net.minecraft.util.BlockPos
+import net.minecraft.util.ChatComponentText
+import net.minecraft.util.ChatStyle
+import net.minecraft.util.IChatComponent
 import net.minecraftforge.event.entity.living.LivingDeathEvent
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import kotlin.math.ceil
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
+import kotlin.time.Duration.Companion.milliseconds
 
 // Modified some parts from fm, but most are the same
 /**
@@ -36,65 +31,202 @@ import kotlin.time.toDuration
 object RunInformation {
 
     var deathCount = 0
-    val completedPuzzles: Int
-        get() = puzzles.count { it.value }
+    val completedPuzzles = Puzzle.entries.count { it.completed }
     var totalPuzzles = 0
     var cryptsCount = 0
     var secretsFound = 0
-    var secretPercentage = 0f
-    val secretTotal: Int
-        get() = (secretsFound / (secretPercentage + 0.0001f) + 0.5).toInt()
+    private var secretPercentage = 0f
+    val secretTotal = (secretsFound / (secretPercentage + 0.0001f) + 0.5).toInt()
     var minSecrets = 0
     var mimicKilled = false
     private var completedRooms = 0
-    val completedRoomsPercentage
-        get() = (completedRooms + (if (!Location.inBoss) 1 else 0) + (if (!bloodDone) 1 else 0)) / (if (totalRooms == 0) 36 else totalRooms).toFloat()
-    var bloodDone = false
-    private val totalRooms: Int
-        get() = (completedRooms / (clearedPercentage + 0.0001f) + 0.4).toInt()
     private var clearedPercentage = 0f
+    private val totalRooms = (completedRooms / (clearedPercentage + 0.0001f) + 0.4).toInt()
     var startTime = 0L
-    var timeElapsed = 0
-    var mimicOpenTime = 0L
-    var mimicPos: BlockPos? = null
-    val puzzles = mutableMapOf<Puzzle, Boolean>()
+    private var timeElapsed: String? = null
     var failedPuzzles = 0
-
-    var trapType = ""
     private val paul = APIHandler.hasBonusPaulScore()
-        get() = field || FMConfig.paulBonus
+        get() = field || MapConfig.paulBonus
     var score = 0
-    var message300 = false
-        get() = field.also { field = true }
-    var message270 = false
-        get() = field.also { field = true }
+    private var message300 = false
+    private var message270 = false
     var keys = 0
     var bloodKey = false
-    var started = false
-    var mimicFound = false
 
-    private val deathsRegex = Regex("§r§a§lTeam Deaths: §r§f(?<deaths>\\d+)§r")
-    private val puzzleCountRegex = Regex("§r§b§lPuzzles: §r§f\\((?<count>\\d)\\)§r")
-    private val failedPuzzleRegex = Regex("§r (?<puzzle>.+): §r§7\\[§r§c§l✖§r§7] §.+")
-    private val solvedPuzzleRegex = Regex("§r (?<puzzle>.+): §r§7\\[§r§a§l✔§r§7] §.+")
-    private val cryptsPattern = Regex("§r Crypts: §r§6(?<crypts>\\d+)§r")
-    private val secretsFoundPattern = Regex("§r Secrets Found: §r§b(?<secrets>\\d+)§r")
-    private val secretsFoundPercentagePattern = Regex("§r Secrets Found: §r§[ae](?<percentage>[\\d.]+)%§r")
-    private val roomCompletedPattern = Regex("§r Completed Rooms: §r§d(?<count>\\d+)§r")
-    private val dungeonClearedPattern = Regex("Cleared: (?<percentage>\\d+)% \\(\\d+\\)")
-    private val timeElapsedPattern = Regex("Time Elapsed: (?:(?<hrs>\\d+)h )?(?:(?<min>\\d+)m )?(?:(?<sec>\\d+)s)?")
-    private val keyGainRegex = listOf(
-        Regex(".+ §r§ehas obtained §r§a§r§.+Wither Key§r§e!§r"),
-        Regex("§r§eA §r§a§r§.+Wither Key§r§e was picked up!§r")
-    )
-    private val keyBloodRegex = listOf(
-        Regex(".+ §r§ehas obtained §r§a§r§.+Blood Key§r§e!§r"),
-        Regex("§r§eA §r§a§r§.+Blood Key§r§e was picked up!§r")
-    )
-    private val keyUseRegex = listOf(
-        Regex("§r§cThe §r§c§lBLOOD DOOR§r§c has been opened!§r"),
-        Regex("§r§a.+§r§a opened a §r§8§lWITHER §r§adoor!§r"),
-    )
+    fun onScoreboard(e: PacketReceiveEvent) {
+        if (!inDungeons) return
+        when (val packet = e.packet) {
+            is S3EPacketTeams -> if (packet.action == 2) {
+                val line = stripControlCodes(packet.players.joinToString(" ", packet.prefix, packet.suffix))
+
+                when {
+                    line.startsWith("Cleared: ") -> clearedPercentage = Regex("Cleared: (?<percentage>\\d+)% \\(\\d+\\)").matchEntire(line)?.groups?.get("percentage")?.value?.toFloatOrNull()?.div(100f) ?: clearedPercentage
+                    line.startsWith("Time Elapsed:") -> getTime(line)
+                }
+            }
+
+            is S38PacketPlayerListItem -> if (packet.action.equalsOneOf(S38PacketPlayerListItem.Action.UPDATE_DISPLAY_NAME, S38PacketPlayerListItem.Action.ADD_PLAYER)) packet.entries.forEach { itw ->
+
+                with(itw?.displayName?.formattedText ?: itw?.profile?.name ?: return) {
+                    when {
+                        contains("Team Deaths:") -> deathCount = getIntResult(Regex("§r§a§lTeam Deaths: §r§f(?<deaths>\\d+)§r"), this) ?: deathCount
+                        contains("Crypts:") -> cryptsCount = getIntResult(Regex("§r Crypts: §r§6(?<crypts>\\d+)§r"), this) ?: cryptsCount
+                        contains("Secrets Found:") -> if (contains("%")) secretPercentage = firstResult(Regex("§r Secrets Found: §r§[ae](?<percentage>[\\d.]+)%§r"), this)?.toFloatOrNull()?.div(100f) ?: secretPercentage else secretsFound = firstResult(Regex("§r Secrets Found: §r§b(?<secrets>\\d+)§r"), this)?.toIntOrNull() ?: secretsFound
+                        contains("Completed Rooms") -> completedRooms = getIntResult(Regex("§r Completed Rooms: §r§d(?<count>\\d+)§r"), this) ?: completedRooms
+                    }
+                    handlePuzzles(this)
+                }
+            }
+
+            is S02PacketChat -> if (packet.type != 2.toByte()) handleChatPacket(packet.chatComponent)
+        }
+    }
+
+    fun onEntityDeath(e: LivingDeathEvent) {
+        if (!inDungeons || mimicKilled) return
+        val entity = e.entity as? EntityZombie ?: return
+        for (i in 0..3) if (!mimicKilled && entity.isChild && entity.getCurrentArmor(i) == null) mimicKilled = true
+    }
+
+    // https://i.imgur.com/ifMCejI.png
+    fun updateScore() {
+        val secretCompletionPercent = when (Location.masterMode) {
+            true -> 1f
+            false -> when (Location.dungeonFloor) {
+                0, 1 -> 0.3f
+                2 -> 0.4f
+                3 -> 0.5f
+                4 -> 0.6f
+                5 -> 0.7f
+                6 -> 0.85f
+                else -> 1f
+            }
+        }
+
+        val roomCompletionPercent = (completedRooms + if (!Location.inBoss) 1 else 0).toFloat() / (totalRooms * 1.0f).coerceAtLeast(1f)
+
+        val bonusScore = cryptsCount.coerceAtMost(5) + (if (mimicKilled) 2 else 0) + (if (paul) 10 else 0)
+
+        val roomScore = 60 * roomCompletionPercent + 40 * maxOf(0f, (secretTotal * secretCompletionPercent * ((40 - bonusScore + getDeathDeduction()) / 40f)).coerceAtMost(1f))
+
+        val baseScore = 20 + 80 * roomCompletionPercent + 10 * completedPuzzles
+
+        val finalScore = (baseScore + roomScore + 100 + bonusScore - getDeathDeduction()).toInt()
+        score = finalScore.also { if (MapConfig.timeTo300 && it >= 300 && !message300) { message300 = true; mc.thePlayer.playSound("random.orb", 1f, 0.5f); TextUtils.info("§3300 Score§7: §a$timeElapsed") } }
+    }
+
+    private fun getDeathDeduction(): Int {
+        var deathDeduction = deathCount * 2
+        if (MapConfig.scoreAssumeSpirit) deathDeduction -= 1
+        return deathDeduction.coerceAtLeast(0)
+    }
+
+    fun onDungeonEnd() {
+        Dungeon.players.values.forEach { playerData ->
+
+            playerData.roomVisits.add(Pair(System.currentTimeMillis() - startTime - playerData.lastTime, playerData.lastRoom!!))
+
+            val formattedName = playerData.formattedName
+            val allClearedRooms = MapUpdate.roomClears.filter { it.value.contains(formattedName) }
+            val soloClearedRooms = allClearedRooms.filter { it.value.size == 1 }
+
+            val clearedRoomsCount = allClearedRooms.size
+            val soloCleared = if (soloClearedRooms.size == clearedRoomsCount) clearedRoomsCount
+            else "${soloClearedRooms.size}-$clearedRoomsCount"
+
+
+            mc.thePlayer.addChatMessage(ChatComponentText("§f§0[Neion]§f§r §3$formattedName §f> ").appendSibling(ChatComponentText("§b${APIHandler.getSecrets(playerData.uuid) - playerData.startingSecrets} §3secrets")).appendText(" §6| ").appendSibling(ChatComponentText("§b$soloCleared §3Rooms").apply { chatStyle = ChatStyle().setChatHoverEvent(HoverEvent(HoverEvent.Action.SHOW_TEXT, ChatComponentText(playerData.roomVisits.groupBy { it.first }.entries.joinToString(separator = "\n", prefix = "$formattedName's §eRoom Times:\n") { (room, times) -> "§6$room §a- §b${times.sumOf { it.first }.milliseconds}" })))}))
+        }
+    }
+
+
+    private fun handleChatPacket(component: IChatComponent) {
+        val text = stripControlCodes(component.unformattedText)
+        if (MapConfig.teamInfo && component.siblings.any { it.chatStyle?.chatClickEvent?.run { action == ClickEvent.Action.RUN_COMMAND && value == "/showextrastats" }!! }) onDungeonEnd()
+
+        processChatEvents(text,component.formattedText)
+
+        if (text == "Starting in 4 seconds.") setupPlayers()
+    }
+
+    private fun processChatEvents(text: String, formattedText: String) {
+        when {
+            formattedText.matchesAny(
+                Regex(".+ §r§ehas obtained §r§a§r§.+Wither Key§r§e!§r"),
+                Regex("§r§eA §r§a§r§.+Wither Key§r§e was picked up!§r")
+            ) -> keys++
+
+            formattedText.matchesAny(
+                Regex("§r§cThe §r§c§lBLOOD DOOR§r§c has been opened!§r"),
+                Regex("§r§a.+§r§a opened a §r§8§lWITHER §r§adoor!§r")
+            ) -> keys--
+
+            formattedText.matchesAny(
+                Regex(".+ §r§ehas obtained §r§a§r§.+Blood Key§r§e!§r"),
+                Regex("§r§eA §r§a§r§.+Blood Key§r§e was picked up!§r")
+            ) -> bloodKey = true
+
+            formattedText.contains("§r§cThe §r§c§lBLOOD DOOR§r§c has been opened!§r") -> bloodKey = false
+
+            text.startsWith("[BOSS] Maxor: ") ||
+                    text.equalsOneOf(
+                        "[BOSS] Bonzo: Gratz for making it this far, but I'm basically unbeatable.",
+                        "[BOSS] Scarf: This is where the journey ends for you, Adventurers.",
+                        "[BOSS] The Professor: I was burdened with terrible news recently...",
+                        "[BOSS] Thorn: Welcome Adventurers! I am Thorn, the Spirit! And host of the Vegan Trials!",
+                        "[BOSS] Livid: Welcome, you've arrived right on time. I am Livid, the Master of Shadows.",
+                        "[BOSS] Sadan: So you made it all the way here... Now you wish to defy me? Sadan?!"
+                    ) -> Location.inBoss = true
+
+            text.containsAny("mimic dead", "mimic killed") && !mimicKilled -> mimicKilled = true
+
+            text.containsAny("blaze done", "blaze puzzle finished") -> {
+                fromName("Higher Or Lower")?.completed = true
+                Dungeon.dungeonList.firstOrNull { (it as? Room)?.data?.name.equalsOneOf("Lower Blaze", "Higher Blaze") }?.state = RoomState.CLEARED
+            }
+        }
+    }
+
+    private fun setupPlayers() {
+        for (i in listOf(5, 9, 13, 17, 1)) MapUtils.getDungeonTabList()?.get(i)?.first?.let {
+            val name = stripControlCodes(
+                it.displayName.unformattedText
+                    .trim()
+                    .substringAfterLast("] ")
+                    .split(" ")[0]
+            )
+            if (name != "") Dungeon.players[name] = DungeonPlayer(it.locationSkin).apply {
+                setData(mc.theWorld.getPlayerEntityByName(name))
+                colorPrefix = it.displayName.formattedText.substringBefore(name, "f").last()
+                this.name = name
+                icon = "icon-$name"
+            }
+        }
+        startTime = System.currentTimeMillis()
+    }
+
+
+    private fun handlePuzzles(name: String) {
+        val regex = firstResult(Regex("§r (?<puzzle>.+): §r§7\\[§r§c§l(?<completion>.)§r§7] §.+"), name) ?: return
+        if (regex == "???") return
+        if (name.contains("✖")) {
+            fromName(regex)?.completed = false
+            failedPuzzles++
+        } else if (name.contains("✔")) fromName(regex)?.completed = true
+    }
+
+    private fun getTime(line: String) {
+        val match = Regex("Time Elapsed: (?:(?<hrs>\\d+)h )?(?:(?<min>\\d+)m )?(?<sec>\\d+)s?").matchEntire(line)?.groups
+        timeElapsed = "${match?.get("min")?.value?.toIntOrNull()} min. ${match?.get("sec")?.value?.toIntOrNull()} seconds"
+    }
+
+    private fun getIntResult(regex: Regex, input: String) = regex.matchEntire(input)?.groups?.get(1)?.value?.toIntOrNull()
+
+    fun firstResult(regex: Regex, input: String) = regex.matchEntire(input)?.groups?.get(1)?.value
+
+    private fun fromName(name: String) = Puzzle.entries.find { name.equalsOneOf(it.roomDataName, it.tabName) }
+
+
 
     fun reset() {
         keys = 0
@@ -105,231 +237,15 @@ object RunInformation {
         secretPercentage = 0f
         completedRooms = 0
         clearedPercentage = 0f
-        timeElapsed = 0
+        timeElapsed = null
         startTime = 0L
-        mimicOpenTime = 0L
         failedPuzzles = 0
-
-        trapType = ""
-
-        started = false
         bloodKey = false
-        bloodDone = false
         message270 = false
         message300 = false
         mimicKilled = false
-        mimicFound = false
-        mimicPos = null
-
-        puzzles.clear()
-    }
-
-    @SubscribeEvent
-    fun onScoreboard(e: PacketReceiveEvent) {
-        if (!inDungeons) return
-        when (val packet = e.packet) {
-            is S3EPacketTeams -> if (packet.action == 2) {
-
-                minSecrets =
-                    ceil(ceil(secretTotal * getSecretPercent()) * (40 - getBonusScore() + getDeathDeduction()) / 40).toInt()
-
-                val line = packet.players.joinToString(" ", prefix = packet.prefix, postfix = packet.suffix)
-                    .stripControlCodes()
-
-                if (line.startsWith("Cleared: ")) {
-                    val match = dungeonClearedPattern.matchEntire(line)?.groups ?: return
-                    clearedPercentage = (match["percentage"]?.value?.toFloatOrNull()?.div(100f)) ?: clearedPercentage
-                } else if (line.startsWith("Time Elapsed:")) {
-                    val match = timeElapsedPattern.matchEntire(line)?.groups ?: return
-                    val hours = match["hrs"]?.value?.toIntOrNull() ?: 0
-                    val minutes = match["min"]?.value?.toIntOrNull() ?: 0
-                    val seconds = match["sec"]?.value?.toIntOrNull() ?: 0
-                    timeElapsed = hours * 3600 + minutes * 60 + seconds
-                }
-            }
-
-            is S38PacketPlayerListItem -> if (packet.action.equalsOneOf(
-                    S38PacketPlayerListItem.Action.UPDATE_DISPLAY_NAME,
-                    S38PacketPlayerListItem.Action.ADD_PLAYER
-                )
-            ) {
-                packet.entries.forEach {
-                    updateFromTabList(it?.displayName?.formattedText ?: it?.profile?.name ?: return@forEach)
-                }
-            }
-
-            is S02PacketChat -> if (packet.type != 2.toByte()) {
-                val text = packet.chatComponent.unformattedText.stripControlCodes()
-                if (text.startsWith("Party > ") || (text.contains(":") && !text.contains(">"))) {
-                    listOf("\$SKYTILS-DUNGEON-SCORE-MIMIC\$", "mimic dead", "mimic killed").forEach {
-                        if (text.contains(it, true) && !mimicKilled) mimicKilled = true
-                    }
-
-                    listOf("blaze done", "blaze puzzle finished").forEach {
-                        if (text.contains(it, true)) {
-                            val puzzle =
-                                puzzles.keys.find { puzzle -> puzzle.tabName == "Higher Or Lower" }
-                                    ?: return
-                            puzzles[puzzle] = true
-                            val room = Dungeon.dungeonList.firstOrNull { tile ->
-                                tile is Room && tile.data.name.equalsOneOf(
-                                    "Lower Blaze",
-                                    "Higher Blaze"
-                                )
-                            } ?: return
-                            PlayerTracker.roomStateChange(room, room.state, RoomState.CLEARED)
-                            room.state = RoomState.CLEARED
-                        }
-                    }
-                }
-                if (FMConfig.teamInfo) {
-                    if (packet.chatComponent.siblings.any {
-                            it.chatStyle?.chatClickEvent?.run { action == ClickEvent.Action.RUN_COMMAND && value == "/showextrastats" } == true
-                        }) PlayerTracker.onDungeonEnd()
-                }
-                val form = packet.chatComponent.formattedText
-                if (form.matchesAny(keyGainRegex)) keys++
-                if (form.contains(keyUseRegex[1])) keys--
-                if (form.matchesAny(keyBloodRegex)) bloodKey = true
-                if (form.contains(keyUseRegex[0])) bloodKey = false
-                if (text.startsWith("[BOSS] Maxor: ") || Location.entryMessages.any { it == text }) Location.inBoss = true
-
-                when (text) {
-                    "Starting in 4 seconds." -> for (i in listOf(5, 9, 13, 17, 1)) (MapUtils.getDungeonTabList()
-                        ?: return)[i].first.locationSkin
-
-                    "[NPC] Mort: Here, I found this map when I first entered the dungeon." -> {
-                        MapUpdate.getPlayers()
-                        startTime = System.currentTimeMillis()
-                        started = true
-                    }
-
-                    "[BOSS] The Watcher: You have proven yourself. You may pass." -> bloodDone = true
-                }
-            }
-        }
-    }
-
-    @SubscribeEvent
-    fun onEntityDeath(e: LivingDeathEvent) {
-        if (!inDungeons || mimicKilled) return
-        val entity = e.entity as? EntityZombie ?: return
-        for (i in 0..3) if (entity.isChild && entity.getCurrentArmor(i) == null) setMimicKilled()
-    }
-
-    private fun updateFromTabList(text: String) {
-        when {
-            text.contains("Team Deaths:") -> deathCount = deathsRegex.firstResult(text)?.toIntOrNull() ?: deathCount
-            text.contains("✔") -> {
-                val puzzleName = solvedPuzzleRegex.firstResult(text) ?: return
-                if (puzzleName == "???") return
-                val puzzle = puzzles.keys.find { it.tabName == puzzleName }
-                if (puzzle == null) {
-                    if (puzzles.size < totalPuzzles) Puzzle.fromName(puzzleName)?.let { puzzles.putIfAbsent(it, true) }
-                } else puzzles[puzzle] = true
-            }
-
-            text.contains("✖") -> {
-                val puzzleName = failedPuzzleRegex.firstResult(text) ?: return
-                if (puzzleName == "???") return
-                val puzzle = puzzles.keys.find { it.tabName == puzzleName }
-                failedPuzzles++
-                if (puzzle == null) {
-                    if (puzzles.size < totalPuzzles) Puzzle.fromName(puzzleName)?.let { puzzles.putIfAbsent(it, false) }
-                } else puzzles[puzzle] = false
-            }
-
-            text.contains("Crypts:") -> cryptsCount = cryptsPattern.firstResult(text)?.toIntOrNull() ?: cryptsCount
-            text.contains("Secrets Found:") -> {
-                if (text.contains("%")) secretPercentage = secretsFoundPercentagePattern.firstResult(text)?.toFloatOrNull()?.div(100f) ?: secretPercentage
-                else secretsFound = secretsFoundPattern.firstResult(text)?.toIntOrNull() ?: secretsFound
-            }
-            text.contains("Completed Rooms") -> completedRooms = roomCompletedPattern.firstResult(text)?.toIntOrNull() ?: completedRooms
-        }
-    }
-
-    fun checkMimicDeath() {
-        if (!mimicKilled) {
-            mc.theWorld.loadedTileEntityList.filter { it is TileEntityChest && it.chestType == 1 }.forEach {
-                if (it.pos != it) {
-                    mimicOpenTime = System.currentTimeMillis()
-                    mimicPos = it.pos
-                }
-            }
-            if (mimicOpenTime != 0L && System.currentTimeMillis() - mimicOpenTime > 750 && mc.thePlayer.getDistanceSq(
-                    mimicPos) < 400 && mc.theWorld.loadedEntityList.none {
-                    it is EntityZombie && it.isChild && it.getCurrentArmor(3)
-                        ?.getSubCompound("SkullOwner", false)
-                        ?.getString("Id") == "bcb486a4-0cb5-35db-93f0-039fbdde03f0"
-                }) setMimicKilled()
-        }
-    }
-
-    fun updatePuzzleCount(tabList: List<Pair<NetworkPlayerInfo, String>>) {
-        if (totalPuzzles != 0) return
-        val puzzleCount = tabList.find { it.second.contains("Puzzles:") }?.second ?: return
-        totalPuzzles = puzzleCountRegex.firstResult(puzzleCount)?.toIntOrNull() ?: totalPuzzles
-    }
-
-    private fun setMimicKilled() {
-        if (mimicKilled) return
-        mimicKilled = true
-        if (FMConfig.mimicMessageEnabled) TextUtils.sendPartyChatMessage(FMConfig.mimicMessage)
-    }
-
-
-    // https://i.imgur.com/ifMCejI.png
-    fun updateScore() {
-        val roomPercent = completedRoomsPercentage.coerceAtMost(1f)
-        val explore = (60 * roomPercent + 40 * (secretPercentage / getSecretPercent()).coerceAtMost(1f)).toInt()
-        val skill = 20 + ((80 * roomPercent).toInt() - (totalPuzzles - completedPuzzles) * 10 - getDeathDeduction()).coerceAtLeast(0)
-        score = skill + explore + 100 + getBonusScore()
-        if (score >= 300 && !message300) {
-            message270 = true
-            if (FMConfig.scoreMessage != 0) TextUtils.sendPartyChatMessage(FMConfig.message300)
-            if (FMConfig.scoreTitle != 0) {
-                mc.thePlayer.playSound("random.orb", 1f, 0.5.toFloat())
-                GuiRenderer.displayTitle(FMConfig.message300, 40)
-            }
-            if (FMConfig.timeTo300) TextUtils.info("§3300 Score§7: §a${timeElapsed.toDuration(DurationUnit.SECONDS)}")
-        } else if (score >= 270 && !message270) {
-            if (FMConfig.scoreMessage == 2) TextUtils.sendPartyChatMessage(FMConfig.message270)
-            if (FMConfig.scoreTitle == 2) {
-                mc.thePlayer.playSound("random.orb", 1f, 0.5.toFloat())
-                GuiRenderer.displayTitle(FMConfig.message270, 40)
-            }
-        }
-    }
-
-    private fun getDeathDeduction(): Int {
-        var deathDeduction = deathCount * 2
-        if (FMConfig.scoreAssumeSpirit) deathDeduction -= 1
-        return deathDeduction.coerceAtLeast(0)
-    }
-
-    private fun getBonusScore(): Int {
-        var score = 0
-        score += cryptsCount.coerceAtMost(5)
-        if (mimicKilled) score += 2
-        if (paul) score += 10
-        return score
-    }
-
-    private fun getSecretPercent(): Float {
-        if (Location.masterMode) return 1f
-        return when (Location.dungeonFloor) {
-            0 -> .3f
-            1 -> .3f
-            2 -> .4f
-            3 -> .5f
-            4 -> .6f
-            5 -> .7f
-            6 -> .85f
-            else -> 1f
-        }
-    }
-
-    private fun Regex.firstResult(input: CharSequence): String? {
-        return this.matchEntire(input)?.groups?.get(1)?.value
+        Puzzle.entries.forEach { it.completed = false }
+        MapUpdate.roomClears.clear()
+        MapUpdate.rooms.clear()
     }
 }

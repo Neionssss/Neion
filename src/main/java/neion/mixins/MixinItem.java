@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(Item.class)
 abstract class MixinItem {
     @Inject(method = "shouldCauseReequipAnimation", at = @At("HEAD"), cancellable = true, remap = false)
-    public void overrideReequipAnimation(ItemStack oldStack, ItemStack newStack, boolean slotChanged, CallbackInfoReturnable<Boolean> cir) {
+    public void w(ItemStack oldStack, ItemStack newStack, boolean slotChanged, CallbackInfoReturnable<Boolean> cir) {
         if (Config.INSTANCE.getCancelReequip()) {
             if (slotChanged && Config.INSTANCE.getShowReEquipAnimationWhenChangingSlots()) return;
             cir.setReturnValue(false);

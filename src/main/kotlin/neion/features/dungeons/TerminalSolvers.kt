@@ -3,29 +3,27 @@ package neion.features.dungeons
 import neion.Config
 import neion.Neion.Companion.mc
 import neion.events.GuiContainerEvent
-import neion.utils.APIHandler
-import neion.utils.ItemUtils.cleanName
 import neion.utils.Location.dungeonFloor
 import neion.utils.Location.inBoss
-import neion.utils.MathUtil
 import neion.utils.RenderUtil
 import neion.utils.RenderUtil.highlight
 import neion.utils.Utils
+import neion.utils.Utils.cleanName
 import neion.utils.Utils.itemID
-import neion.utils.Utils.items
 import net.minecraft.init.Blocks
 import net.minecraft.inventory.ContainerChest
 import net.minecraft.inventory.Slot
 import net.minecraft.item.EnumDyeColor
 import net.minecraft.item.Item
+import net.minecraft.item.ItemStack
 import net.minecraftforge.event.entity.player.ItemTooltipEvent
-import net.minecraftforge.fml.common.eventhandler.EventPriority
+import net.minecraftforge.fml.common.eventhandler.Event
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
 object TerminalSolvers {
 
     var currentTerminal = Terminal.NONE
-    var pickBlockBind = 0
+    private var firstSlot: Slot? = null
     private val shouldClickColor = mutableListOf<Slot>()
     private val shouldClickStart = mutableListOf<Slot>()
     private val ordering = setOf(
@@ -38,66 +36,61 @@ object TerminalSolvers {
     private var mostCommon = -1
 
     @SubscribeEvent
-    fun onSlotdrraaww(e: GuiContainerEvent.DrawSlotEvent) {
+    fun onSlotDraw(e: GuiContainerEvent.DrawSlotEvent) {
         if (!inBoss || dungeonFloor != 7 || e.container !is ContainerChest) return
-        e.container.inventorySlots?.forEach { slot ->
+        val invSlots = e.container.inventorySlots
+        invSlots?.forEach { slot ->
+            if (slot.inventory != e.container.lowerChestInventory) return
             val stack = slot.stack ?: return
-            if (slot.inventory == mc.thePlayer.inventory) return
             currentTerminal = getCurrentTerminal(e.container)
+
             when (currentTerminal) {
                 Terminal.COLORS -> if (Config.colorsSolver) {
-                    if (stack.unlocalizedName?.contains(EnumDyeColor.entries.find { e.chestName.contains(it.getName().replace("_", " ").uppercase()) }?.unlocalizedName!!) == true && !stack.isItemEnchanted) {
+                    if (isValidItem(stack, e)) {
                         shouldClickColor.add(slot)
                         if (Config.terminalHelper) {
-                            shouldClickColor.first().xDisplayPosition = 0
-                            shouldClickColor.first().yDisplayPosition = 0
+                            shouldClickColor.first().apply {
+                                xDisplayPosition = 0
+                                yDisplayPosition = 0
+                            }
                         }
                         slot highlight Config.terminalColor.toJavaColor()
                     } else e.isCanceled = true
                 }
 
                 Terminal.STARTSWITH -> if (Config.startsWithSolver) {
-                    if (stack.cleanName().startsWith(Regex("^What starts with: ['\"](.+)['\"]\\?$").find(e.chestName)?.groupValues?.get(1)!!) && !stack.isItemEnchanted) {
+                    if (isValidItem(stack,e)) {
                         shouldClickStart.add(slot)
                         if (Config.terminalHelper) {
-                            shouldClickStart.first().xDisplayPosition = 0
-                            shouldClickStart.first().yDisplayPosition = 0
+                            shouldClickStart.first().apply {
+                                xDisplayPosition = 0
+                                yDisplayPosition = 0
+                            }
                         }
-                        slot highlight Config.terminalColor.toJavaColor()
+                        slot.highlight(Config.terminalColor.toJavaColor())
                     } else e.isCanceled = true
                 }
 
-                Terminal.RUBIX -> if (Config.rubixSolver) {
-                    e.isCanceled = false
-                    val grid = e.container.inventorySlots.filter {
-                        it.inventory == e.container.lowerChestInventory && it.stack?.displayName?.startsWith("§a") == true
-                    }
-                    mostCommon = ordering.keys.maxByOrNull { c -> grid.count { it.stack?.metadata == c } } ?: EnumDyeColor.RED.metadata
-                    val mapping = grid.filter { it.stack.metadata != mostCommon }.associateWith { slote ->
-                        val myIndex = ordering[slote.stack.metadata]!!
-                        val targetIndex = ordering[mostCommon]!!
-                        ((targetIndex - myIndex) % ordering.size + ordering.size) % ordering.size to -((myIndex - targetIndex) % ordering.size + ordering.size) % ordering.size
-                    }
-                    for ((slote, clicks) in mapping) {
+                Terminal.NUMBERS -> if (Config.numbersSolver) {
+                    if (isValidItem(stack,e)) {
                         RenderUtil.renderText(
-                            "${if (clicks.first > -clicks.second) clicks.second else clicks.first}",
-                            slote.xDisplayPosition + 4,
-                            slote.yDisplayPosition + 9)
-                    }
-                    if (stack.metadata == mostCommon) e.isCanceled = true
-                }
-
-                Terminal.NUMBERS -> {
-                    if (Config.numbersSolver && stack.item == Item.getItemFromBlock(Blocks.stained_glass_pane) && stack.itemDamage == 14) {
-                        RenderUtil.renderText(stack.stackSize.toString(), slot.xDisplayPosition + 9 - mc.fontRendererObj.getStringWidth(stack.stackSize.toString()) / 2, slot.yDisplayPosition + 4)
+                            stack.stackSize.toString(),
+                            slot.xDisplayPosition + 9 - mc.fontRendererObj.getStringWidth(stack.stackSize.toString()) / 2,
+                            slot.yDisplayPosition + 4
+                        )
                         e.isCanceled = true
                     }
                 }
 
-                Terminal.CORRECTPANES -> {
-                    e.isCanceled = false
-                    if (stack.metadata == EnumDyeColor.GREEN.metadata) e.isCanceled = true
+                Terminal.CORRECTPANES -> if (Config.terminalHelper) {
+                    if (!isValidItem(stack,e)) e.isCanceled = true
+                    else invSlots.first { it.stack.cleanName().startsWith("Off") }.apply {
+                        xDisplayPosition = 0
+                        yDisplayPosition = 0
+                        highlight(Config.terminalColor.toJavaColor())
+                    }
                 }
+
                 else -> {}
             }
         }
@@ -105,64 +98,109 @@ object TerminalSolvers {
 
     @SubscribeEvent
     fun onBackgroundDraw(e: GuiContainerEvent.BackgroundDrawnEvent) {
-        if (!Config.numbersSolver || e.container !is ContainerChest || e.chestName != "Click in order!") return
-        val invSlots = e.container.inventorySlots
-        val slotOrder = HashMap<Int, Int>()
-        var neededClick = 0
-        for (i in (10..16) + (19..25)) {
-            val itemStack = invSlots[i].stack ?: continue
-            if (itemStack.item != Item.getItemFromBlock(Blocks.stained_glass_pane) || itemStack.itemDamage != 14 && itemStack.itemDamage != 5) continue
-            if (itemStack.itemDamage == 5 && itemStack.stackSize > neededClick) neededClick = itemStack.stackSize
-            slotOrder[itemStack.stackSize - 1] = i
-        }
-        val firstSlot = invSlots[slotOrder[neededClick] ?: return]
-        if (Config.terminalHelper) {
-            firstSlot.xDisplayPosition = 0
-            firstSlot.yDisplayPosition = 0
-        }
-        firstSlot highlight Config.firstNumber.toJavaColor()
-        invSlots[slotOrder[neededClick + 1] ?: return] highlight Config.secondNumber.toJavaColor()
-        invSlots[slotOrder[neededClick + 2] ?: return] highlight Config.thirdNumber.toJavaColor()
-
+        if (e.container !is ContainerChest) return
+        if (Config.numbersSolver && currentTerminal == Terminal.NUMBERS) handleNumbersSolver(e)
+        if (Config.rubixSolver && currentTerminal == Terminal.RUBIX) handleRubixSolver(e.container.inventorySlots)
     }
+
+
     @SubscribeEvent
     fun onClickSlot(e: GuiContainerEvent.SlotClickEvent) {
-        if (Config.terminalPrevent != 0 && currentTerminal != Terminal.NONE && dungeonFloor == 7 && e.container is ContainerChest) {
-            val slot = e.slot ?: return
-            if (slot.inventory == mc.thePlayer.inventory) cancelEvent(e)
-            pickBlockBind = mc.gameSettings.keyBindPickBlock.keyCodeDefault
-            mc.gameSettings.keyBindPickBlock.keyCode = -100
+        if (Config.terminalPrevent == 0 || currentTerminal == Terminal.NONE || dungeonFloor != 7 || e.container !is ContainerChest) return
 
-            when (currentTerminal) {
-                Terminal.CORRECTPANES -> if (slot.stack?.metadata == EnumDyeColor.LIME.metadata) cancelEvent(e)
-                Terminal.NUMBERS -> if (slot.stack?.metadata != EnumDyeColor.RED.metadata || slot.stack?.stackSize != e.container.lowerChestInventory.items.count { it?.metadata == EnumDyeColor.LIME.metadata } + 1) cancelEvent(e)
+        val slot = e.slot ?: return
 
-                Terminal.STARTSWITH -> if (shouldClickStart.size > 0 && !shouldClickStart.contains(slot)) cancelEvent(e)
-                Terminal.COLORS -> if (shouldClickColor.size > 0 && !shouldClickColor.contains(slot)) cancelEvent(e)
-                Terminal.RUBIX -> if (slot.stack?.metadata == mostCommon) cancelEvent(e)
-                Terminal.MELODY -> if (Config.terminalPrevent == 1) {
-                    val colors = e.container.lowerChestInventory.items.map { it?.itemDamage }
-                    val movingPaneIndex = colors.indexOf(EnumDyeColor.LIME.metadata)
-                    if (movingPaneIndex % 9 != colors.indexOf(EnumDyeColor.MAGENTA.metadata) || (movingPaneIndex / 9) * 9 + 7 != slot.slotIndex) cancelEvent(e)
-                }
+        if (slot.inventory != e.container.lowerChestInventory) {
+            cancelEvent(e)
+            return
+        }
 
-                else -> {}
-            }
-        } else mc.gameSettings.keyBindPickBlock.keyCode = pickBlockBind
+        val targetMetadata = when (currentTerminal) {
+            Terminal.CORRECTPANES -> EnumDyeColor.LIME.metadata
+            Terminal.NUMBERS -> firstSlot?.stack?.metadata
+            Terminal.RUBIX -> mostCommon
+            Terminal.MELODY -> EnumDyeColor.LIME.metadata
+            else -> null
+        }
+
+        when (currentTerminal) {
+            Terminal.CORRECTPANES -> if (slot.stack?.metadata != targetMetadata) cancelEvent(e)
+            Terminal.NUMBERS -> if (slot != firstSlot) cancelEvent(e)
+            Terminal.STARTSWITH -> if (shouldClickStart.isNotEmpty() && !shouldClickStart.contains(slot)) cancelEvent(e)
+            Terminal.COLORS -> if (shouldClickColor.isNotEmpty() && !shouldClickColor.contains(slot)) cancelEvent(e)
+            Terminal.RUBIX -> if (slot.stack?.metadata == targetMetadata) cancelEvent(e)
+            Terminal.MELODY -> if (targetMetadata != null && (slot.slotIndex % 9 != shouldClickIndex(targetMetadata) || (slot.slotIndex / 9) * 9 + 7 != slot.slotIndex)) cancelEvent(e)
+            else -> {}
+        }
     }
 
-    @SubscribeEvent(priority = EventPriority.LOWEST)
+    private fun shouldClickIndex(targetMetadata: Int) = when (targetMetadata) {
+            EnumDyeColor.MAGENTA.metadata -> 1
+            else -> 0
+        }
+
+    @SubscribeEvent
     fun onTooltip(e: ItemTooltipEvent) {
         if (Config.hideTooltips && dungeonFloor == 7 && e.toolTip != null && currentTerminal != Terminal.NONE) e.toolTip.clear()
-        if (Config.priceTooltip && APIHandler.auctionData != null && APIHandler.profitData != null) {
-            val fetchinger = Utils.fetchEVERYWHERE(e.itemStack.itemID) ?: Utils.fetchBzPrices(Utils.getBooksID(e.itemStack))?: return
-            e.toolTip.add("Lowest Price: ${MathUtil.fn(fetchinger)}")
-        }
+        if (Config.priceTooltip) e.toolTip.add("Lowest Price: ${Utils.fn((Utils.fetchEVERYWHERE(e.itemStack.itemID) ?: Utils.fetchBzPrices(Utils.getBooksID(e.itemStack)) ?: return))}")
     }
 
     // ----------------------------------------------------------
 
+    private fun handleRubixSolver(invSlots: List<Slot>) {
+        val grid = invSlots.filter { it.stack.displayName.startsWith("§a", true) }
+        mostCommon = ordering.keys.maxByOrNull { c -> grid.count { it.stack.metadata == c } } ?: EnumDyeColor.RED.metadata
+
+        grid.filter { it.stack.metadata != mostCommon }.associateWith { slote ->
+            val myIndex = ordering[slote.stack.metadata]!!
+            val targetIndex = ordering[mostCommon]!!
+            val leftShift = (targetIndex - myIndex + ordering.size) % ordering.size
+            val rightShift = (myIndex - targetIndex + ordering.size) % ordering.size
+            leftShift to -rightShift
+        }.forEach { (slot, rightShift) ->
+                RenderUtil.renderText(
+                    "${if (rightShift.first > -rightShift.second) rightShift.second else rightShift.first}",
+                    slot.xDisplayPosition + 4,
+                    slot.yDisplayPosition + 9
+                )
+            }
+    }
+
+    private fun handleNumbersSolver(e: GuiContainerEvent.BackgroundDrawnEvent) {
+        val slotOrder = HashMap<Int, Int>()
+        var neededClick = 0
+        val invSlots = e.container.inventorySlots
+
+        for (i in (10..16) + (19..25)) {
+            val itemStack = invSlots[i].stack ?: continue
+            if (itemStack.item == Item.getItemFromBlock(Blocks.stained_glass_pane) && (itemStack.itemDamage == 14 || itemStack.itemDamage == 5)) {
+                if (itemStack.stackSize > neededClick) neededClick = itemStack.stackSize
+                slotOrder[itemStack.stackSize - 1] = i
+            }
+        }
+
+        firstSlot?.apply {
+            if (Config.terminalHelper) {
+                xDisplayPosition = e.mouseX
+                yDisplayPosition = e.mouseY
+            }
+            highlight(Config.firstNumber.toJavaColor())
+        }
+
+        invSlots[slotOrder[neededClick + 1] ?: return] highlight Config.secondNumber.toJavaColor()
+        invSlots[slotOrder[neededClick + 2] ?: return] highlight Config.thirdNumber.toJavaColor()
+    }
+
+    private fun isValidItem(stack: ItemStack, e: GuiContainerEvent) = !stack.isItemEnchanted && when (currentTerminal) {
+        Terminal.COLORS -> stack.unlocalizedName?.contains(EnumDyeColor.entries.find { e.chestName.contains(it.name.replace("_", " ").uppercase()) }?.unlocalizedName!!) == true
+        Terminal.STARTSWITH -> stack.cleanName().startsWith(Regex("^What starts with: ['\"](.+)['\"]\\?$").find(e.chestName)?.groupValues?.get(1)!!)
+        Terminal.CORRECTPANES -> stack.cleanName().startsWith("Off", true)
+        Terminal.NUMBERS -> stack.item == Item.getItemFromBlock(Blocks.stained_glass_pane) && stack.itemDamage == 14
+        else -> false
+    }
+
     private fun getCurrentTerminal(containerChest: ContainerChest): Terminal {
+        firstSlot = null
         shouldClickColor.clear()
         shouldClickStart.clear()
         val chestName = containerChest.lowerChestInventory?.displayName?.unformattedText ?: return Terminal.NONE
@@ -177,7 +215,7 @@ object TerminalSolvers {
         }
     }
 
-    private fun cancelEvent(e: GuiContainerEvent.SlotClickEvent) {
+    private fun cancelEvent(e: Event) {
         e.isCanceled = true
         mc.thePlayer.playSound("random.pop", 1f, 0f)
     }
