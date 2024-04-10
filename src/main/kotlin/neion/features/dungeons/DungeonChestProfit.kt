@@ -2,59 +2,76 @@ package neion.features.dungeons
 
 import neion.Config
 import neion.Neion.Companion.mc
-import neion.utils.ItemUtils.cleanName
-import neion.utils.ItemUtils.lore
 import neion.utils.Location.inBoss
-import neion.utils.Utils
+import neion.utils.TextUtils
 import neion.utils.Utils.chest
+import neion.utils.Utils.cleanName
+import neion.utils.Utils.equalsOneOf
+import neion.utils.Utils.fetchBzPrices
+import neion.utils.Utils.fetchEVERYWHERE
+import neion.utils.Utils.getBooksID
+import neion.utils.Utils.getChestPrice
+import neion.utils.Utils.getEssenceValue
 import neion.utils.Utils.itemID
+import neion.utils.Utils.lore
 import net.minecraft.entity.Entity
 import net.minecraft.entity.item.EntityArmorStand
-import net.minecraft.item.ItemStack
+import net.minecraft.inventory.Slot
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
 
 object DungeonChestProfit {
 
 
+    var canOpen = false
+    private var timeWait = 0L
+    var noobmen = HashSet<Entity>()
+    var highestPrice = 0
+    var highestPriceChest: Entity? = null
+
     // https://i.imgur.com/k7mgy9U.png
     @SubscribeEvent
     fun onNo(e: ClientTickEvent) {
         if (!inBoss) return
         val inv = mc.currentScreen?.chest
-            if (inv == null) {
-                if (Config.chestOpener) {
-                    mc.theWorld?.loadedEntityList?.filter {
-                        it is EntityArmorStand && Chestser.entries.any { w ->
-                            it.getEquipmentInSlot(4)?.cleanName() == w.s
+            if (Config.chestOpener) {
+                mc.theWorld?.loadedEntityList?.filter {
+                    it is EntityArmorStand && it.getEquipmentInSlot(4)?.cleanName().equalsOneOf(
+                        "Wooden Plank Chest",
+                        "Golden Skull",
+                        "Chest Diamond Right",
+                        "Chest Emerald Left",
+                        "Chest Obsidian BottomLeft",
+                        "Chest Bedrock (Front Bottom Right)"
+                    )
+                }?.forEach { ent ->
+                    if (!noobmen.contains(ent) && mc.thePlayer.getDistanceToEntity(ent) < 20 && System.currentTimeMillis() - timeWait > 100) {
+                        mc.playerController.interactWithEntitySendPacket(mc.thePlayer, ent)
+                        timeWait = System.currentTimeMillis()
+                        noobmen.add(ent)
+                        val chestType = DungeonChest.entries.find { it.displayText == inv?.lowerChestInventory?.displayName?.unformattedText?.trim() } ?: return
+                        chestType.value = 0
+                        chestType.price = getChestPrice((inv?.getSlot(31)?.stack ?: return).lore)
+                        if (Config.chestProfit) canOpen = true
+                        chestType.value += calculateItemProfit(inv.inventorySlots)
+                        if (chestType.profit > highestPrice) {
+                            highestPrice = chestType.profit
+                            highestPriceChest = ent
                         }
-                    }?.forEach { ent ->
-                        if (!noobmen.contains(ent) && mc.thePlayer.getDistanceToEntity(ent) < 20 && System.currentTimeMillis() - timeWait > 100) {
-                            mc.playerController.interactWithEntitySendPacket(mc.thePlayer, ent)
-                            timeWait = System.currentTimeMillis()
-                            noobmen.add(ent)
-                        }
-                        if (System.currentTimeMillis() - timeWait > 400 && notOpened) notOpened = false
+                        mc.thePlayer.closeScreen()
                     }
                 }
-            } else {
-                val chestType = DungeonChest.getFromName(inv.lowerChestInventory.displayName.unformattedText.trim()) ?: return
-                val sssa = inv.getSlot(31)?.stack ?: return
-                chestType.value = 0
-                chestType.price = Utils.getChestPrice(sssa.lore)
-                if (Config.chestProfit) canOpen = true
-                for (i in 9..17) {
-                    val lootSlot = inv.getSlot(i)?.stack ?: continue
-                    chestType.value += Utils.fetchEVERYWHERE(lootSlot.itemID) ?: Utils.fetchBzPrices(Utils.getBooksID(lootSlot)) ?: Utils.getEssenceValue(lootSlot.displayName)
-                    if (Config.chestOpener && System.currentTimeMillis() - timeWait > 125 && notOpened) mc.thePlayer.closeScreen()
+                if (highestPriceChest != null && System.currentTimeMillis() - timeWait > 1250) {
+                    TextUtils.info(highestPrice.toString())
+                    mc.playerController.interactWithEntitySendPacket(mc.thePlayer, highestPriceChest)
                 }
             }
         }
-
-    var canOpen = false
-    var notOpened = true
-    val noobmen = mutableListOf<Entity>()
-    private var timeWait = 0L
+    private fun calculateItemProfit(itemStack: MutableList<Slot>): Int {
+        var price = 0
+        for (i in 9..17) price += fetchEVERYWHERE(itemStack[i].stack.itemID) ?: fetchBzPrices(getBooksID(itemStack[i].stack)) ?: getEssenceValue(itemStack[i].stack.displayName)
+        return price
+    }
 
     // ----------------------------------------------------
 
@@ -70,29 +87,10 @@ object DungeonChestProfit {
         var value = 0
         val profit
             get() = value - price
-        val items = mutableListOf<ItemStack>()
 
         fun reset() {
             price = 0
             value = 0
         }
-
-        companion object {
-            fun getFromName(name: String?): DungeonChest? {
-                if (name.isNullOrBlank()) return null
-                return entries.find {
-                    it.displayText == name
-                }
-            }
-        }
-    }
-
-    enum class Chestser(val s: String) {
-        WOOD("Wooden Plank Chest"),
-        GOLD("Golden Skull"),
-        DIAMOND("Chest Diamond Right"),
-        EMERALD("Chest Emerald Left"),
-        OBSIDIAN("Chest Obsidian BottomLeft"),
-        BEDROCK("Chest Bedrock (Front Bottom Right)")
     }
 }
