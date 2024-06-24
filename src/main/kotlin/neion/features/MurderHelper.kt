@@ -1,11 +1,8 @@
 package neion.features
 
-import cc.polyfrost.oneconfig.utils.Notifications
-import neion.Config
-import neion.Neion.Companion.mc
 import neion.events.CheckRenderEntityEvent
 import neion.events.RenderLivingEntityEvent
-import neion.utils.ItemUtils.equalsOneOf
+import neion.ui.clickgui.Module
 import neion.utils.RenderUtil
 import neion.utils.TextUtils
 import neion.utils.Utils
@@ -18,7 +15,7 @@ import net.minecraft.item.ItemBlock
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import java.awt.Color
 
-object MurderHelper {
+object MurderHelper: Module("Murder Helper") {
 
     private val swords = arrayOf(
         Items.iron_sword,
@@ -60,12 +57,11 @@ object MurderHelper {
     val murder = HashSet<EntityOtherPlayerMP>()
     val bowHolder = HashSet<EntityOtherPlayerMP>()
     var wrote = false
-
-
+    var wrote1 = false
 
     @SubscribeEvent
-    fun mmystery(e: CheckRenderEntityEvent<*>) {
-        if (!Config.murderHelper || !Utils.inMurderMystery()) return
+    fun mmystery(e: CheckRenderEntityEvent) {
+        if (!Utils.inMurderMystery()) return
         val entity = e.entity
         (entity as? EntityItem)?.let { RenderUtil.drawEntityBox(it, Color.yellow, true, false, true) }
         if (entity is EntityArmorStand && entity.getEquipmentInSlot(1)?.item == Items.bow) RenderUtil.drawEntityBox(
@@ -80,30 +76,26 @@ object MurderHelper {
     // https://i.imgur.com/5t6y5SW.png
     @SubscribeEvent
     fun whileMurderer(e: RenderLivingEntityEvent) {
-        if (!Config.murderHelper || !Utils.inMurderMystery()) return
+        if (!Utils.inMurderMystery()) return
         val entity = e.entity as? EntityOtherPlayerMP ?: return
         if (swords.any { mc.thePlayer?.inventory?.hasItem(it)!! }) {
             if (!entity.isPlayerSleeping) RenderUtil.outlineESP(e, Color.green)
             if (entity.getEquipmentInSlot(0)?.item == Items.bow) bowHolder.add(entity)
-            if (bowHolder.isNotEmpty()) {
-                bowHolder.forEach {
-                    if (!wrote) {
-                        Notifications.INSTANCE.send("Neion", "${it.name} has bow")
-                        wrote = true
-                    }
-                    RenderUtil.outlineESP(e, Color.blue)
+            if (bowHolder.isNotEmpty()) bowHolder.forEach {
+                if (!wrote) {
+                    TextUtils.info("${it.name} has bow")
+                    wrote = true
                 }
+                RenderUtil.outlineESP(e, Color.blue)
             }
         } else {
-            if (entity.getEquipmentInSlot(0).item.equalsOneOf(swords)) murder.add(entity)
-            if (murder.isNotEmpty()) {
-                murder.forEach {
-                    if (!wrote) {
-                        TextUtils.info("${it.name} is Murderer!")
-                        wrote = true
-                    }
-                    RenderUtil.outlineESP(e, Color.red)
+            if (swords.any { entity.getEquipmentInSlot(0)?.item == it }) murder.add(entity)
+            if (murder.isNotEmpty()) murder.forEach {
+                if (!wrote1) {
+                    TextUtils.info("${it.name} is Murderer!")
+                    wrote1 = true
                 }
+                RenderUtil.outlineESP(e, Color.red)
             }
         }
     }

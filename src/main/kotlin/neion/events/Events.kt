@@ -25,4 +25,8 @@ class PacketReceiveEvent(val packet: Packet<*>): DebugEvent()
 @Cancelable
 class PacketSentEvent(val packet: Packet<*>) : DebugEvent()
 
+class PreKeyInputEvent(val key: Int, val character: Char) : DebugEvent()
+
+class PreMouseInputEvent(val button: Int): DebugEvent()
+
 

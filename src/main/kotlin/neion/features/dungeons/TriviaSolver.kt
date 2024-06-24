@@ -1,39 +1,66 @@
 package neion.features.dungeons
 
-import com.google.gson.JsonObject
+import com.google.gson.JsonArray
 import com.google.gson.JsonPrimitive
-import neion.Config
+import neion.events.ChatEvent
+import neion.ui.clickgui.Category
+import neion.ui.clickgui.Module
 import neion.utils.APIHandler
 import neion.utils.Location.inDungeons
 import neion.utils.TextUtils.containsAny
+import neion.utils.TextUtils.stripControlCodes
 import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.util.ChatComponentText
+import net.minecraft.util.ChatStyle
+import net.minecraft.util.EnumChatFormatting
 import net.minecraftforge.client.event.ClientChatReceivedEvent
 import net.minecraftforge.client.event.RenderLivingEvent
+import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import java.awt.Color
 import kotlin.math.floor
 
-object TriviaSolver {
+object TriviaSolver: Module("Quiz Solver", category = Category.DUNGEON) {
 
-    var triviaAnswer: String? = null
-    var quizData: JsonObject? = null
+    var triviaAnswer: JsonArray? = null
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     fun onChat(e: ClientChatReceivedEvent) {
-        if (!Config.quizSolver || !inDungeons) return
-        val message = e.message.unformattedText
-        if (message.contains("What SkyBlock year is it?")) triviaAnswer = JsonPrimitive("Year ${(floor((System.currentTimeMillis() / 1000.0) - 1560276000) / 446400 + 1)}").asString // Credit Danker's Skyblock Mod
+        if (!inDungeons) return
+        val message = e.message.unformattedText.stripControlCodes()
+        if (message.contains("What SkyBlock year is it?")) {
+            triviaAnswer = JsonArray()
+            triviaAnswer?.add(JsonPrimitive("Year ${(floor((System.currentTimeMillis() / 1000L).toDouble() - 1560276000) / 446400 + 1).toInt()}"))
+        } // Credit Danker's Skyblock Mod
         else {
-            if (quizData == null) quizData = APIHandler.getResponse("https://data.skytils.gg/solvers/oruotrivia.json") else
-            for (question in quizData!!.entrySet().map { it.key }) if (message.contains(question)) triviaAnswer = quizData!![question].asString
+            if (APIHandler.quizdata == null) APIHandler.quizdata =
+                APIHandler.getResponse("https://data.skytils.gg/solvers/oruotrivia.json")
+            val triviaSolutions = APIHandler.quizdata!!.asJsonObject
+            for (question in triviaSolutions.entrySet().map { it.key }) {
+                if (message.contains(question)) {
+                    triviaAnswer = triviaSolutions.getAsJsonArray(question)
+                }
+            }
         }
-        if (message.containsAny("ⓐ", "ⓑ", "ⓒ") && message.contains(triviaAnswer!!)) e.message = ChatComponentText(e.message.formattedText.replace("§a", "§a§l"))
+        if (message.containsAny("ⓐ", "ⓑ", "ⓒ") && triviaAnswer != null) {
+            for (answer in triviaAnswer!!) {
+                // https://i.imgur.com/zpwaSOq.png
+                e.message = if (message.contains(answer.asString)) ChatComponentText(
+                    e.message.formattedText.replace(
+                        "§a",
+                        "§a§l"
+                    )
+                ) else ChatComponentText(e.message.formattedText.replace("§a", "§a§4"))
+            }
+        }
     }
 
     @SubscribeEvent
     fun onRenderArmorStandPre(e: RenderLivingEvent.Pre<EntityArmorStand>) {
-        if (!Config.quizSolver || !inDungeons || triviaAnswer == null) return
-        val name = e.entity
-        if (name.customNameTag.contains(triviaAnswer!!)) name.customNameTag = name.customNameTag.replace("§a", "§a§l")
+        if (!inDungeons || triviaAnswer == null) return
+        for (answer in triviaAnswer!!) {
+            val name = e.entity
+            if (name.customNameTag.contains(answer.asString)) name.customNameTag = "CLICK!!!"
+        }
     }
 }

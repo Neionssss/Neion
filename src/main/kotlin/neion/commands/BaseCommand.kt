@@ -13,7 +13,7 @@ abstract class BaseCommand(private val name: String, private val aliases: List<S
 
     abstract fun processCommand(player: EntityPlayerSP, args: Array<String>)
 
-    final override fun processCommand(sender: ICommandSender, args: Array<String>,) =
+    final override fun processCommand(sender: ICommandSender, args: Array<String>) =
         processCommand(sender as EntityPlayerSP, args)
 
     final override fun getCommandUsage(sender: ICommandSender) =

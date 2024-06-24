@@ -1,10 +1,10 @@
 package neion.utils
 
-import cc.polyfrost.oneconfig.utils.hypixel.HypixelUtils
-import neion.MapConfig
 import neion.Neion.Companion.mc
+import neion.features.ForceSkyblock
 import neion.utils.TextUtils.stripControlCodes
 import net.minecraft.scoreboard.ScorePlayerTeam
+import java.util.*
 
 object Location {
 
@@ -14,16 +14,24 @@ object Location {
     var masterMode = false
     var inBoss = false
 
+    fun isHypixel() = mc.theWorld != null &&
+            !mc.isSingleplayer &&
+            (mc.thePlayer?.clientBrand?.lowercase()?.contains("hypixel") == true ||
+                    mc.currentServerData?.serverIP?.lowercase(Locale.getDefault())?.contains("hypixel")!!)
+
     fun onTick() {
-        if (MapConfig.forceSkyblock) {
+        if (ForceSkyblock.enabled) {
             inSkyblock = true
             inDungeons = true
             dungeonFloor = 7
         } else {
-            inSkyblock = HypixelUtils.INSTANCE.isHypixel && mc.theWorld.scoreboard?.getObjectiveInDisplaySlot(1)?.name == "SBScoreboard"
+            inSkyblock = isHypixel() && mc.theWorld.scoreboard?.getObjectiveInDisplaySlot(1)?.name == "SBScoreboard"
+
             if (!inDungeons) {
                 getLines().find {
-                    cleanLine(it).run { contains("The Catacombs (") && !contains("Queue") }
+                    cleanLine(it).run {
+                        contains("The Catacombs (") && !contains("Queue")
+                    }
                 }?.let {
                     inDungeons = true
                     val line = it.substringBefore(")")
@@ -35,7 +43,7 @@ object Location {
     }
 
     // --------------
-    fun cleanLine(scoreboard: String): String = stripControlCodes(scoreboard).filter { it.code in 32..126 }
+    fun cleanLine(scoreboard: String): String = scoreboard.stripControlCodes().filter { it.code in 32..126 }
 
     fun getLines(): List<String> {
         return mc.theWorld?.scoreboard?.run {

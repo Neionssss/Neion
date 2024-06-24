@@ -1,12 +1,19 @@
 package neion.events
 
 import net.minecraft.client.model.ModelBase
+import net.minecraft.client.renderer.culling.ICamera
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraftforge.fml.common.eventhandler.Cancelable
 
 @Cancelable
-class CheckRenderEntityEvent(val entity: Entity) : DebugEvent()
+class CheckRenderEntityEvent(
+    val entity: Entity,
+    val camera: ICamera,
+    val camX: Double,
+    val camY: Double,
+    val camZ: Double
+) : DebugEvent()
 
 @Cancelable
 class RenderLivingEntityEvent(

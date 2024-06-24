@@ -1,36 +1,40 @@
 package neion.commands
 
-import neion.Config
 import neion.Neion
-import neion.features.JasperESP
-import neion.features.RandomStuff
-import neion.funnymap.map.ScanUtils
-import neion.ui.Configurator
-import neion.ui.EditLocationGui
+import neion.features.ArmorColor
+import neion.features.ClickGui
+import neion.features.dungeons.DungeonChestProfit
+import neion.ui.EditHudGUI
+import neion.ui.clickgui.ClickGUI
+import neion.ui.clickgui.ModuleConfig
+import neion.utils.APIHandler
+import neion.utils.ExtrasConfig
+import neion.utils.TextUtils
+import neion.utils.Utils
 import net.minecraft.client.entity.EntityPlayerSP
 import net.minecraft.command.ICommandSender
 import net.minecraft.util.BlockPos
 
 object Neionssss: BaseCommand("neion", listOf("nn")) {
-    private val commands = listOf("loadConfig", "edit", "bzsell", "stopScan", "restartScan")
+    private val commands = listOf("loadConfig", "edit", "refreshPrices")
 
     override fun processCommand(player: EntityPlayerSP, args: Array<String>) {
         if (args.isEmpty()) {
-            Config.openGui()
+            Neion.display = ClickGUI()
             return
         }
         when (args[0]) {
-            "edit" -> Neion.display = EditLocationGui()
-            "bzsell" -> RandomStuff.onSell()
             "loadConfig" -> {
-                ScanUtils.loadExtras()
-                Configurator.loadData()
+                ExtrasConfig.loadExtras()
+                ArmorColor.loadConfig()
             }
-            "stopGemScan" -> JasperESP.stopped = true
-            "restartGemScan" -> {
-                JasperESP.stopped = false
-                JasperESP.scanning = false
+            "edit" -> Neion.display = EditHudGUI
+            "refreshPrices" -> APIHandler.refreshData()
+            "apiKey" -> {
+                ClickGui.apiKey.text = args[1]
+                ModuleConfig(Neion.modDir).saveConfig()
             }
+            "fetch" -> Utils.fetchEVERYWHERE(args[1])?.let { Utils.fn(it) }?.let { TextUtils.info(it) }
         }
     }
 
