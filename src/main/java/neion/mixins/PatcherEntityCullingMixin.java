@@ -1,6 +1,6 @@
 package neion.mixins;
 
-import neion.Config;
+import neion.features.MurderHelper;
 import neion.utils.Utils;
 import net.minecraft.client.entity.EntityOtherPlayerMP;
 import net.minecraft.entity.Entity;
@@ -17,6 +17,6 @@ abstract class PatcherEntityCullingMixin {
     @Dynamic
     @Inject(method = "checkEntity", at = @At("HEAD"), cancellable = true)
     private static void overrideEntityCulling(Entity entity, CallbackInfoReturnable<Boolean> cir) {
-        if (entity instanceof EntityOtherPlayerMP && Config.INSTANCE.getMurderHelper() && Utils.INSTANCE.inMurderMystery()) cir.setReturnValue(false);
+        if (entity instanceof EntityOtherPlayerMP && MurderHelper.INSTANCE.getEnabled() && Utils.INSTANCE.inMurderMystery()) cir.setReturnValue(false);
     }
 }

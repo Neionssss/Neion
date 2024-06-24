@@ -931,6 +931,15 @@
     "secrets": 9
   },
   {
+    "name": "Rare Carpets",
+    "type": "RARE",
+    "cores": [
+      1890757664
+    ],
+    "crypts": 0,
+    "secrets": 1
+  },
+  {
     "name": "Rare Overgrown",
     "type": "RARE",
     "cores": [
@@ -1297,5 +1306,14 @@
     ],
     "crypts": 8,
     "secrets": 4
+  },
+  {
+    "name": "Zodd",
+    "type": "NORMAL",
+    "cores": [
+      105458531
+    ],
+    "crypts": 1,
+    "secrets": 1
   }
 ]

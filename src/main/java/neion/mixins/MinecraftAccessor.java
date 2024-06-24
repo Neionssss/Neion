@@ -9,4 +9,5 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 public interface MinecraftAccessor {
     @Accessor
     Timer getTimer();
-}
+    }
+

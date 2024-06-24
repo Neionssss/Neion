@@ -1,22 +1,19 @@
 package neion.mixins;
 
-import neion.Neion;
-import neion.Config;
 import neion.events.ClickEvent;
-import neion.utils.Location;
-import net.minecraft.block.Block;
+import neion.events.PreKeyInputEvent;
+import neion.events.PreMouseInputEvent;
+import neion.features.CancelInteractions;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.WorldClient;
-import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
 import net.minecraft.util.BlockPos;
+import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import java.util.Arrays;
 
 @Mixin(Minecraft.class)
 abstract class MixinMinecraft {
@@ -38,13 +35,16 @@ abstract class MixinMinecraft {
 
     @Redirect(method = "rightClickMouse", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/WorldClient;isAirBlock(Lnet/minecraft/util/BlockPos;)Z"))
     public boolean shouldCancelInteract(WorldClient instance, BlockPos blockPos) {
-        for (Block b : Arrays.asList(
-                Blocks.lever,
-                Blocks.chest,
-                Blocks.trapped_chest,
-                Blocks.stone_button,
-                Blocks.wooden_button,
-                Blocks.air)) return Config.INSTANCE.getCancelInteractions() && Location.INSTANCE.getInDungeons() && Neion.getMc().thePlayer.getHeldItem().getItem() == Items.ender_pearl && instance.getBlockState(blockPos).getBlock() == b;
-        return false;
+        return CancelInteractions.INSTANCE.shouldCancel(instance,blockPos);
+    }
+    @Inject(method = "runTick", at = {@At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;dispatchKeypresses()V")})
+    public void keyPresses(CallbackInfo ci) {
+        int k = (Keyboard.getEventKey() == 0) ? (Keyboard.getEventCharacter() + 256) : Keyboard.getEventKey();
+        if (Keyboard.getEventKeyState()) new PreKeyInputEvent(k, Keyboard.getEventCharacter()).postAndCatch();
+    }
+
+    @Inject(method = "runTick", at = {@At(value = "INVOKE", target = "Lorg/lwjgl/input/Mouse;getEventButton()I")})
+    public void mouseKeyPresses(CallbackInfo ci) {
+        if (Mouse.getEventButtonState()) new PreMouseInputEvent(Mouse.getEventButton()).postAndCatch();
     }
 }

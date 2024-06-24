@@ -4,8 +4,9 @@
   "package": "neion.mixins",
   "refmap": "${modname}-refmap.json",
   "client": [
+    "AccessorGuiNewChat",
+    "CleanerTabMixin",
     "GuiIngameMixin",
-    "HideTabPingMixin",
     "logMixin",
     "MinecraftAccessor",
     "MixinBossStatus",
