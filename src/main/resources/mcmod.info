@@ -1,0 +1,13 @@
+[
+  {
+    "modid": "${modid}",
+    "name": "${modname}",
+    "description": "That mod now exist",
+    "version": "${version}",
+    "mcversion": "${mcversion}",
+    "logoFile": "man.png",
+    "authorList": [
+      "Neion"
+    ]
+  }
+]
