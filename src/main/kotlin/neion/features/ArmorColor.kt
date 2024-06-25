@@ -1,22 +1,24 @@
 package neion.features
 
+import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import neion.Neion
-import neion.ui.Configurator
 import java.io.File
 
-object ArmorColor: Configurator(File(Neion.modDir, "armorcolors.json")) {
+object ArmorColor {
     var armorColors = HashMap<String, Int>()
+    val file = File(Neion.modDir, "armorcolors.json")
+    val gson = GsonBuilder().setPrettyPrinting().create()
 
-    override fun loadConfig() {
-        with(this.file.bufferedReader().use { it.readText() }) {
-            if (this == "") return
-            armorColors = gson.fromJson(this, object : TypeToken<HashMap<String, Int>>() {}.type)
+    fun loadConfig() {
+        file.createNewFile()
+        with(file.bufferedReader().use { it.readText() }) {
+            if (this != "") armorColors = gson.fromJson(this, object : TypeToken<HashMap<String, Int>>() {}.type)
         }
     }
 
-    override fun saveConfig() {
-        this.file.bufferedWriter().use {
+    fun saveConfig() {
+        file.bufferedWriter().use {
             it.write(gson.toJson(armorColors))
         }
     }
