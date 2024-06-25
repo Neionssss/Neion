@@ -1,4 +1,4 @@
-To get started, download the config file from [here]()
+To get started, download the config file from [here](https://github.com/Neionssss/Neion/releases/download/0.1.0.1/extrasConfig.json)
 
 Nextly, locate your minecraft folder, hop on to config, find neion(You should start the game with mod for it to appear) and paste the downloaded file inside.  
 If you're in minecraft, run [/nn loadConfig] command, otherwise config will be loaded as you start the minecraft  
