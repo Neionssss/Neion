@@ -51,9 +51,10 @@ object Dungeon {
         if (PreBlocks.enabled) EditMode.getCurrentRoomPair()?.run {
             ExtrasConfig.extraRooms[first.data.name]?.preBlocks?.forEach { (blockID, posList) ->
                 posList.forEach {
-                    mc.theWorld.setBlockState(
+                    mc.theWorld?.
+                    setBlockState(
                         MapUtils.getRealPos(it, roomPair = this),
-                        MapUtils.getStateFromIDWithRotation(Block.getStateById(blockID), rotation = this.second)
+                        second.let { it1 -> MapUtils.getStateFromIDWithRotation(Block.getStateById(blockID), rotation = it1) }
                     )
                 }
             }
@@ -78,7 +79,6 @@ object Dungeon {
                 dungeonList[row * 11 + column] = scanRoom(xPos, zPos, row, column)
             }
         }
-
         if (allChunksLoaded) hasScanned = true
         isScanning = false
     }
@@ -97,6 +97,11 @@ object Dungeon {
                 Room(x, z, MapUtils.getRoomData(roomCore) ?: return null).apply {
                     core = roomCore
                     if (data.type == RoomType.FAIRY) fairyPos = Pair(x,z)
+                        mc.theWorld?.loadedTileEntityList?.filter { it is TileEntityChest && it.chestType == 1 }?.groupingBy {
+                            MapUtils.getRoomFromPos(it.pos)
+                        }?.eachCount()?.forEach { (room, trappedChests) ->
+                            hasMimic = this == room && data.trappedChests < trappedChests
+                        }
                     if (Mapping.scanMimic.enabled && !RunInformation.mimicFound && Location.dungeonFloor.equalsOneOf(6, 7) && hasMimic) RunInformation.mimicFound = true
                     // Checks if a room with the same name has already been scanned.
                     val duplicateRoom = uniqueRooms.firstOrNull { it.first.data.name == data.name }
@@ -105,6 +110,7 @@ object Dungeon {
                         uniqueRooms.remove(duplicateRoom)
                         uniqueRooms.add(this to (column to row))
                     }
+                    MapUpdate.getRotation(this)
                 }
             }
             // Can only be the center "block" of a 2x2 room.
@@ -147,5 +153,6 @@ object Dungeon {
         dungeonTeammates.clear()
         hasScanned = false
         RunInformation.reset()
+        MapUpdate.rooms.clear()
     }
 }

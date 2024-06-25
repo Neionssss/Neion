@@ -13,10 +13,13 @@ import net.minecraft.init.Blocks
 import net.minecraft.util.BlockPos
 import net.minecraft.util.StringUtils
 import kotlin.math.abs
+import kotlin.math.floor
 import kotlin.math.min
 import kotlin.math.roundToInt
 
 object MapUpdate {
+
+    val rooms = mutableMapOf<Room, Int>()
 
     var fairyOpened = false
 
@@ -78,20 +81,12 @@ object MapUpdate {
                 val mapTile = mapTile(pX, pZ) ?: continue
                 (tile as? Room)?.run {
                     if (data.type == RoomType.FAIRY && state == RoomState.GREEN) fairyOpened = true
-                    listOf(-15 to -15, 15 to -15, 15 to 15, -15 to 15).forEachIndexed { index, pair ->
-                        val height =
-                            mc.theWorld.getChunkFromChunkCoords(x shr 4, z shr 4).getHeightValue(x and 15, z and 15)
-                        if (mc.theWorld.getBlockState(
-                                BlockPos(
-                                    x + pair.first,
-                                    min(height, height - 1),
-                                    z + pair.second
-                                )
-                            ).block == Block.getBlockById(159)
-                        ) rotation = index * 90
+                    if (mapTile.state.ordinal < state.ordinal) {
+                        getRotation(this)
+                        state = mapTile.state
                     }
-                    if (mapTile.state.ordinal < state.ordinal) state = mapTile.state
                 }
+
                 if (tile is Door) {
                     if (tile.nextToFairy == null && !fairyOpened) {
                         fairyPos?.run {
@@ -108,6 +103,27 @@ object MapUpdate {
             }
         }
     }
+
+    fun getRotation(room: Tile) {
+        if (room !is Room) return
+        room.apply {
+            if (data.type == RoomType.FAIRY) rooms[this] = 0 else {
+                listOf(-15 to -15, 15 to -15, 15 to 15, -15 to 15).forEachIndexed { index, pair ->
+                    val height = mc.theWorld.getChunkFromChunkCoords(x shr 4, z shr 4)
+                        .getHeightValue(x and 15, z and 15)
+                    if (mc.theWorld.getBlockState(
+                            BlockPos(
+                                x + pair.first,
+                                min(height, height - 1),
+                                z + pair.second
+                            )
+                        ).block == Block.getBlockById(159) && !rooms.contains(this)
+                    ) rooms[this] = index * 90
+                }
+            }
+        }
+    }
+
 
     fun mapTile(x: Int, z: Int): Tile? {
         val mapColors = MapUtils.getMapData()?.colors
