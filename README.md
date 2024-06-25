@@ -13,7 +13,7 @@ Next, as you enter than dungeon, use command /em (/editmode) to enter/leave the 
 
 While in edit mode:  
 Your left click will set the block to air  
-Right click will place the block you selected (Default one is Glass || /em *blockname* to select) [shortcuts](https://github.com/Neionssss/Neion/blob/9d06643556c9c3c59590e4dc20320bcea3b186e1/shortcuts)  
+Right click will place the block you selected (Default one is Glass || /em *blockname* to select) [shortcuts](https://github.com/Neionssss/Neion/blob/91647197c786afcc73ba639ffe273fa5e037d564/shortcuts.md)  
 Middle Click will set the selected block to one you're currently hovered  
 
 ###### }
