@@ -1,7 +1,6 @@
 package neion.features
 
 import neion.events.ChatEvent
-import neion.features.dungeons.DungeonChestProfit.profitScale
 import neion.funnymap.RunInformation
 import neion.ui.HudElement
 import neion.ui.clickgui.Category
@@ -14,7 +13,6 @@ import neion.utils.Location.inSkyblock
 import neion.utils.RenderUtil
 import neion.utils.TextUtils.containsAny
 import neion.utils.Utils.equalsOneOf
-import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.entity.boss.IBossDisplayData
 import net.minecraft.util.ChatComponentText
 import net.minecraftforge.client.event.ClientChatReceivedEvent
@@ -40,8 +38,8 @@ object CustomGUI: Module("CustomGUI", category = Category.RENDER) {
     val manaY = NumberSetting("ManaY", default = 500.0, hidden = true)
     val manaScale = NumberSetting("ManaScale", default = 1.0,min = 0.1,max = 4.0, hidden = true)
 
-    val healthX = NumberSetting("HealthX", default = 800.0, hidden = true)
-    val healthY = NumberSetting("HealthY", default = 800.0, hidden = true)
+    val healthX = NumberSetting("HealthX", default = 600.0, hidden = true)
+    val healthY = NumberSetting("HealthY", default = 600.0, hidden = true)
     val healthScale = NumberSetting("HealthScale", default = 1.0,min = 0.1,max = 4.0, hidden = true)
 
 // -----------------------------------------------------------------------------------
@@ -55,7 +53,7 @@ object CustomGUI: Module("CustomGUI", category = Category.RENDER) {
     val hideHealth = BooleanSetting("Hide Health Bar")
     val hideActionBar = BooleanSetting("Hide Action Bar")
     val showMana = BooleanSetting("Custom Mana")
-    val customHealth = BooleanSetting("Custom Health")
+    val showHealth = BooleanSetting("Custom Health")
     val showSecrets = BooleanSetting("Dungeon Secrets")
     val customClearedPercent = BooleanSetting("Cleared Percent")
     val customTime = BooleanSetting("Dungeon Time Spent")
@@ -91,7 +89,7 @@ object CustomGUI: Module("CustomGUI", category = Category.RENDER) {
             hideHealth,
             hideActionBar,
             showMana,
-            customHealth,
+            showHealth,
             showSecrets,
             customClearedPercent,
             customTime
@@ -116,7 +114,7 @@ object CustomGUI: Module("CustomGUI", category = Category.RENDER) {
             if (hideActionBar.enabled) e.isCanceled = true
             if (showSecrets.enabled) e.message = ChatComponentText(e.message.unformattedText.replace(secretRegex, ""))
             if (showMana.enabled) e.message = ChatComponentText(e.message.unformattedText.replace(",","").replace(manaRegex, ""))
-            if (customHealth.enabled) e.message = ChatComponentText(e.message.unformattedText.replace(",", "").replace(healthRegex,""))
+            if (showHealth.enabled) e.message = ChatComponentText(e.message.unformattedText.replace(",", "").replace(healthRegex,""))
         }
     }
 
@@ -152,7 +150,8 @@ object CustomGUI: Module("CustomGUI", category = Category.RENDER) {
 
     fun shouldHideBossBar(displayData: IBossDisplayData): Boolean {
         if (onlySkyblock.enabled && !inSkyblock) return false
-            return enabled && !displayData.displayName?.unformattedText?.containsAny( "Bonzo",
+            return enabled && !displayData.displayName?.unformattedText?.containsAny(
+            "Bonzo",
             "Scarf",
             "The Professor",
             "Thorn",
@@ -189,7 +188,7 @@ object CustomGUI: Module("CustomGUI", category = Category.RENDER) {
         override fun render() = RenderUtil.renderText("Mana: $leastMana/$maxedMana", 0, 0, color = manaColor.rgb)
     }
     object HealthDisplay : HudElement(healthX, healthY, width = mc.fontRendererObj.getStringWidth("10000/10000 Health"), scaleSett = healthScale) {
-        override fun shouldRender() = CustomGUI.enabled && customHealth.enabled && inSkyblock
+        override fun shouldRender() = CustomGUI.enabled && showHealth.enabled && inSkyblock
         override fun render() = RenderUtil.renderText("Health: $leastHealth/$maxedHealth", 0, 0, color = healthColor.rgb)
     }
 

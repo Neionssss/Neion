@@ -123,9 +123,9 @@ object MapUtils {
         return sb.toString().hashCode()
     }
 
+    // Everything lower is from FloppaClient, thanks
     fun getRelativePos(blockPos: BlockPos, roomPair: Pair<Room, Int>) = getRotatedPos(blockPos.add(-roomPair.first.x, 0, -roomPair.first.z), -roomPair.second)
 
-    // Everything lower is from FloppaClient, thanks
     fun getRealPos(blockPos: BlockPos, roomPair: Pair<Room, Int>): BlockPos = getRotatedPos(blockPos, roomPair.second).add(roomPair.first.x,0,roomPair.first.z)
 
     fun getStateFromIDWithRotation(iblockstate: IBlockState, rotation: Int) : IBlockState {

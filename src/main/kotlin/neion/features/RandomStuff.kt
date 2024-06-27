@@ -6,7 +6,7 @@ import neion.Neion.Companion.mc
 import neion.events.PacketReceiveEvent
 import neion.events.PacketSentEvent
 import neion.features.dungeons.*
-import neion.features.dungeons.DungeonChestProfit.DungeonChest
+import neion.features.dungeons.ChestProfit.DungeonChest
 import neion.funnymap.Dungeon
 import neion.ui.EditHudGUI
 import neion.ui.EditHudGUI.hudElements
@@ -158,9 +158,9 @@ object RandomStuff {
         BlazeSolver.blist.clear()
         MurderHelper.wrote = false
         JasperESP.scanning = false
-        DungeonChestProfit.notOpened = true
-        DungeonChestProfit.nextAble = true
-        DungeonChestProfit.timeWait = 0L
+        ChestProfit.notOpened = true
+        ChestProfit.nextAble = true
+        ChestProfit.timeWait = 0L
         SimonSaysSolver.clickInOrder.clear()
         SimonSaysSolver.cleared = false
         TeleportMazeSolver.map.clear()

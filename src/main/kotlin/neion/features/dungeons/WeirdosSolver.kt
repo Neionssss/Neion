@@ -1,7 +1,8 @@
 package neion.features.dungeons
 
-import neion.Config
-import neion.Neion.Companion.mc
+import neion.ui.clickgui.Category
+import neion.ui.clickgui.Module
+import neion.ui.clickgui.settings.BooleanSetting
 import neion.utils.Location.inDungeons
 import neion.utils.RenderUtil
 import neion.utils.TextUtils.containsAny
@@ -17,7 +18,14 @@ import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import java.awt.Color
 
-object WeirdosSolver {
+object WeirdosSolver: Module("Weirdos Solver", category = Category.DUNGEON) {
+
+    val removeEntities = BooleanSetting("Remove Weirdos on-click")
+    val autoWeirdos = BooleanSetting("Auto-Weirdos", false)
+
+    init {
+        addSettings(removeEntities,autoWeirdos)
+    }
 
     var riddleChest: BlockPos? = null
 
@@ -53,37 +61,48 @@ object WeirdosSolver {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
     fun onChat(event: ClientChatReceivedEvent) {
-        if (!Config.threeSolver || !inDungeons || event.type == 2.toByte() || EditMode.getCurrentRoomPair()?.first?.data?.name != "Three Weirdos") return
+        if (!inDungeons || event.type == 2.toByte() || EditMode.getCurrentRoomPair()?.first?.data?.name != "Three Weirdos") return
         val formatted = event.message.formattedText ?: return
         if (formatted.startsWith("§e[NPC] ")) {
             val loadedEntities = mc.theWorld.loadedEntityList ?: return
-            val entity = loadedEntities.find { it is EntityArmorStand && formatted.substringAfter("§c").substringBefore("§f") in it.customNameTag } ?: return
-            val chestLoc = EnumFacing.HORIZONTALS?.map { dir -> entity.position?.offset(dir) }?.find { mc.theWorld?.getBlockState(it)?.block == Blocks.chest } ?: return
+            val entity = loadedEntities.find {
+                it is EntityArmorStand && formatted.substringAfter("§c").substringBefore("§f") in it.customNameTag
+            } ?: return
+            val chestLoc = EnumFacing.HORIZONTALS?.map { dir -> entity.position?.offset(dir) }
+                ?.find { mc.theWorld?.getBlockState(it)?.block == Blocks.chest } ?: return
             if (formatted.containsAny(solutions)) riddleChest = chestLoc
             if (formatted.containsAny(wrong)) mc.theWorld.setBlockState(chestLoc, Blocks.air.defaultState)
-            loadedEntities.filter { it.posX == entity.posX && it.posZ == entity.posZ }.forEach { mc.theWorld.removeEntity(it) }
+            if (removeEntities.enabled) loadedEntities.filter { it.posX == entity.posX && it.posZ == entity.posZ }.forEach { mc.theWorld.removeEntity(it) }
         }
     }
 
     @SubscribeEvent
     fun onWorld(e: RenderWorldLastEvent) {
-        if (!inDungeons || !Config.threeSolver || EditMode.getCurrentRoomPair()?.first?.data?.name != "Three Weirdos") return
+        if (!inDungeons || EditMode.getCurrentRoomPair()?.first?.data?.name != "Three Weirdos") return
         riddleChest?.let {
             RenderUtil.drawBlockBox(it, Color.GREEN, outline = false, fill = true, esp = false)
-            EnumFacing.HORIZONTALS.map { dir ->
-                if (Config.autoWeirdos && notYet) {
-                    mc.playerController.onPlayerRightClick(mc.thePlayer,mc.theWorld,mc.thePlayer.heldItem, riddleChest, dir, Vec3(riddleChest!!.x.toDouble(), riddleChest!!.y.toDouble(), riddleChest!!.z.toDouble()))
-                    notYet = false
-                }}
-        }
-            if (Config.autoWeirdos) {
-                mc.theWorld?.loadedEntityList?.filter { it is EntityArmorStand && it.customNameTag.contains("CLICK") }?.forEach {
-                    if (EditMode.getCurrentRoomPair()?.first?.data?.name == "Three Weirdos" && !inter.contains(it) && System.currentTimeMillis() - lastInter > 50 && mc.thePlayer.getDistanceToEntity(it) < 5) {
+            if (!autoWeirdos.enabled) return
+            mc.theWorld?.loadedEntityList?.filter { s -> s is EntityArmorStand && s.customNameTag.contains("CLICK") }?.forEach { s ->
+                    if (!inter.contains(s) && System.currentTimeMillis() - lastInter > 50 && mc.thePlayer.getDistanceToEntity(s) < 5
+                    ) {
                         lastInter = System.currentTimeMillis()
-                        inter.add(it)
-                        mc.playerController.interactWithEntitySendPacket(mc.thePlayer, it)
+                        inter.add(s)
+                        mc.playerController.interactWithEntitySendPacket(mc.thePlayer, s)
                     }
+                }
+            EnumFacing.HORIZONTALS.map { dir ->
+                if (autoWeirdos.enabled && notYet) {
+                    notYet = false
+                    mc.playerController.onPlayerRightClick(
+                        mc.thePlayer,
+                        mc.theWorld,
+                        mc.thePlayer.heldItem,
+                        it,
+                        dir,
+                        Vec3(it.x.toDouble(), it.y.toDouble(), it.z.toDouble())
+                    )
                 }
             }
         }
     }
+}

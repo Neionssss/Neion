@@ -1,7 +1,5 @@
 package neion.ui.clickgui
 
-import neion.Neion.Companion.display
-import neion.Neion.Companion.mc
 import neion.ui.clickgui.settings.Setting
 import neion.events.PreKeyInputEvent
 import neion.events.PreMouseInputEvent
@@ -10,10 +8,7 @@ import neion.features.dungeons.*
 import neion.ui.Colors
 import neion.ui.Mapping
 import neion.ui.Score
-import neion.utils.Utils.equalsOneOf
-import net.minecraft.client.settings.KeyBinding
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import org.lwjgl.input.Keyboard
 
 /**
  * This object handles all the modules. After making a module it just has to be added to the "modules" list and
@@ -53,7 +48,7 @@ object ModuleManager {
         AutoGFS,
         BlazeSolver,
         Croesus,
-        DungeonChestProfit,
+        ChestProfit,
         PreBlocks,
         GKey,
         ItemESP,

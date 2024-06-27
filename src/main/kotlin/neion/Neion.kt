@@ -36,7 +36,7 @@ import java.io.File
 @Mod(
     modid = Neion.MOD_ID,
     name = "Neion",
-    version = "0.1.0",
+    version = "0.1.1",
 )
 
 class Neion {

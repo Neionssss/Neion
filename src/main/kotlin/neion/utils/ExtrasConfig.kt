@@ -19,10 +19,10 @@ object ExtrasConfig {
 
     fun saveExtras() = file.bufferedWriter().use { it.write(gson.toJson(extraRooms)) }
 
-    private val gson = GsonBuilder().registerTypeAdapter(object : TypeToken<MutableSet<BlockPos>>() {}.type, SetBlockPosSerializer()).registerTypeAdapter(object : TypeToken<MutableSet<BlockPos>>() {}.type, SetBlockPosDeserializer()).setPrettyPrinting().create()
+    val gson = GsonBuilder().registerTypeAdapter(object : TypeToken<MutableSet<BlockPos>>() {}.type, SetBlockPosSerializer()).registerTypeAdapter(object : TypeToken<MutableSet<BlockPos>>() {}.type, SetBlockPosDeserializer()).setPrettyPrinting().create()
 
     var extraRooms: MutableMap<String, ExtrasData> = mutableMapOf()
-    private val file = File(Neion.modDir, "extrasConfig.json")
+    val file = File(Neion.modDir, "extrasConfig.json")
 
     data class ExtrasData(val baseCore: Int, val preBlocks: MutableMap<Int, MutableSet<BlockPos>> = mutableMapOf())
 

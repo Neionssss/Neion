@@ -1,7 +1,7 @@
 package neion.features.dungeons
 
-import neion.Config
-import neion.Neion.Companion.mc
+import neion.ui.clickgui.Category
+import neion.ui.clickgui.Module
 import neion.utils.Location
 import neion.utils.RenderUtil
 import net.minecraft.client.renderer.GlStateManager
@@ -14,14 +14,14 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
 import java.awt.Color
 
-object SimonSaysSolver {
+object SimonSaysSolver: Module("SS Solver", category = Category.DUNGEON) {
 
     val clickInOrder = mutableSetOf<BlockPos>()
     var cleared = false
 
     @SubscribeEvent
     fun tickOck(e: ClientTickEvent) {
-        if (!Config.ssSolver || !Location.inBoss) return
+        if (!Location.inBoss) return
         for (y in 120..123) {
             for (z in 92..95) {
                 val pos = BlockPos(111, y, z)
@@ -38,7 +38,7 @@ object SimonSaysSolver {
 
     @SubscribeEvent
     fun onInter(e: PlayerInteractEvent) {
-        if (e.action != PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK && e.action != PlayerInteractEvent.Action.LEFT_CLICK_BLOCK || clickInOrder.isEmpty() || !Config.ssSolver) return
+        if (e.action != PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK && e.action != PlayerInteractEvent.Action.LEFT_CLICK_BLOCK || clickInOrder.isEmpty()) return
         val pos = e.pos
         val x = pos.x
         val y = pos.y
@@ -46,12 +46,11 @@ object SimonSaysSolver {
         if (x == 110 && y == 121 && z == 91) clickInOrder.clear()
         if (mc.theWorld.getBlockState(BlockPos(x, y, z)).block != Blocks.stone_button) return
         val pose = BlockPos(x + 1, y, z)
-        if (clickInOrder.first() == pose) clickInOrder.remove(pose) else if (!mc.thePlayer.isSneaking) e.isCanceled = true
+        if (clickInOrder.first() == pose) clickInOrder.remove(pose) else e.isCanceled = true
     }
 
     @SubscribeEvent
     fun onRenderWorld(e: RenderWorldLastEvent) {
-        if (!Config.ssSolver) return
         clickInOrder.forEachIndexed { i, click ->
             val x = click.x - mc.renderManager.viewerPosX
             val y = click.y - mc.renderManager.viewerPosY + .372

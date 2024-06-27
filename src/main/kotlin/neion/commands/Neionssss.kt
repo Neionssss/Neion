@@ -3,7 +3,6 @@ package neion.commands
 import neion.Neion
 import neion.features.ArmorColor
 import neion.features.ClickGui
-import neion.features.dungeons.DungeonChestProfit
 import neion.ui.EditHudGUI
 import neion.ui.clickgui.ClickGUI
 import neion.ui.clickgui.ModuleConfig

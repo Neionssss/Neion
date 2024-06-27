@@ -18,6 +18,9 @@ object Utils {
 
 	fun fn(num: Int) = num.toString().replace(Regex("(\\d)(?=(\\d{3})+(?!\\d))"), "$1,")
 
+	val GuiScreen.chest: ContainerChest?
+		get() = (this as? GuiChest)?.inventorySlots as? ContainerChest
+
 	val ItemStack.extraAttributes: NBTTagCompound?
 		get() = getSubCompound("ExtraAttributes", false)
 
