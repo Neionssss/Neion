@@ -1,11 +1,9 @@
 package neion.ui
 
 import neion.Neion.Companion.modDir
-import neion.features.ClickGui
 import neion.features.CustomGUI
 import neion.features.CustomScoreboard
-import neion.features.RandomStuff
-import neion.features.dungeons.DungeonChestProfit
+import neion.features.dungeons.ChestProfit
 import neion.ui.*
 import neion.ui.clickgui.ColorUtil
 import neion.ui.clickgui.ModuleConfig
@@ -27,7 +25,7 @@ object EditHudGUI : GuiScreen() {
 
     val hudElements: ArrayList<HudElement> = arrayListOf(
         Mapping.MapElement(),
-        DungeonChestProfit.ChestProfitElement,
+        ChestProfit.ChestProfitElement,
         CustomGUI.DungeonSecretDisplay,
         CustomGUI.ClearedDisplay,
         CustomGUI.TimeDisplay,
