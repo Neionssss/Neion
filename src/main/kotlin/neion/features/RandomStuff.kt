@@ -1,5 +1,6 @@
 package neion.features
 
+import io.netty.util.internal.ConcurrentSet
 import neion.Neion
 import neion.Neion.Companion.display
 import neion.Neion.Companion.mc
@@ -10,22 +11,21 @@ import neion.features.dungeons.ChestProfit.DungeonChest
 import neion.funnymap.Dungeon
 import neion.ui.EditHudGUI
 import neion.ui.EditHudGUI.hudElements
-import neion.utils.ExtrasConfig
+import neion.utils.*
 import neion.utils.ExtrasConfig.extraRooms
 import neion.utils.ExtrasConfig.gson
-import neion.utils.Location
 import neion.utils.Location.inBoss
 import neion.utils.Location.inDungeons
 import neion.utils.Location.inSkyblock
-import neion.utils.TextUtils
-import neion.utils.Utils
 import neion.utils.Utils.equalsOneOf
 import net.minecraft.client.gui.inventory.GuiChest
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.settings.KeyBinding
+import net.minecraft.init.Blocks
 import net.minecraft.inventory.ContainerChest
 import net.minecraft.network.play.client.C01PacketChatMessage
 import net.minecraft.network.play.server.S2APacketParticles
+import net.minecraft.util.BlockPos
 import net.minecraft.util.ChatComponentText
 import net.minecraftforge.client.event.ClientChatReceivedEvent
 import net.minecraftforge.client.event.RenderGameOverlayEvent
@@ -41,6 +41,10 @@ import kotlin.concurrent.schedule
 
 object RandomStuff {
 
+    var lastLength = 0L
+    var shouldReset = false
+    var map = ConcurrentSet<BlockPos>()
+
     @SubscribeEvent
     fun onTick(e: TickEvent.ClientTickEvent) {
         if (display != null) {
@@ -52,8 +56,23 @@ object RandomStuff {
         Location.onTick()
         Dungeon.onTick()
         val hue = ClickGui.color.hue
-        val increment = if (hue >= 0f && hue < 1f) ClickGui.chromaSpeed.value / 1000 else if (hue == 1f) -ClickGui.chromaSpeed.value / 1000 else 0.0
+        val increment =
+            if (hue >= 0f && hue < 1f) ClickGui.chromaSpeed.value / 1000 else if (hue == 1f) -ClickGui.chromaSpeed.value / 1000 else 0.0
         if (ClickGui.chroma.enabled) ClickGui.color.hue += increment.toFloat()
+        if (inDungeons && MapUtils.getCurrentRoom()?.data?.name == "Ice Fill") {
+            val blocks = BlockPos.getAllInBox(
+                BlockPos(mc.thePlayer.posX - 10, mc.thePlayer.posY - 1, mc.thePlayer.posZ - 10),
+                BlockPos(mc.thePlayer.posX + 10, mc.thePlayer.posY + 1, mc.thePlayer.posZ + 10)
+            )
+            map.addAll(blocks.filter { mc.theWorld.getBlockState(it).block == Blocks.packed_ice })
+            map.forEach {
+                val blockPos = BlockPos(it.x, it.y + 1, it.z)
+                if (shouldReset) {
+                    mc.theWorld.setBlockState(blockPos, Blocks.air.defaultState)
+                    shouldReset = false
+                } else mc.theWorld.setBlockState(BlockPos(blockPos), Blocks.glass.defaultState)
+            }
+        }
     }
 
 
@@ -148,7 +167,18 @@ object RandomStuff {
 
     @SubscribeEvent
     fun onChat(e: ClientChatReceivedEvent) {
-        if (e.message.unformattedText == "[BOSS] The Watcher: I'm impressed.") e.message = ChatComponentText("[BOSS] The Watcher: I'm depressed.")
+        if (e.message?.unformattedText == "[BOSS] The Watcher: I'm impressed.") e.message = ChatComponentText("[BOSS] The Watcher: I'm depressed.")
+        if (e.message.unformattedText.equalsOneOf("Oops! You stepped on the wrong block!", "Don't move diagonally! Bad!")) shouldReset = true
+    }
+
+    fun saveBackup() {
+        val file = File(Neion.modDir, "extrasConfigBackup.json")
+        if (file.length() < lastLength) {
+            TextUtils.info("YOUR CONFIG FUCKED")
+            return
+        }
+        file.bufferedWriter().use { it.write(gson.toJson(extraRooms)) }
+        lastLength = file.length()
     }
 
     @SubscribeEvent
@@ -175,7 +205,7 @@ object RandomStuff {
         TriviaSolver.triviaAnswer = null
         ExtrasConfig.saveExtras()
         Dungeon.reset()
-        if (ExtrasConfig.file.lastModified() > 300000) File(Neion.modDir, "extrasConfigBackup.json").bufferedWriter().use { it.write(gson.toJson(extraRooms)) }
+        saveBackup()
         if (FreeCam.enabled) FreeCam.toggle()
     }
 

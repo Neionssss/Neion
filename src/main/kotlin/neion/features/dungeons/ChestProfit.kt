@@ -16,7 +16,6 @@ import neion.utils.Utils.equalsOneOf
 import neion.utils.Utils.itemID
 import neion.utils.Utils.lore
 import net.minecraft.entity.item.EntityArmorStand
-import net.minecraft.init.Blocks
 import net.minecraft.inventory.ContainerChest
 import net.minecraft.item.Item
 import net.minecraft.network.play.client.C02PacketUseEntity
@@ -65,9 +64,10 @@ object ChestProfit: Module("Dungeon Chest Profit", category = Category.DUNGEON) 
     fun scanChests(e: ClientTickEvent) {
         if (!inBoss || !looter.enabled) return
         DungeonChest.entries.forEach { chest ->
-            if (nextAble && !chest.canDraw) {
+            if (nextAble && !chest.interacted) {
                 val entity = getEntityFromChest(chest) ?: return@forEach
                 nextAble = false
+                chest.interacted = true
                 mc.netHandler.addToSendQueue(C02PacketUseEntity(entity, C02PacketUseEntity.Action.INTERACT))
             }
         }
@@ -82,27 +82,20 @@ object ChestProfit: Module("Dungeon Chest Profit", category = Category.DUNGEON) 
         if (!inBoss || e.container !is ContainerChest) return
         val chestType = DungeonChest.entries.find { e.chestName == it.displayText } ?: return
         val sssa = e.container.inventorySlots?.get(31)?.stack ?: return
+        nextAble = true
         chestType.value = 0
         chestType.price = Utils.getChestPrice(sssa.lore)
         chestType.canDraw = true
-        for (i in 9..17) {
-            val lootSlot = e.container.inventorySlots?.get(i)?.stack ?: continue
-            if (lootSlot.itemID in worthless || lootSlot.item == Item.getItemFromBlock(Blocks.stained_glass_pane)) continue
-            chestType.items.add(lootSlot.itemID)
-            chestType.value += Utils.fetchEVERYWHERE(lootSlot.itemID) ?: Utils.fetchBzPrices(Utils.getBooksID(lootSlot)) ?: Utils.getEssenceValue(lootSlot.displayName)
+        for (lootSlot in e.container.inventorySlots?.slice(9..18)?.filter { it.stack?.itemID !in worthless && it.stack?.item != Item.getItemById(160) }!!) {
+            val stack = lootSlot.stack ?: continue
+            chestType.value += Utils.fetchEVERYWHERE(stack.itemID) ?: Utils.fetchBzPrices(Utils.getBooksID(stack)) ?: Utils.getEssenceValue(stack.displayName)
         }
         if (looter.enabled) {
             if (notOpened) {
                 mc.thePlayer.closeScreen()
-                nextAble = true
             } else if (openBest.enabled && buyChest.enabled) {
                 val secondChest = DungeonChest.entries.sortedBy { it.profit }.reversed()[1]
-                if (e.chestName == DungeonChest.entries.maxByOrNull { it.profit }?.displayText) {
-                    Utils.clickSlot(31)
-                }
-                if (openSecond.enabled && buySecond.enabled && e.chestName == secondChest.displayText && secondChest.profit > Utils.fetchEVERYWHERE("DUNGEON_CHEST_KEY")?.coerceAtLeast(100000)!!) {
-                    Utils.clickSlot(31)
-                }
+                if (e.chestName == DungeonChest.entries.maxByOrNull { it.profit }?.displayText || (openSecond.enabled && buySecond.enabled && e.chestName == secondChest.displayText && secondChest.profit > Utils.fetchEVERYWHERE("DUNGEON_CHEST_KEY")?.coerceAtLeast(100000)!!)) Utils.clickSlot(31)
             }
         }
     }
@@ -112,12 +105,12 @@ object ChestProfit: Module("Dungeon Chest Profit", category = Category.DUNGEON) 
     fun openBestChest() {
         notOpened = false
         timeWait = System.currentTimeMillis()
-        val bestChest = if (DungeonChest.entries.any { it.items.equalsOneOf(alwaysBuy) }) DungeonChest.entries.find { it.items.equalsOneOf(alwaysBuy) } else DungeonChest.entries.maxByOrNull { it.profit }
+        val bestChest = DungeonChest.entries.maxByOrNull { it.profit }
         mc.netHandler.addToSendQueue(C02PacketUseEntity(bestChest?.let { getEntityFromChest(it) }, C02PacketUseEntity.Action.INTERACT))
     }
 
     fun openSecondChest() {
-        if (!openSecond.enabled || DungeonChest.entries.sortedBy { it.profit }.reversed()[1].profit < Utils.fetchEVERYWHERE("DUNGEON_CHEST_KEY")?.coerceAtLeast(100000)!! || timeWait == 0L || System.currentTimeMillis() - timeWait < 100) return
+        if (!openSecond.enabled || DungeonChest.entries.sortedBy { it.profit }.reversed()[1].profit < Utils.fetchEVERYWHERE("DUNGEON_CHEST_KEY")?.coerceAtLeast(100000)!! || System.currentTimeMillis() - timeWait < 100) return
         val secondChest = DungeonChest.entries.sortedBy { it.profit }.reversed()[1]
         mc.netHandler.addToSendQueue(C02PacketUseEntity(getEntityFromChest(secondChest), C02PacketUseEntity.Action.INTERACT))
     }
@@ -127,12 +120,6 @@ object ChestProfit: Module("Dungeon Chest Profit", category = Category.DUNGEON) 
         return mc.theWorld?.loadedEntityList?.filter { mc.thePlayer.getDistanceToEntity(it) < 20 }?.filterIsInstance<EntityArmorStand>()?.find { it.getEquipmentInSlot(4)?.cleanName() == chest.eqName }
     }
 
-    val alwaysBuy = listOf(
-    "NECRON_HANDLE",
-    "SHADOW_WARP_SCROLL",
-    "IMPLOSION_SCROLL",
-    "WITHER_SHIELD_SCROLL",
-    )
 
     // ----------------------------------------------------
 
@@ -146,8 +133,8 @@ object ChestProfit: Module("Dungeon Chest Profit", category = Category.DUNGEON) 
 
         var price = 0
         var value = 0
-        var items: ArrayList<String> = arrayListOf()
         var canDraw = false
+        var interacted = false
         val profit
             get() = value - price
 
@@ -155,7 +142,7 @@ object ChestProfit: Module("Dungeon Chest Profit", category = Category.DUNGEON) 
             price = 0
             value = 0
             canDraw = false
-            items.clear()
+            interacted = false
         }
     }
 

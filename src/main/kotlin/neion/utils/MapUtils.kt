@@ -8,6 +8,7 @@ import neion.Neion.Companion.mc
 import neion.funnymap.Dungeon
 import neion.funnymap.map.Room
 import neion.funnymap.map.RoomData
+import neion.funnymap.map.RoomType
 import neion.utils.Utils.equalsOneOf
 import net.minecraft.block.Block
 import net.minecraft.block.BlockHopper
@@ -99,7 +100,13 @@ object MapUtils {
         if (it.size > 18 && it[0].second.contains("§r§b§lParty §r§f(")) it else null
     }
 
-    fun getRoomData(hash: Int): RoomData? = roomList.find { it.cores.contains(hash) } // Bitcoin Mining //
+    fun getRoomData(hash: Int): RoomData? = roomList.find { hash in it.cores } // Bitcoin Mining //
+
+    fun getCurrentRoom(): Room? {
+        if (Dungeon.dungeonTeammates[mc.thePlayer.name]?.dead == true) return null
+        if (Location.inBoss) return Room(0,0, RoomData("Boss ${Location.dungeonFloor}", RoomType.BOSS), rotation = 0)
+        return getRoomFromPos(mc.thePlayer?.position!!)
+    }
 
     fun getRoomCentre(posX: Int, posZ: Int): Pair<Int, Int> {
         val roomX = ((posX - Dungeon.startX) / 32f).roundToInt()
@@ -124,22 +131,26 @@ object MapUtils {
     }
 
     // Everything lower is from FloppaClient, thanks
-    fun getRelativePos(blockPos: BlockPos, roomPair: Pair<Room, Int>) = getRotatedPos(blockPos.add(-roomPair.first.x, 0, -roomPair.first.z), -roomPair.second)
+    fun getRelativePos(blockPos: BlockPos, room: Room): BlockPos {
+        return getRotatedPos(blockPos.add(-room.x, 0, -room.z), -room.rotation!!)
+    }
 
-    fun getRealPos(blockPos: BlockPos, roomPair: Pair<Room, Int>): BlockPos = getRotatedPos(blockPos, roomPair.second).add(roomPair.first.x,0,roomPair.first.z)
+    fun getRealPos(blockPos: BlockPos, room: Room): BlockPos {
+        return getRotatedPos(blockPos, room.rotation!!).add(room.x,0,room.z)
+    }
 
     fun getStateFromIDWithRotation(iblockstate: IBlockState, rotation: Int) : IBlockState {
         var blockstate = iblockstate
-        if (blockstate.properties.containsKey(FACING_HORIZONTAL)) {
+        if (blockstate.properties.contains(FACING_HORIZONTAL)) {
             val facing = blockstate.getValue(FACING_HORIZONTAL)
             if (facing.axis.isHorizontal) blockstate = blockstate.withProperty(FACING_HORIZONTAL, getRotatedFacing(facing, rotation))
-        } else if (blockstate.properties.containsKey(FACING_OMNI)) {
+        } else if (blockstate.properties.contains(FACING_OMNI)) {
             val facing = blockstate.getValue(FACING_OMNI)
             if (facing.axis.isHorizontal) blockstate = blockstate.withProperty(FACING_OMNI, getRotatedFacing(facing, rotation))
-        } else if (blockstate.properties.containsKey(FACING_DOWN)) {
+        } else if (blockstate.properties.contains(FACING_DOWN)) {
             val facing = blockstate.getValue(FACING_DOWN)
             if (facing.axis.isHorizontal) blockstate = blockstate.withProperty(FACING_DOWN, getRotatedFacing(facing, rotation))
-        } else if (blockstate.properties.containsKey(FACING_UP)) {
+        } else if (blockstate.properties.contains(FACING_UP)) {
             val facing = blockstate.getValue(FACING_UP)
             if (facing.axis.isHorizontal) blockstate = blockstate.withProperty(FACING_UP, getRotatedFacing(facing, rotation))
         }

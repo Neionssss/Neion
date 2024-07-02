@@ -63,13 +63,13 @@ object MurderHelper: Module("Murder Helper") {
     fun mmystery(e: CheckRenderEntityEvent) {
         if (!Utils.inMurderMystery()) return
         val entity = e.entity
-        (entity as? EntityItem)?.let { RenderUtil.drawEntityBox(it, Color.yellow, true, false, true) }
+        if (entity is EntityItem) RenderUtil.drawEntityBox(entity, Color.yellow, outline = true, fill = false, esp = true)
         if (entity is EntityArmorStand && entity.getEquipmentInSlot(1)?.item == Items.bow) RenderUtil.drawEntityBox(
             entity,
             Color.orange,
-            true,
-            false,
-            true
+            outline = true,
+            fill = false,
+            esp = true
         )
     }
 

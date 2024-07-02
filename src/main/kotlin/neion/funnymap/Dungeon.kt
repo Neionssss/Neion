@@ -1,7 +1,6 @@
 package neion.funnymap
 
 import neion.Neion.Companion.mc
-import neion.features.dungeons.EditMode
 import neion.features.dungeons.PreBlocks
 import neion.funnymap.map.*
 import neion.ui.Mapping
@@ -47,18 +46,32 @@ object Dungeon {
                 RunInformation.updatePuzzles(it)
             }
         }
+        if (getMimicRoom() != null) RunInformation.mimicFound = true
         if (!isScanning && !hasScanned && Location.dungeonFloor != -1) scan()
-        if (PreBlocks.enabled) EditMode.getCurrentRoomPair()?.run {
-            ExtrasConfig.extraRooms[first.data.name]?.preBlocks?.forEach { (blockID, posList) ->
-                posList.forEach {
-                    mc.theWorld?.
-                    setBlockState(
-                        MapUtils.getRealPos(it, roomPair = this),
-                        second.let { it1 -> MapUtils.getStateFromIDWithRotation(Block.getStateById(blockID), rotation = it1) }
-                    )
+        if (PreBlocks.enabled) {
+            dungeonList.forEach { dungeonRoom ->
+                if (dungeonRoom !is Room) return@forEach
+                val room = if (Location.inBoss) MapUtils.getCurrentRoom() else dungeonRoom
+                if (room?.rotation == null) return@forEach
+                ExtrasConfig.extraRooms[room.data.name]?.preBlocks?.forEach { (blockID, posList) ->
+                    posList.forEach {
+                        mc.theWorld?.setBlockState(
+                            MapUtils.getRealPos(it, room),
+                            MapUtils.getStateFromIDWithRotation(Block.getStateById(blockID), rotation = room.rotation!!)
+                        )
+                    }
                 }
             }
         }
+    }
+
+    fun getMimicRoom(): Room? {
+        if (!Mapping.scanMimic.enabled || RunInformation.mimicFound || !Location.dungeonFloor.equalsOneOf(6,7)) return null
+        mc.theWorld.loadedTileEntityList.filter { it is TileEntityChest && it.chestType == 1 }
+            .groupingBy { MapUtils.getRoomFromPos(it.pos) }.eachCount().forEach { (room, trappedChests) ->
+            return uniqueRooms.find { it.first == room && room.data.trappedChests < trappedChests }?.first
+        }
+        return null
     }
 
     fun scan() {
@@ -69,8 +82,8 @@ object Dungeon {
         for (column in 0..10) {
             for (row in 0..10) {
                 // Translates the grid index into world position.
-                val xPos = startX + column * (roomSize shr 1)
-                val zPos = startZ + row * (roomSize shr 1)
+                val xPos = startX + column * (roomSize / 2)
+                val zPos = startZ + row * (roomSize / 2)
 
                 if (!mc.theWorld.getChunkFromChunkCoords(xPos shr 4, zPos shr 4).isLoaded) allChunksLoaded = false
 
@@ -97,26 +110,19 @@ object Dungeon {
                 Room(x, z, MapUtils.getRoomData(roomCore) ?: return null).apply {
                     core = roomCore
                     if (data.type == RoomType.FAIRY) fairyPos = Pair(x,z)
-                        mc.theWorld?.loadedTileEntityList?.filter { it is TileEntityChest && it.chestType == 1 }?.groupingBy {
-                            MapUtils.getRoomFromPos(it.pos)
-                        }?.eachCount()?.forEach { (room, trappedChests) ->
-                            hasMimic = this == room && data.trappedChests < trappedChests
-                        }
-                    if (Mapping.scanMimic.enabled && !RunInformation.mimicFound && Location.dungeonFloor.equalsOneOf(6, 7) && hasMimic) RunInformation.mimicFound = true
+
                     // Checks if a room with the same name has already been scanned.
                     val duplicateRoom = uniqueRooms.firstOrNull { it.first.data.name == data.name }
-                    if (duplicateRoom == null) uniqueRooms.add(this to (column to row))
-                    else if (x < duplicateRoom.first.x || (x == duplicateRoom.first.x && z < duplicateRoom.first.z)) {
+                    if (duplicateRoom == null) {
+                        uniqueRooms.add(this to (column to row))
+                    } else if (x < duplicateRoom.first.x || (x == duplicateRoom.first.x && z < duplicateRoom.first.z)) {
                         uniqueRooms.remove(duplicateRoom)
                         uniqueRooms.add(this to (column to row))
                     }
-                    MapUpdate.getRotation(this)
                 }
             }
             // Can only be the center "block" of a 2x2 room.
-            !rowEven && !columnEven -> dungeonList[column - 1 + (row - 1) * 11]?.apply {
-                if (this is Room) Room(x, z, data)
-            }
+            !rowEven && !columnEven -> dungeonList[column - 1 + (row - 1) * 11]?.apply { if (this is Room) Room(x, z, data) }
 
             // Doorway between rooms
             // Old trap has a single block at 82 / New also does unfortunately
@@ -142,7 +148,7 @@ object Dungeon {
         if (!Mapping.highlightMimic.enabled || !Location.inDungeons) return
         val roomie = dungeonList.filterIsInstance<Room>().find { it.hasMimic }
         mc.theWorld.loadedTileEntityList.filter { it is TileEntityChest && it.chestType == 1 && MapUtils.getRoomFromPos(it.pos) == roomie }.forEach {
-            if (roomie == EditMode.getCurrentRoomPair()?.first) RenderUtil.drawBlockBox(it.pos, Color.blue, outline = true, fill = false, esp = true)
+            if (roomie == MapUtils.getCurrentRoom()) RenderUtil.drawBlockBox(it.pos, Color.blue, outline = true, fill = false, esp = true)
         }
     }
 
@@ -153,6 +159,5 @@ object Dungeon {
         dungeonTeammates.clear()
         hasScanned = false
         RunInformation.reset()
-        MapUpdate.rooms.clear()
     }
 }

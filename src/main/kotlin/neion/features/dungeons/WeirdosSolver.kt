@@ -4,6 +4,7 @@ import neion.ui.clickgui.Category
 import neion.ui.clickgui.Module
 import neion.ui.clickgui.settings.BooleanSetting
 import neion.utils.Location.inDungeons
+import neion.utils.MapUtils
 import neion.utils.RenderUtil
 import neion.utils.TextUtils.containsAny
 import net.minecraft.entity.Entity
@@ -61,7 +62,7 @@ object WeirdosSolver: Module("Weirdos Solver", category = Category.DUNGEON) {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
     fun onChat(event: ClientChatReceivedEvent) {
-        if (!inDungeons || event.type == 2.toByte() || EditMode.getCurrentRoomPair()?.first?.data?.name != "Three Weirdos") return
+        if (!inDungeons || event.type == 2.toByte() || MapUtils.getCurrentRoom()?.data?.name != "Three Weirdos") return
         val formatted = event.message.formattedText ?: return
         if (formatted.startsWith("§e[NPC] ")) {
             val loadedEntities = mc.theWorld.loadedEntityList ?: return
@@ -78,7 +79,7 @@ object WeirdosSolver: Module("Weirdos Solver", category = Category.DUNGEON) {
 
     @SubscribeEvent
     fun onWorld(e: RenderWorldLastEvent) {
-        if (!inDungeons || EditMode.getCurrentRoomPair()?.first?.data?.name != "Three Weirdos") return
+        if (!inDungeons || MapUtils.getCurrentRoom()?.data?.name != "Three Weirdos") return
         riddleChest?.let {
             RenderUtil.drawBlockBox(it, Color.GREEN, outline = false, fill = true, esp = false)
             if (!autoWeirdos.enabled) return

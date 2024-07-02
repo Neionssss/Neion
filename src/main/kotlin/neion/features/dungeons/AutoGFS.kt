@@ -7,7 +7,6 @@ import neion.utils.Location.inDungeons
 import neion.utils.TextUtils
 import neion.utils.Utils.itemID
 import neion.utils.Utils.items
-import net.minecraft.init.Items
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
 
@@ -23,9 +22,8 @@ object AutoGFS: Module("Auto EnderPearl GFS", category = Category.DUNGEON, descr
 
     @SubscribeEvent
     fun onClientTick(e: ClientTickEvent) {
-        if (inDungeons) mc.thePlayer?.inventory?.items?.filter { it?.itemID == "ENDER_PEARL" }
-            ?.forEach {
-                if (System.currentTimeMillis() - lastGive < 5000 || it == null || it.stackSize > minEPAmount.value.toInt()) return
+        if (inDungeons) mc.thePlayer?.inventory?.items?.find { it?.itemID == "ENDER_PEARL" }?.let {
+                if (System.currentTimeMillis() - lastGive < 5000 || it.stackSize > minEPAmount.value.toInt()) return
                 TextUtils.sendCommand("gfs ender_pearl ${16 - it.stackSize}")
                 lastGive = System.currentTimeMillis()
             }

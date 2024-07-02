@@ -43,6 +43,10 @@ object MapCommands : BaseCommand("nmap", listOf("nm")) {
             }
 
             // Copies room data or room core to clipboard
+            "core" -> {
+                val (x, z) = MapUtils.getRoomCentre(mc.thePlayer.posX.toInt(), mc.thePlayer.posZ.toInt())
+                GuiScreen.setClipboardString(MapUtils.getCore(x, z).toString())
+            }
             "roomdata" -> {
                 val (x, z) = MapUtils.getRoomCentre(mc.thePlayer.posX.toInt(), mc.thePlayer.posZ.toInt())
                 val core = MapUtils.getCore(x, z)

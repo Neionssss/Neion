@@ -4,7 +4,6 @@ import neion.ui.clickgui.Category
 import neion.ui.clickgui.Module
 import neion.utils.Location
 import neion.utils.RenderUtil
-import net.minecraft.client.entity.EntityOtherPlayerMP
 import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.util.BlockPos
 import net.minecraftforge.client.event.RenderWorldLastEvent
@@ -26,7 +25,7 @@ object LividSolver: Module("Livid Solver", category = Category.DUNGEON) {
     @SubscribeEvent
     fun onRenderWorld(e: RenderWorldLastEvent) {
         if (rightLivid == null || !Location.inBoss || Location.dungeonFloor != 5) return
-        val lividToHighlight = mc.theWorld?.loadedEntityList?.filterIsInstance<EntityArmorStand>()?.find { it.displayName.formattedText.contains(rightLivid!!.chatColor) && it.displayName.unformattedText.contains("Livid") } ?: return
+        val lividToHighlight = mc.theWorld?.loadedEntityList?.filterIsInstance<EntityArmorStand>()?.firstOrNull { it.displayName?.formattedText?.contains(rightLivid!!.chatColor) == true && it.displayName?.unformattedText?.contains("Livid") == true } ?: return
         RenderUtil.drawBlockBox(BlockPos(lividToHighlight.posX,lividToHighlight.posY - 1, lividToHighlight.posZ), rightLivid!!.color, esp = true, fill = false, outline = true)
     }
 

@@ -1,5 +1,6 @@
 package neion.funnymap.map
 
+import neion.funnymap.Dungeon
 import neion.funnymap.RunInformation
 import neion.ui.Colors
 import java.awt.Color
@@ -16,7 +17,7 @@ abstract class Tile(val x: Int, val z: Int) {
                 RoomType.PUZZLE -> Colors.puzzleRoom.value
                 RoomType.RARE -> Colors.rareRoom.value
                 RoomType.TRAP -> Colors.trapRoom.value
-                else -> if (hasMimic && !RunInformation.mimicKilled) Colors.mimicRoom.value else Colors.normalRoom.value
+                else -> if (Dungeon.getMimicRoom() == this && !RunInformation.mimicKilled) Colors.mimicRoom.value else Colors.normalRoom.value
             }
 
             is Door -> when (type) {

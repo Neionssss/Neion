@@ -6,13 +6,11 @@ package neion.features.dungeons
 
 import neion.Neion.Companion.mc
 import neion.events.ClickEvent
-import neion.funnymap.Dungeon
-import neion.funnymap.MapUpdate
 import neion.funnymap.map.Room
-import neion.funnymap.map.RoomType
 import neion.ui.clickgui.Category
 import neion.ui.clickgui.Module
 import neion.utils.ExtrasConfig
+import neion.utils.MapUtils.getCurrentRoom
 import neion.utils.MapUtils.getRelativePos
 import neion.utils.MapUtils.getStateFromIDWithRotation
 import neion.utils.TextUtils
@@ -31,18 +29,13 @@ object EditMode {
 
     private fun getOrPutBlocks(room: Room) = ExtrasConfig.extraRooms.getOrPut(room.data.name) { ExtrasConfig.ExtrasData(room.core) }
 
-    fun getCurrentRoomPair(): Pair<Room, Int>? {
-        val room = Dungeon.dungeonTeammates[mc.thePlayer.name]?.run { getCurrentRoom() } ?: return null
-        return if (room.data.type == RoomType.BOSS) Pair(room,0) else MapUpdate.rooms.entries.find { it.key.data.name == room.data.name }?.toPair()
-    }
-
     @SubscribeEvent
     fun onLeftClick(e: ClickEvent.LeftClickEvent) {
         if (!enabled || mc.objectMouseOver?.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return
         var removedBlock = false
-        val roomPair = getCurrentRoomPair() ?: return
-        getOrPutBlocks(roomPair.first).preBlocks.run {
-            val relativeCoords = getRelativePos(mc.objectMouseOver.blockPos, roomPair)
+        val room = getCurrentRoom() ?: return
+        getOrPutBlocks(room).preBlocks.run {
+            val relativeCoords = getRelativePos(mc.objectMouseOver.blockPos, room)
             forEach { (blockID, _) -> if (get(blockID)?.remove(relativeCoords)!!) removedBlock = true }
             // https://i.imgur.com/KJbIYb1.png
             // https://i.imgur.com/Y2Tpev9.png
@@ -64,14 +57,15 @@ object EditMode {
     @SubscribeEvent
     fun onRightClick(e: ClickEvent.RightClickEvent) {
         if (!enabled || mc.objectMouseOver?.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return
-        val roomPair = getCurrentRoomPair() ?: return
-        val relativeCoords = getRelativePos(mc.objectMouseOver.blockPos.add(mc.objectMouseOver.sideHit.directionVec), roomPair)
+        val room = getCurrentRoom() ?: return
+        val relativeCoords =
+            getRelativePos(mc.objectMouseOver.blockPos.add(mc.objectMouseOver.sideHit.directionVec), room)
         var blockstate = adjustBlockState(relativeCoords, currentBlockID)
         e.isCanceled = true
-        getOrPutBlocks(roomPair.first).run {
+        getOrPutBlocks(room).run {
             if (preBlocks[0]?.remove(relativeCoords) != true) {
                 mc.theWorld.setBlockState(relativeCoords, blockstate)
-                blockstate = getStateFromIDWithRotation(blockstate, -roomPair.second)
+                blockstate = getStateFromIDWithRotation(blockstate, -room.rotation!!)
                 preBlocks.getOrPut(Block.getStateId(blockstate)) { mutableSetOf() }.add(relativeCoords)
             }
         }

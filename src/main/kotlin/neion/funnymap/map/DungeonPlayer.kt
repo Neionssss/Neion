@@ -1,9 +1,5 @@
 package neion.funnymap.map
 
-import neion.funnymap.Dungeon
-import neion.funnymap.MapUpdate
-import neion.utils.Location
-import neion.utils.MapUtils
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EnumPlayerModelParts
 import net.minecraft.util.ResourceLocation
@@ -24,12 +20,5 @@ data class DungeonPlayer(val skin: ResourceLocation) {
     /** Set player data that requires entity to be loaded */
     fun setData(player: EntityPlayer) {
         renderHat = player.isWearing(EnumPlayerModelParts.HAT) == true
-    }
-
-    fun getCurrentRoom(): Room? {
-        val x = (mapX - MapUtils.startCorner.first) / (MapUtils.mapRoomSize + 4)
-        val z = (mapZ - MapUtils.startCorner.second) / (MapUtils.mapRoomSize + 4)
-        return if (dead) null else
-        if (Location.inBoss) Room(0,0, RoomData("Boss ${Location.dungeonFloor}", RoomType.BOSS)) else Dungeon.dungeonList.getOrNull(x * 2 + z * 22) as? Room
     }
 }

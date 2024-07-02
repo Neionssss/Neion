@@ -21,6 +21,7 @@ import net.minecraft.item.Item
 import net.minecraftforge.event.entity.player.ItemTooltipEvent
 import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import org.lwjgl.input.Mouse
 import java.awt.Color
 
 object TerminalSolvers: Module("Terminal Solvers", category = Category.DUNGEON) {
@@ -129,7 +130,7 @@ object TerminalSolvers: Module("Terminal Solvers", category = Category.DUNGEON) 
             }
 
             Terminal.CORRECTPANES -> if (terminalHelper.enabled) {
-                val minePanes = e.container.inventorySlots.filter { it.stack.displayName.contains("Off") }
+                val minePanes = e.container.inventorySlots?.filter { it.stack?.displayName?.contains("Off") == true } ?: return
                 if (slot !in minePanes) e.isCanceled = true
                 if (minePanes.isNotEmpty()) {
                     minePanes.last().xDisplayPosition = 0
@@ -155,8 +156,8 @@ object TerminalSolvers: Module("Terminal Solvers", category = Category.DUNGEON) 
         }
         val firstSlot = invSlots[slotOrder[neededClick] ?: return]
         if (terminalHelper.enabled) {
-            firstSlot.xDisplayPosition = 0
-            firstSlot.yDisplayPosition = 0
+            firstSlot.xDisplayPosition = e.mouseX
+            firstSlot.yDisplayPosition = e.mouseY
         }
         firstSlot highlight firstColor.value
         invSlots[slotOrder[neededClick + 1] ?: return] highlight secondColor.value

@@ -89,7 +89,7 @@ object Mapping: Module("Map", category = Category.MAP) {
 
     val mapEnabled = BooleanSetting("Map Enabled", enabled = true)
     val hideInBoss = BooleanSetting("Hide in Boss")
-    val scanMimic = BooleanSetting("Scan Mimic")
+    val scanMimic = BooleanSetting("Scan Mimic", enabled = true)
     val highlightMimic = BooleanSetting("Highlight Mimic", description = "Draws a box at mimic chest when you're in the same room")
     val darkenUndiscovered = BooleanSetting("Darken Rooms", description = "Darken Undiscovered Rooms", enabled = true)
     val darkenMultiplier = NumberSetting("Darken Multiplier", default = 0.4, min = 0.1, max = 1.0, increment = 0.1)

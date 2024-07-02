@@ -40,7 +40,7 @@ object RunInformation {
     var mimicKilled = false
     private var completedRooms = 0
     val completedRoomsPercentage
-        get() = (completedRooms + (if (!Location.inBoss) 1 else 0) + (if (!bloodDone) 1 else 0)) / (if (totalRooms == 0) 36 else totalRooms).toFloat()
+        get() = (completedRooms + (if (!bloodDone) 1 else 0) + (if (!Location.inBoss) 1 else 0)) / (if (totalRooms == 0) 36 else totalRooms).toFloat()
     private val totalRooms: Int
         get() = (completedRooms / (clearedPercentage + 0.0001f) + 0.4).toInt()
     private var clearedPercentage = 0f
@@ -50,7 +50,7 @@ object RunInformation {
     var bloodDone = false
     var started = false
     var mimicFound = false
-    var firstDeath = false
+    private var firstDeath = false
     var firstDeathSpirit = false
 
     private val keyGainRegex = listOf(
@@ -188,10 +188,9 @@ object RunInformation {
                 started = true
                 MapUpdate.getPlayers()
             }
-
             "[BOSS] The Watcher: You have proven yourself. You may pass." -> bloodDone = true
         }
-        if (!firstDeath && deathCount != 0 && !started && text.matches(Regex("^ ☠ (\\w{1,16}) (.+) and became a ghost\\.$"))) {
+        if (!firstDeath && deathCount != 0 && started && text.matches(Regex("^ ☠ (\\w{1,16}) (.+) and became a ghost\\.$"))) {
             firstDeath = true
             firstDeathSpirit = Dungeon.dungeonTeammates.entries.find { text.contains(it.key) }?.value?.hasSpirit!!
             if (firstDeathSpirit) TextUtils.info("Had Spirit Pet ")

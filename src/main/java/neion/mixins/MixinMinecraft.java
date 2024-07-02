@@ -47,4 +47,5 @@ abstract class MixinMinecraft {
     public void mouseKeyPresses(CallbackInfo ci) {
         if (Mouse.getEventButtonState()) new PreMouseInputEvent(Mouse.getEventButton()).postAndCatch();
     }
+
 }
