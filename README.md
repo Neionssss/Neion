@@ -1,5 +1,7 @@
 # Neion
 Skyblock modification
+Modification is in very alpha beta gamma development. Most of the code here is *stolen* from sources which are credited at bottom of README file. 
+If you want to report some issues or wish to help me learn programming, do a pull request or DM Neionssss on discord. 
 
 ----------------------------------------------------------------------
 __Extras Guide__
@@ -23,5 +25,9 @@ __Credits__
 [Skyblock-Client](https://github.com/Harry282/Skyblock-Client) and [Skytils](https://github.com/Skytils/SkytilsMod) for most of the Utilities
 
 [FunnyMap](https://github.com/Harry282/FunnyMap) for Map inside, which was required for Extras
+
+[Aton](https://github.com/FloppaCoding) for Extras Utils and a UI 
+
+And of course thanks [Bloom](https://github.com/UnclaimedBloom6) for Blaze Solver, some utils, and existing ig?
 
 
