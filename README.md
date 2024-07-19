@@ -1,6 +1,6 @@
 # Neion
 
-_BANNABLE - USE AT OWN RISK_
+_Modification violates Hypixel Rules - USE AT OWN RISK_
 
 Modification is in very alpha beta gamma development. Most of the code here is *stolen* from sources which are credited at bottom of README file. 
 If you want to report some issues or wish to help me learn programming, do a pull request or DM Neionssss on discord. 
