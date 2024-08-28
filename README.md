@@ -13,7 +13,7 @@ If you're very new to Skyblock/Cheating or just cba to set blocks yourself, you 
 
 ###### Otherwise {  
 
-Next, as you enter than dungeon, use command /em (/editmode) to enter/leave the Edit Mode
+Next, as you enter the dungeon, use command /em (/editmode) to enter/leave the Edit Mode
 
 While in edit mode:  
 Your left click will set the block to air  
